@@ -1,0 +1,24 @@
+{
+  "originHash" : "71a745f220502c6930ec69d14bf97cf21c86042af8279d394554eb84637bbf3c",
+  "pins" : [
+    {
+      "identity" : "grdb.swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/groue/GRDB.swift",
+      "state" : {
+        "revision" : "b83108d10f42680d78f23fe4d4d80fc88dab3212",
+        "version" : "7.11.1"
+      }
+    },
+    {
+      "identity" : "xcuitestkit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/RISCfuture/XCUITestKit",
+      "state" : {
+        "branch" : "main",
+        "revision" : "57b98f7e96f0034004e280d920ebff7e21c35488"
+      }
+    }
+  ],
+  "version" : 3
+}

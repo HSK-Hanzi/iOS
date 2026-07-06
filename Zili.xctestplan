@@ -1,0 +1,35 @@
+{
+  "configurations" : [
+    {
+      "id" : "A1B2C3D4-0000-4000-8000-000000000001",
+      "name" : "Debug",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "targetForVariableExpansion" : {
+      "containerPath" : "container:Zili.xcodeproj",
+      "identifier" : "01DD75D92FFBE56F000CA793",
+      "name" : "Zili"
+    }
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:Zili.xcodeproj",
+        "identifier" : "01DD75EA2FFBE570000CA793",
+        "name" : "ZiliTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Zili.xcodeproj",
+        "identifier" : "01DD75F42FFBE570000CA793",
+        "name" : "ZiliUITests"
+      }
+    }
+  ],
+  "version" : 1
+}

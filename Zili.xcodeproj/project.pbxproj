@@ -1,0 +1,709 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		01DD76E62FFCB321000CA793 /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = 01DD76E52FFCB321000CA793 /* GRDB */; };
+		A11CE5701000000000000003 /* XCUITestKit in Frameworks */ = {isa = PBXBuildFile; productRef = A11CE5701000000000000002 /* XCUITestKit */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		01DD75EC2FFBE570000CA793 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 01DD75D22FFBE56F000CA793 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 01DD75D92FFBE56F000CA793;
+			remoteInfo = Zili;
+		};
+		01DD75F62FFBE570000CA793 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 01DD75D22FFBE56F000CA793 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 01DD75D92FFBE56F000CA793;
+			remoteInfo = Zili;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		01DD75DA2FFBE56F000CA793 /* Zili.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Zili.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		01DD75EB2FFBE570000CA793 /* ZiliTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ZiliTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		01DD75F52FFBE570000CA793 /* ZiliUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ZiliUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		01DD75FD2FFBE570000CA793 /* Exceptions for "Zili" folder in "Zili" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 01DD75D92FFBE56F000CA793 /* Zili */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		01DD75DC2FFBE56F000CA793 /* Zili */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				01DD75FD2FFBE570000CA793 /* Exceptions for "Zili" folder in "Zili" target */,
+			);
+			path = Zili;
+			sourceTree = "<group>";
+		};
+		01DD75EE2FFBE570000CA793 /* ZiliTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = ZiliTests;
+			sourceTree = "<group>";
+		};
+		01DD75F82FFBE570000CA793 /* ZiliUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = ZiliUITests;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		01DD75D72FFBE56F000CA793 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				01DD76E62FFCB321000CA793 /* GRDB in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		01DD75E82FFBE570000CA793 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		01DD75F22FFBE570000CA793 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A11CE5701000000000000003 /* XCUITestKit in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		01DD75D12FFBE56F000CA793 = {
+			isa = PBXGroup;
+			children = (
+				01DD75DC2FFBE56F000CA793 /* Zili */,
+				01DD75EE2FFBE570000CA793 /* ZiliTests */,
+				01DD75F82FFBE570000CA793 /* ZiliUITests */,
+				01DD75DB2FFBE56F000CA793 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		01DD75DB2FFBE56F000CA793 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				01DD75DA2FFBE56F000CA793 /* Zili.app */,
+				01DD75EB2FFBE570000CA793 /* ZiliTests.xctest */,
+				01DD75F52FFBE570000CA793 /* ZiliUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		01DD75D92FFBE56F000CA793 /* Zili */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 01DD75FE2FFBE570000CA793 /* Build configuration list for PBXNativeTarget "Zili" */;
+			buildPhases = (
+				01DD75D62FFBE56F000CA793 /* Sources */,
+				01DD75D72FFBE56F000CA793 /* Frameworks */,
+				01DD75D82FFBE56F000CA793 /* Resources */,
+				4077CCF52F6490507C3BCBAF /* Copy Data Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				01DD75DC2FFBE56F000CA793 /* Zili */,
+			);
+			name = Zili;
+			productName = Zili;
+			productReference = 01DD75DA2FFBE56F000CA793 /* Zili.app */;
+			productType = "com.apple.product-type.application";
+		};
+		01DD75EA2FFBE570000CA793 /* ZiliTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 01DD76032FFBE570000CA793 /* Build configuration list for PBXNativeTarget "ZiliTests" */;
+			buildPhases = (
+				01DD75E72FFBE570000CA793 /* Sources */,
+				01DD75E82FFBE570000CA793 /* Frameworks */,
+				01DD75E92FFBE570000CA793 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				01DD75ED2FFBE570000CA793 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				01DD75EE2FFBE570000CA793 /* ZiliTests */,
+			);
+			name = ZiliTests;
+			productName = ZiliTests;
+			productReference = 01DD75EB2FFBE570000CA793 /* ZiliTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		01DD75F42FFBE570000CA793 /* ZiliUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 01DD76062FFBE570000CA793 /* Build configuration list for PBXNativeTarget "ZiliUITests" */;
+			buildPhases = (
+				01DD75F12FFBE570000CA793 /* Sources */,
+				01DD75F22FFBE570000CA793 /* Frameworks */,
+				01DD75F32FFBE570000CA793 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				01DD75F72FFBE570000CA793 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				01DD75F82FFBE570000CA793 /* ZiliUITests */,
+			);
+			name = ZiliUITests;
+			packageProductDependencies = (
+				A11CE5701000000000000002 /* XCUITestKit */,
+			);
+			productName = ZiliUITests;
+			productReference = 01DD75F52FFBE570000CA793 /* ZiliUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		01DD75D22FFBE56F000CA793 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2660;
+				LastUpgradeCheck = 2660;
+				TargetAttributes = {
+					01DD75D92FFBE56F000CA793 = {
+						CreatedOnToolsVersion = 26.6;
+					};
+					01DD75EA2FFBE570000CA793 = {
+						CreatedOnToolsVersion = 26.6;
+						TestTargetID = 01DD75D92FFBE56F000CA793;
+					};
+					01DD75F42FFBE570000CA793 = {
+						CreatedOnToolsVersion = 26.6;
+						TestTargetID = 01DD75D92FFBE56F000CA793;
+					};
+				};
+			};
+			buildConfigurationList = 01DD75D52FFBE56F000CA793 /* Build configuration list for PBXProject "Zili" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 01DD75D12FFBE56F000CA793;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				01DD76E42FFCB321000CA793 /* XCRemoteSwiftPackageReference "GRDB" */,
+				A11CE5701000000000000001 /* XCRemoteSwiftPackageReference "XCUITestKit" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 01DD75DB2FFBE56F000CA793 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				01DD75D92FFBE56F000CA793 /* Zili */,
+				01DD75EA2FFBE570000CA793 /* ZiliTests */,
+				01DD75F42FFBE570000CA793 /* ZiliUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		01DD75D82FFBE56F000CA793 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		01DD75E92FFBE570000CA793 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		01DD75F32FFBE570000CA793 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		4077CCF52F6490507C3BCBAF /* Copy Data Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Copy Data Resources";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "set -eu\n# Bundles the app's data from the non-synchronized Data/ tree. Word dictionaries, word frequency,\n# stroke order, and character data are converted to prebuilt SQLite databases (generated once,\n# cached by timestamp) so the app queries them on disk; the HSK syllabus stays a plist. Open data\n# is always included; licensed dictionaries only when INCLUDE_LICENSED_DICTIONARIES is set (Debug).\nDEST=\"${BUILT_PRODUCTS_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}\"\nGEN=\"${SRCROOT}/Tools/generate_db.py\"\nOPEN=\"${SRCROOT}/Data/open\"\nLICENSED=\"${SRCROOT}/Data/licensed\"\nFREQUENCY_PLIST=\"${OPEN}/SUBTLEX-CH-Words.plist\"\nREADINGS_PLIST=\"${OPEN}/CharacterReadings.plist\"\nmkdir -p \"${DEST}\"\n\n# outdated <dest> <src...> — true when dest is missing or older than the generator or any source.\noutdated() {\n  dest=\"$1\"\n  shift\n  [ -e \"${dest}\" ] || return 0\n  [ \"${GEN}\" -nt \"${dest}\" ] && return 0\n  for src in \"$@\"; do\n    [ \"${src}\" -nt \"${dest}\" ] && return 0\n  done\n  return 1\n}\n\n# copy_plist <src> — bundles a plist as-is (like the HSK syllabus and the sentence corpora),\n# refreshing the copy only when the source is newer. A missing source is skipped, not an error.\ncopy_plist() {\n  src=\"$1\"\n  name=\"$(basename \"${src}\")\"\n  [ -e \"${src}\" ] || return 0\n  if [ ! -e \"${DEST}/${name}\" ] || [ \"${src}\" -nt \"${DEST}/${name}\" ]; then\n    cp -f \"${src}\" \"${DEST}/${name}\"\n    echo \"note: bundled data ${name}\"\n  fi\n}\n\n# Word frequency ranks are folded into every dictionary, so dictionaries depend on the frequency\n# plist as well as their own source.\ngen_dictionary() {\n  base=\"$(basename \"$1\" .plist)\"\n  out=\"${DEST}/${base}.sqlite\"\n  if outdated \"${out}\" \"$1\" \"${FREQUENCY_PLIST}\" \"${READINGS_PLIST}\"; then\n    /usr/bin/env python3 \"${GEN}\" dictionary \"$1\" \"${out}\" --frequency \"${FREQUENCY_PLIST}\" --readings \"${READINGS_PLIST}\"\n    rm -f \"${DEST}/${base}.plist\"\n    echo \"note: generated ${base}.sqlite\"\n  fi\n}\n\ngen_dictionary \"${OPEN}/CEDICT.plist\"\n\nout=\"${DEST}/SUBTLEX-CH-Words.sqlite\"\nif outdated \"${out}\" \"${FREQUENCY_PLIST}\"; then\n  /usr/bin/env python3 \"${GEN}\" frequency \"${FREQUENCY_PLIST}\" \"${out}\"\n  rm -f \"${DEST}/SUBTLEX-CH-Words.plist\"\n  echo \"note: generated SUBTLEX-CH-Words.sqlite\"\nfi\n\nout=\"${DEST}/HanziStrokeOrder.sqlite\"\nif outdated \"${out}\" \"${OPEN}/HanziStrokeOrder.plist\"; then\n  /usr/bin/env python3 \"${GEN}\" strokes \"${OPEN}/HanziStrokeOrder.plist\" \"${out}\"\n  rm -f \"${DEST}/HanziStrokeOrder.plist\"\n  echo \"note: generated HanziStrokeOrder.sqlite\"\nfi\n\nout=\"${DEST}/Characters.sqlite\"\nif outdated \"${out}\" \"${OPEN}/CharacterReadings.plist\" \"${OPEN}/CharacterEtymology.plist\" \"${OPEN}/CharacterFrequency.plist\"; then\n  /usr/bin/env python3 \"${GEN}\" characters \\\n    \"${OPEN}/CharacterReadings.plist\" \"${OPEN}/CharacterEtymology.plist\" \\\n    \"${OPEN}/CharacterFrequency.plist\" \"${out}\"\n  rm -f \"${DEST}/CharacterReadings.plist\" \"${DEST}/CharacterEtymology.plist\" \\\n    \"${DEST}/CharacterFrequency.plist\"\n  echo \"note: generated Characters.sqlite\"\nfi\n\ncopy_plist \"${OPEN}/HSKVocabulary.plist\"\ncopy_plist \"${OPEN}/PracticeSentences.plist\"\n\ncase \" ${SWIFT_ACTIVE_COMPILATION_CONDITIONS:-} \" in\n  *\" INCLUDE_LICENSED_DICTIONARIES \"*)\n    copy_plist \"${LICENSED}/HSKSentences.plist\"\n    for f in \"${LICENSED}\"/*.plist; do\n      [ -e \"${f}\" ] || continue\n      [ \"$(basename \"${f}\")\" = \"HSKSentences.plist\" ] && continue\n      gen_dictionary \"${f}\"\n    done\n    ;;\nesac\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		01DD75D62FFBE56F000CA793 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		01DD75E72FFBE570000CA793 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		01DD75F12FFBE570000CA793 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		01DD75ED2FFBE570000CA793 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 01DD75D92FFBE56F000CA793 /* Zili */;
+			targetProxy = 01DD75EC2FFBE570000CA793 /* PBXContainerItemProxy */;
+		};
+		01DD75F72FFBE570000CA793 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 01DD75D92FFBE56F000CA793 /* Zili */;
+			targetProxy = 01DD75F62FFBE570000CA793 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		01DD75FF2FFBE570000CA793 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Zili/Zili.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 2NFSK2WB24;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Zili/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.education";
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 26.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = codes.tim.Zili;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				REGISTER_APP_GROUPS = YES;
+				SDKROOT = auto;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "INCLUDE_LICENSED_DICTIONARIES $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				XROS_DEPLOYMENT_TARGET = 26.5;
+			};
+			name = Debug;
+		};
+		01DD76002FFBE570000CA793 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Zili/Zili.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 2NFSK2WB24;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Zili/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.education";
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 26.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = codes.tim.Zili;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				REGISTER_APP_GROUPS = YES;
+				SDKROOT = auto;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				XROS_DEPLOYMENT_TARGET = 26.5;
+			};
+			name = Release;
+		};
+		01DD76012FFBE570000CA793 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 2NFSK2WB24;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		01DD76022FFBE570000CA793 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 2NFSK2WB24;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		01DD76042FFBE570000CA793 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 2NFSK2WB24;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				MACOSX_DEPLOYMENT_TARGET = 26.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = codes.tim.ZiliTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Zili.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Zili";
+				XROS_DEPLOYMENT_TARGET = 26.5;
+			};
+			name = Debug;
+		};
+		01DD76052FFBE570000CA793 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 2NFSK2WB24;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				MACOSX_DEPLOYMENT_TARGET = 26.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = codes.tim.ZiliTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Zili.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Zili";
+				XROS_DEPLOYMENT_TARGET = 26.5;
+			};
+			name = Release;
+		};
+		01DD76072FFBE570000CA793 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 2NFSK2WB24;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				MACOSX_DEPLOYMENT_TARGET = 26.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = codes.tim.ZiliUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_TARGET_NAME = Zili;
+				XROS_DEPLOYMENT_TARGET = 26.5;
+			};
+			name = Debug;
+		};
+		01DD76082FFBE570000CA793 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 2NFSK2WB24;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				MACOSX_DEPLOYMENT_TARGET = 26.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = codes.tim.ZiliUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_TARGET_NAME = Zili;
+				XROS_DEPLOYMENT_TARGET = 26.5;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		01DD75D52FFBE56F000CA793 /* Build configuration list for PBXProject "Zili" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				01DD76012FFBE570000CA793 /* Debug */,
+				01DD76022FFBE570000CA793 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		01DD75FE2FFBE570000CA793 /* Build configuration list for PBXNativeTarget "Zili" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				01DD75FF2FFBE570000CA793 /* Debug */,
+				01DD76002FFBE570000CA793 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		01DD76032FFBE570000CA793 /* Build configuration list for PBXNativeTarget "ZiliTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				01DD76042FFBE570000CA793 /* Debug */,
+				01DD76052FFBE570000CA793 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		01DD76062FFBE570000CA793 /* Build configuration list for PBXNativeTarget "ZiliUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				01DD76072FFBE570000CA793 /* Debug */,
+				01DD76082FFBE570000CA793 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		01DD76E42FFCB321000CA793 /* XCRemoteSwiftPackageReference "GRDB" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/groue/GRDB.swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 7.11.1;
+			};
+		};
+		A11CE5701000000000000001 /* XCRemoteSwiftPackageReference "XCUITestKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/RISCfuture/XCUITestKit";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		01DD76E52FFCB321000CA793 /* GRDB */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 01DD76E42FFCB321000CA793 /* XCRemoteSwiftPackageReference "GRDB" */;
+			productName = GRDB;
+		};
+		A11CE5701000000000000002 /* XCUITestKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A11CE5701000000000000001 /* XCRemoteSwiftPackageReference "XCUITestKit" */;
+			productName = XCUITestKit;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 01DD75D22FFBE56F000CA793 /* Project object */;
+}

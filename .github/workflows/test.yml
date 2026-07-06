@@ -1,0 +1,67 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Test on ${{ matrix.name }}
+    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: iOS
+            destination: platform=iOS Simulator,name=iPhone 17 Pro
+          - name: macOS
+            destination: platform=macOS
+    steps:
+      # The Data submodule is a private repo whose plists are stored in Git LFS; both the app's
+      # data-bundling build phase and the tests need it. Configure a read-only deploy key for
+      # HSK-Hanzi/Data as the DATA_SUBMODULE_KEY secret so the submodule can be cloned.
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+          lfs: true
+          ssh-key: ${{ secrets.DATA_SUBMODULE_KEY }}
+
+      - name: Select the newest installed Xcode
+        run: |
+          xcode_app="$(find /Applications -maxdepth 1 -name 'Xcode*.app' | sort -V | tail -1)"
+          sudo xcode-select -s "$xcode_app/Contents/Developer"
+          xcodebuild -version
+
+      - name: Boot the iOS simulator
+        if: matrix.name == 'iOS'
+        run: xcrun simctl boot "iPhone 17 Pro" || true
+
+      # XCUITEST_TIMEOUT_MULTIPLIER stretches XCUITestKit's waits so the slower CI hardware doesn't
+      # trip element lookups that pass locally. The Test action runs the Debug configuration, which
+      # is what bundles the licensed dictionaries the data-driven tests rely on.
+      - name: Run tests
+        env:
+          XCUITEST_TIMEOUT_MULTIPLIER: "3"
+        run: |
+          set -o pipefail
+          xcodebuild test \
+            -project Zili.xcodeproj \
+            -scheme Zili \
+            -testPlan Zili \
+            -destination "${{ matrix.destination }}" \
+            -resultBundlePath "TestResults-${{ matrix.name }}.xcresult"
+
+      - name: Upload test results
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.name }}
+          path: TestResults-${{ matrix.name }}.xcresult
+          if-no-files-found: ignore
