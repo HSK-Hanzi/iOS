@@ -1,0 +1,12 @@
+project: Zili.xcodeproj
+schemes:
+  - Zili
+retain_public: false
+retain_swift_ui_previews: true
+# The Codable data models mirror the bundled plists' schemas, so they decode fields the UI doesn't
+# read yet (etymologies, alternate readings, licence flags). Keep those decoded-but-unread stored
+# properties rather than dropping data fidelity from the models.
+retain_assign_only_properties: true
+report_exclude:
+  - "**/ZiliTests/**"
+  - "**/ZiliUITests/**"

@@ -1,0 +1,111 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: ${{ matrix.plan }} on ${{ matrix.platform.name }}
+    runs-on: macos-26
+    strategy:
+      fail-fast: false
+      matrix:
+        plan: ["Unit Tests", "UI Tests"]
+        platform:
+          - name: iPhone
+            destination: platform=iOS Simulator,name=iPhone 17 Pro
+            simulator: iPhone 17 Pro
+          - name: iPad
+            destination: platform=iOS Simulator,name=iPad Pro 13-inch (M5)
+            simulator: iPad Pro 13-inch (M5)
+          - name: macOS
+            destination: platform=macOS
+            # macOS enforces code signing to build and launch; the runner has no cert or profile.
+            # Ad-hoc sign instead, and drop the entitlements file (CODE_SIGN_ENTITLEMENTS=) — its
+            # CloudKit/APS entitlements would otherwise demand a provisioning profile. The tests don't
+            # need them: -uiTesting disables CloudKit. This only affects the throwaway CI build.
+            signing: >-
+              CODE_SIGN_IDENTITY=-
+              CODE_SIGNING_REQUIRED=NO
+              CODE_SIGNING_ALLOWED=YES
+              CODE_SIGN_STYLE=Manual
+              DEVELOPMENT_TEAM=
+              PROVISIONING_PROFILE_SPECIFIER=
+              CODE_SIGN_ENTITLEMENTS=
+    steps:
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+      # setup-swift xcode-selects the Xcode that can open the project's file format; keep it pinned to
+      # the same toolchain the lint and Periphery workflows use.
+      - uses: SwiftyLab/setup-swift@latest
+        with:
+          swift-version: "6.3"
+
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          submodules: false
+
+      # Only the open-licensed data is needed to build and test. Data/Open is public, so rewrite its
+      # SSH submodule URL to anonymous HTTPS and init just that submodule (pulling its Git LFS
+      # plists). Data/Proprietary stays absent — the build falls back to open-only data — so CI never
+      # needs a key and outside pull requests, which can't see secrets, still run.
+      - name: Check out the open data submodule
+        run: |
+          git config --global url."https://github.com/".insteadOf "git@github.com:"
+          git submodule update --init Data/Open
+          git -C Data/Open lfs pull
+
+      # SwiftData's @Model and @Observable macros can fail fingerprint validation on hosted runners;
+      # skipping it lets the build resolve the macro implementations.
+      - name: Enable macros
+        run: defaults write com.apple.dt.Xcode IDESkipMacroFingerprintValidation -bool YES
+
+      - name: Cache SwiftPM dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/Library/Developer/Xcode/DerivedData/**/SourcePackages/checkouts
+            ~/Library/Caches/org.swift.swiftpm
+          key: spm-${{ runner.os }}-${{ hashFiles('**/Package.resolved') }}
+          restore-keys: |
+            spm-${{ runner.os }}-
+
+      - name: Boot the simulator
+        if: matrix.platform.simulator
+        run: xcrun simctl boot "${{ matrix.platform.simulator }}" || true
+
+      # XCUITEST_TIMEOUT_MULTIPLIER stretches XCUITestKit's waits so the slower CI hardware doesn't
+      # trip element lookups that pass locally. The Test action runs the Debug configuration; with
+      # only the open data present the licensed dictionaries are skipped and the suite runs open-only.
+      - name: Run tests
+        env:
+          XCUITEST_TIMEOUT_MULTIPLIER: "3"
+          PLAN: ${{ matrix.plan }}
+          DESTINATION: ${{ matrix.platform.destination }}
+          NAME: ${{ matrix.platform.name }}
+        run: |
+          set -o pipefail
+          xcodebuild test \
+            -project Zili.xcodeproj \
+            -scheme Zili \
+            -testPlan "$PLAN" \
+            -destination "$DESTINATION" \
+            -resultBundlePath "TestResults-$PLAN-$NAME.xcresult" \
+            ${{ matrix.platform.signing }}
+
+      - name: Upload test results
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.plan }}-${{ matrix.platform.name }}
+          path: TestResults-${{ matrix.plan }}-${{ matrix.platform.name }}.xcresult
+          if-no-files-found: ignore

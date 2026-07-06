@@ -1,0 +1,33 @@
+{
+  "originHash" : "19a4d7c607939aa1f96d8c203d8525da62ef1f17a76669a2d818f8417536665f",
+  "pins" : [
+    {
+      "identity" : "grdb.swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/groue/GRDB.swift",
+      "state" : {
+        "revision" : "b83108d10f42680d78f23fe4d4d80fc88dab3212",
+        "version" : "7.11.1"
+      }
+    },
+    {
+      "identity" : "sentry-cocoa",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/getsentry/sentry-cocoa/",
+      "state" : {
+        "revision" : "53eb9bd5da18e208cfd80e86863d3f4c7ba21b1d",
+        "version" : "9.21.0"
+      }
+    },
+    {
+      "identity" : "xcuitestkit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/RISCfuture/XCUITestKit",
+      "state" : {
+        "branch" : "main",
+        "revision" : "57b98f7e96f0034004e280d920ebff7e21c35488"
+      }
+    }
+  ],
+  "version" : 3
+}

@@ -1,0 +1,26 @@
+.DS_Store
+**/xcuserdata/
+DerivedData/
+build/
+*.xcuserstate
+.swiftpm/
+
+# SwiftLint / swift-format
+.swiftlint/RemoteConfigCache
+.swift-format
+.claude/settings.local.json
+Tools/__pycache__/
+
+# Signing keys & secrets — never commit
+*.p8
+*.p12
+*.key
+
+# SwiftPM build products
+.build/
+
+# fastlane outputs
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/test_output/
+screenshots/

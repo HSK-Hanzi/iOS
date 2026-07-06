@@ -1,0 +1,7 @@
+[submodule "Data/Open"]
+	path = Data/Open
+	url = git@github.com:HSK-Hanzi/Data-Open.git
+[submodule "Data/Proprietary"]
+	path = Data/Proprietary
+	url = git@github.com:HSK-Hanzi/Data-Proprietary.git
+	update = none
