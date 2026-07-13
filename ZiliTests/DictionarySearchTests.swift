@@ -57,8 +57,8 @@ struct DictionarySearchTests {
     // 按 (àn), 案 (àn), 安 (ān), 暗 (àn) — every tone of the bare syllable, before longer words.
     let results = lexicon.searchHeadwords(matching: "an")
     let exact = try #require(results.firstIndex(of: "安"))
-    let compound = try #require(results.firstIndex(of: "安全"))
-    #expect(exact < compound)
+    let firstCompound = try #require(results.firstIndex { $0.count > 1 })
+    #expect(exact < firstCompound)
     #expect(results.prefix(6).contains("按"))
   }
 

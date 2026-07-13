@@ -93,13 +93,28 @@ struct Lexicon: Sendable {
     _ sources: [DictionarySource],
     from bundle: Bundle
   ) async throws -> [WordDictionary] {
-    try await withThrowingTaskGroup(of: (Int, WordDictionary).self) { group in
+    try await withThrowingTaskGroup(of: (Int, WordDictionary)?.self) { group in
       for (order, source) in sources.enumerated() {
-        group.addTask { (order, try await WordDictionary.load(source, from: bundle)) }
+        group.addTask { try await loadDictionary(source, order: order, from: bundle) }
       }
       var loaded = [(Int, WordDictionary)]()
-      for try await result in group { loaded.append(result) }
+      for try await result in group { if let result { loaded.append(result) } }
       return loaded.sorted { $0.0 < $1.0 }.map(\.1)
+    }
+  }
+
+  /// Loads one dictionary, tolerating an absent *licensed* source. Proprietary databases ship only
+  /// in Debug builds with the `Data/Proprietary` submodule checked out, so a missing one yields no
+  /// dictionary rather than failing the whole lexicon. A missing open source is still an error.
+  private static func loadDictionary(
+    _ source: DictionarySource,
+    order: Int,
+    from bundle: Bundle
+  ) async throws -> (Int, WordDictionary)? {
+    do {
+      return (order, try await WordDictionary.load(source, from: bundle))
+    } catch DictionaryLoadingError.resourceMissing where source.isLicensed {
+      return nil
     }
   }
 

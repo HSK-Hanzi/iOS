@@ -4,10 +4,10 @@
 Two corpora come out of one pass over the cleaned HSK sentences (see ``hsk_sentences``):
 
   - ``HSKSentences.plist`` — the **original** HSK sentences with generated numbered pinyin and an
-    English translation. Copyrighted; ships only in Debug builds (``Data/licensed/``).
+    English translation. Copyrighted; ships only in Debug builds (``Data/Proprietary/``).
   - ``PracticeSentences.plist`` — a **novel** sentence for each usable HSK sentence, written with
     vocabulary at or below that sentence's HSK level, plus its pinyin and translation. Original
-    content; always ships (``Data/open/``).
+    content; always ships (``Data/Open/``).
 
 Each HSK sentence is sent to Claude once (via the Batches API for the full run, or synchronously for
 a ``--limit`` pilot), which decides whether the input is a usable standalone sentence and, if so,

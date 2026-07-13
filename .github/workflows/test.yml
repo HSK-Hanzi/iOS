@@ -18,20 +18,29 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: iOS
+          - name: iPhone
             destination: platform=iOS Simulator,name=iPhone 17 Pro
+            simulator: iPhone 17 Pro
+          - name: iPad
+            destination: platform=iOS Simulator,name=iPad Pro 13-inch (M5)
+            simulator: iPad Pro 13-inch (M5)
           - name: macOS
             destination: platform=macOS
     steps:
-      # The Data submodule is a private repo whose plists are stored in Git LFS; both the app's
-      # data-bundling build phase and the tests need it. Configure a read-only deploy key for
-      # HSK-Hanzi/Data as the DATA_SUBMODULE_KEY secret so the submodule can be cloned.
       - name: Check out repository
         uses: actions/checkout@v6
         with:
-          submodules: recursive
-          lfs: true
-          ssh-key: ${{ secrets.DATA_SUBMODULE_KEY }}
+          submodules: false
+
+      # Only the open-licensed data is needed to build and test. Data/Open is public, so rewrite its
+      # SSH submodule URL to anonymous HTTPS and init just that submodule (pulling its Git LFS
+      # plists). Data/Proprietary stays absent — the build falls back to open-only data — so CI never
+      # needs a key and outside pull requests, which can't see secrets, still run.
+      - name: Check out the open data submodule
+        run: |
+          git config --global url."https://github.com/".insteadOf "git@github.com:"
+          git submodule update --init Data/Open
+          git -C Data/Open lfs pull
 
       - name: Select the newest installed Xcode
         run: |
@@ -39,13 +48,13 @@ jobs:
           sudo xcode-select -s "$xcode_app/Contents/Developer"
           xcodebuild -version
 
-      - name: Boot the iOS simulator
-        if: matrix.name == 'iOS'
-        run: xcrun simctl boot "iPhone 17 Pro" || true
+      - name: Boot the simulator
+        if: matrix.simulator
+        run: xcrun simctl boot "${{ matrix.simulator }}" || true
 
       # XCUITEST_TIMEOUT_MULTIPLIER stretches XCUITestKit's waits so the slower CI hardware doesn't
-      # trip element lookups that pass locally. The Test action runs the Debug configuration, which
-      # is what bundles the licensed dictionaries the data-driven tests rely on.
+      # trip element lookups that pass locally. The Test action runs the Debug configuration; with
+      # only the open data present the licensed dictionaries are skipped and the suite runs open-only.
       - name: Run tests
         env:
           XCUITEST_TIMEOUT_MULTIPLIER: "3"
