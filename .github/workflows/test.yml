@@ -26,6 +26,18 @@ jobs:
             simulator: iPad Pro 13-inch (M5)
           - name: macOS
             destination: platform=macOS
+            # macOS enforces code signing to build and launch; the runner has no cert or profile.
+            # Ad-hoc sign instead, and drop the entitlements file (CODE_SIGN_ENTITLEMENTS=) — its
+            # CloudKit/APS entitlements would otherwise demand a provisioning profile. The tests don't
+            # need them: -uiTesting disables CloudKit. This only affects the throwaway CI build.
+            signing: >-
+              CODE_SIGN_IDENTITY=-
+              CODE_SIGNING_REQUIRED=NO
+              CODE_SIGNING_ALLOWED=YES
+              CODE_SIGN_STYLE=Manual
+              DEVELOPMENT_TEAM=
+              PROVISIONING_PROFILE_SPECIFIER=
+              CODE_SIGN_ENTITLEMENTS=
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
@@ -65,7 +77,8 @@ jobs:
             -scheme Zili \
             -testPlan Zili \
             -destination "${{ matrix.destination }}" \
-            -resultBundlePath "TestResults-${{ matrix.name }}.xcresult"
+            -resultBundlePath "TestResults-${{ matrix.name }}.xcresult" \
+            ${{ matrix.signing }}
 
       - name: Upload test results
         if: ${{ !cancelled() }}
