@@ -103,7 +103,7 @@ private struct DrawingRoundView: View {
     }
     .padding(20)
     .frame(maxWidth: .infinity, maxHeight: .infinity)
-    .background { QuizStyle.promptGradient.ignoresSafeArea() }
+    .quizAmbientBackground(QuizStyle.promptGradient)
     .animation(.smooth, value: phase)
   }
 
@@ -137,11 +137,11 @@ private struct CharacterPrompt: View {
       Text(card.hanzi)
         .font(.system(size: hanziSize, weight: .medium))
         .minimumScaleFactor(0.4)
-        .foregroundStyle(.white)
+        .foregroundStyle(QuizStyle.chromeLabel)
       if !card.reading.isEmpty {
         Text(card.reading)
           .font(.system(.title, design: .rounded).weight(.medium))
-          .foregroundStyle(.white.opacity(0.9))
+          .foregroundStyle(QuizStyle.chromeLabel.opacity(0.9))
       }
     }
     .shadow(color: .black.opacity(0.18), radius: 8, y: 4)
@@ -165,10 +165,10 @@ private struct CharacterHeader: View {
       if !card.reading.isEmpty {
         Text(card.reading)
           .font(.system(.title3, design: .rounded).weight(.medium))
-          .foregroundStyle(.white.opacity(0.85))
+          .foregroundStyle(QuizStyle.chromeLabel.opacity(0.85))
       }
     }
-    .foregroundStyle(.white)
+    .foregroundStyle(QuizStyle.chromeLabel)
   }
 }
 
@@ -233,7 +233,7 @@ private struct DrawingControls: View {
   let onNext: (QuizSession.Outcome) -> Void
 
   var body: some View {
-    GlassEffectContainer(spacing: 14) {
+    GlassContainer(spacing: 14) {
       switch phase {
         case .prompt:
           QuizJudgementButton(

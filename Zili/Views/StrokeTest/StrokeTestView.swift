@@ -91,7 +91,7 @@ struct StrokeTestView: View {
   }
 
   private var controls: some View {
-    GlassEffectContainer(spacing: 8) {
+    GlassContainer(spacing: 8) {
       HStack {
         Toggle(isOn: $showsHint) {
           Label("Hint", systemImage: showsHint ? "eye.fill" : "eye")
@@ -127,7 +127,7 @@ struct StrokeTestView: View {
         .accessibilityIdentifier("strokeTestClear")
       }
       .labelStyle(.iconOnly)
-      .buttonStyle(.glass)
+      .glassButton()
     }
     .animation(.smooth, value: showsHint)
     .padding()

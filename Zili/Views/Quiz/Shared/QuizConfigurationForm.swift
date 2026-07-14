@@ -116,9 +116,11 @@ struct QuizDeckSizePicker: View {
   /// Frames a quiz's setup sections in a grouped form sized to its content, with the actions
   /// trailing beneath it — the shape of a Mac sheet.
   struct QuizConfigurationLayout<Sections: View, Start: View>: View {
+    // periphery:ignore — used on macOS only; Periphery's cross-platform index merge misattributes it
     /// The readable width the grouped form is capped to.
     private static var formMaxWidth: CGFloat { 560 }
 
+    // periphery:ignore — used on macOS only; Periphery's cross-platform index merge misattributes it
     /// The trailing inset `.formStyle(.grouped)` gives its section cards, so the standalone
     /// actions line up with the form's right edge rather than the form's outer bounds.
     private static var formSectionInset: CGFloat { 20 }

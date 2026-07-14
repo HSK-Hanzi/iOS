@@ -215,7 +215,7 @@ private struct SenseLine: View {
     role: .answer
   )
   .ignoresSafeArea()
-  .background { QuizStyle.ambientGradient.ignoresSafeArea() }
+  .quizAmbientBackground(QuizStyle.ambientGradient)
 }
 
 /// Drives a single card with a flip toggle so the preview exercises both faces.
@@ -240,12 +240,12 @@ private struct FlashcardPreview: View {
       Button(isFlipped ? "Show prompt" : "Reveal answer") {
         isFlipped.toggle()
       }
-      .buttonStyle(.glass)
-      .foregroundStyle(.white)
+      .glassButton()
+      .foregroundStyle(QuizStyle.chromeLabel)
     }
     .padding(40)
     .frame(maxWidth: .infinity, maxHeight: .infinity)
-    .background { QuizStyle.ambientGradient.ignoresSafeArea() }
+    .quizAmbientBackground(QuizStyle.ambientGradient)
   }
 }
 

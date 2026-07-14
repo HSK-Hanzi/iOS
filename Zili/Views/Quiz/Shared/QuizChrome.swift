@@ -14,20 +14,12 @@ struct QuizTopBar: View {
   let onClose: () -> Void
 
   var body: some View {
-    GlassEffectContainer(spacing: 12) {
+    GlassContainer(spacing: 12) {
       HStack(spacing: 12) {
-        HStack(spacing: 14) {
-          Text("\(index + 1, format: .number) / \(total, format: .number)")
-            .font(.subheadline.weight(.semibold).monospacedDigit())
-            .foregroundStyle(.white)
-            .accessibilityIdentifier(AccessibilityID.quizProgress)
-          ProgressView(value: Double(index), total: Double(max(total, 1)))
-            .frame(width: 84)
-            .tint(.white)
-        }
-        .padding(.horizontal)
-        .padding(.vertical, 12)
-        .glassEffect(in: .capsule)
+        QuizProgress(index: index, total: total)
+          .padding(.horizontal)
+          .padding(.vertical, 12)
+          .glassCapsule()
 
         Spacer()
 
@@ -35,14 +27,33 @@ struct QuizTopBar: View {
           Button(action: onClose) {
             Image(systemName: "xmark")
               .font(.subheadline.weight(.bold))
-              .foregroundStyle(.white)
+              .foregroundStyle(QuizStyle.chromeLabel)
               .padding()
           }
-          .buttonStyle(.glass)
+          .glassButton()
           .accessibilityLabel("Close quiz")
           .accessibilityIdentifier(AccessibilityID.quizCloseButton)
         #endif
       }
+    }
+  }
+}
+
+/// The count and progress bar for a quiz: "index+1 / total" beside a bar tracking position
+/// through the deck. Reused both in `QuizTopBar` and, on visionOS, in ornament toolbars.
+struct QuizProgress: View {
+  let index: Int
+  let total: Int
+
+  var body: some View {
+    HStack(spacing: 14) {
+      Text("\(index + 1, format: .number) / \(total, format: .number)")
+        .font(.subheadline.weight(.semibold).monospacedDigit())
+        .foregroundStyle(QuizStyle.chromeLabel)
+        .accessibilityIdentifier(AccessibilityID.quizProgress)
+      ProgressView(value: Double(index), total: Double(max(total, 1)))
+        .frame(width: 84)
+        .tint(.white)
     }
   }
 }
@@ -58,9 +69,9 @@ struct QuizJudgementButton: View {
 
   var body: some View {
     if prominent {
-      button.buttonStyle(.glassProminent).tint(tint)
+      button.glassButton(prominent: true).tint(tint)
     } else {
-      button.buttonStyle(.glass).tint(tint)
+      button.glassButton().tint(tint)
     }
   }
 
@@ -75,7 +86,7 @@ struct QuizJudgementButton: View {
       }
       .frame(maxWidth: .infinity, minHeight: 40)
       .padding(.vertical, 8)
-      .foregroundStyle(.white)
+      .foregroundStyle(QuizStyle.chromeLabel)
     }
   }
 }
@@ -133,11 +144,11 @@ struct QuizEmptyDeckView: View {
       Text(description)
     } actions: {
       Button("Close") { dismiss() }
-        .buttonStyle(.glass)
+        .glassButton()
     }
     .accessibilityIdentifier(AccessibilityID.quizEmptyDeck)
     .frame(maxWidth: .infinity, maxHeight: .infinity)
-    .background { QuizStyle.ambientGradient.ignoresSafeArea() }
+    .quizAmbientBackground(QuizStyle.ambientGradient)
   }
 }
 
@@ -152,7 +163,7 @@ struct QuizEmptyDeckView: View {
       emphasized: true
     )
     Spacer()
-    GlassEffectContainer(spacing: 14) {
+    GlassContainer(spacing: 14) {
       HStack(spacing: 14) {
         QuizJudgementButton(title: "Skip", systemImage: "forward.fill") {}
         QuizJudgementButton(
@@ -165,5 +176,5 @@ struct QuizEmptyDeckView: View {
     }
   }
   .padding(20)
-  .background { QuizStyle.ambientGradient.ignoresSafeArea() }
+  .quizAmbientBackground(QuizStyle.ambientGradient)
 }

@@ -30,7 +30,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		01DD75DA2FFBE56F000CA793 /* Zili - Practice Chinese.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Zili - Practice Chinese.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		01DD75DA2FFBE56F000CA793 /* Zili.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Zili.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		01DD75EB2FFBE570000CA793 /* ZiliTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ZiliTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		01DD75F52FFBE570000CA793 /* ZiliUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ZiliUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -107,7 +107,7 @@
 		01DD75DB2FFBE56F000CA793 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				01DD75DA2FFBE56F000CA793 /* Zili - Practice Chinese.app */,
+				01DD75DA2FFBE56F000CA793 /* Zili.app */,
 				01DD75EB2FFBE570000CA793 /* ZiliTests.xctest */,
 				01DD75F52FFBE570000CA793 /* ZiliUITests.xctest */,
 			);
@@ -139,7 +139,7 @@
 				5E17A9000000000000000002 /* Sentry */,
 			);
 			productName = Zili;
-			productReference = 01DD75DA2FFBE56F000CA793 /* Zili - Practice Chinese.app */;
+			productReference = 01DD75DA2FFBE56F000CA793 /* Zili.app */;
 			productType = "com.apple.product-type.application";
 		};
 		01DD75EA2FFBE570000CA793 /* ZiliTests */ = {

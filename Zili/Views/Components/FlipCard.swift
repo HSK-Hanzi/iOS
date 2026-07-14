@@ -75,17 +75,47 @@ private struct FlipFaces<Front: View, Back: View>: View, Animatable {
 
   var body: some View {
     ZStack {
-      face(back(), isBack: true)
-      face(front(), isBack: false)
+      #if os(visionOS)
+        // Keep only the face toward the viewer in the hierarchy, swapped while the card is edge-on,
+        // so a real 3D turn never renders the hidden plane creased against the visible one.
+        if FlipCard<Front, Back>.showingBack(at: angle) {
+          face(back(), isBack: true)
+        } else {
+          face(front(), isBack: false)
+        }
+      #else
+        face(back(), isBack: true)
+        face(front(), isBack: false)
+      #endif
     }
-    .rotation3DEffect(.degrees(angle), axis: (x: 0, y: 1, z: 0), perspective: 0.6)
-    .rotation3DEffect(.degrees(tilt), axis: (x: 1, y: 0, z: 0), perspective: 0.6)
+    #if os(visionOS)
+      // visionOS turns the card as a real plane in space, so no faked perspective projection or
+      // secondary tilt is needed — the depth is genuine. The turn is lifted forward off the
+      // window's glass so the receding half never crosses behind the base plane (where it would be
+      // clipped and z-fight); the lift peaks edge-on and resolves to zero flat at each face.
+      .rotation3DEffect(.degrees(angle), axis: (x: 0, y: 1, z: 0))
+      .offset(z: liftZ)
+    #else
+      .rotation3DEffect(.degrees(angle), axis: (x: 0, y: 1, z: 0), perspective: 0.6)
+      .rotation3DEffect(.degrees(tilt), axis: (x: 1, y: 0, z: 0), perspective: 0.6)
+    #endif
   }
 
-  /// Secondary tilt, peaking mid-turn and resolving to zero at each face, for momentum.
+  /// Secondary tilt, peaking mid-turn and resolving to zero at each face, for momentum. Used only
+  /// where the flip is a flat projection; visionOS turns the real plane instead.
   private var tilt: Double {
     sin(turnProgress * .pi) * 8
   }
+
+  #if os(visionOS)
+    /// Forward displacement during the turn: zero at each face, peaking edge-on, so the plane
+    /// rotates in front of the glass rather than sinking behind it. The peak clears half the
+    /// flashcard's width plus its soft shadow and glow, so even the card's blurred edges stay in
+    /// front of the window's base plane throughout the turn.
+    private var liftZ: CGFloat {
+      CGFloat(sin(turnProgress * .pi)) * 240
+    }
+  #endif
 
   /// A dim pass strongest when the card is edge-on, masking the mid-flip face swap and selling
   /// depth.

@@ -30,19 +30,23 @@
           .buttonStyle(.plain)
           .accessibilityIdentifier(AccessibilityID.quizRecognitionCard)
 
-          NavigationLink {
-            DrawingQuizConfigurationView(lexicon: lexicon)
-          } label: {
-            StudyModeCard(
-              title: "Drawing",
-              subtitle: "Write a character stroke by stroke.",
-              icon: .system("paintbrush.pointed.fill"),
-              gradient: QuizStyle.answerGradient,
-              glow: QuizStyle.answerBottom
-            )
-          }
-          .buttonStyle(.plain)
-          .accessibilityIdentifier(AccessibilityID.quizDrawingCard)
+          // Finger-drawing has no natural fit for visionOS eye+pinch input, so the Drawing mode
+          // is excluded there — the card is its only entry point.
+          #if !os(visionOS)
+            NavigationLink {
+              DrawingQuizConfigurationView(lexicon: lexicon)
+            } label: {
+              StudyModeCard(
+                title: "Drawing",
+                subtitle: "Write a character stroke by stroke.",
+                icon: .system("paintbrush.pointed.fill"),
+                gradient: QuizStyle.answerGradient,
+                glow: QuizStyle.answerBottom
+              )
+            }
+            .buttonStyle(.plain)
+            .accessibilityIdentifier(AccessibilityID.quizDrawingCard)
+          #endif
 
           NavigationLink {
             ListeningQuizConfigurationView(library: lexicon.sentences)
@@ -60,7 +64,7 @@
         }
         .scenePadding()
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background { QuizStyle.ambientGradient.ignoresSafeArea() }
+        .quizAmbientBackground(QuizStyle.ambientGradient)
         .navigationTitle("Quiz")
       }
     }

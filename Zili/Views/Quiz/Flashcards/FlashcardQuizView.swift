@@ -80,33 +80,60 @@ private struct RunningQuizView: View {
           onDragChanged: { drag = $0 },
           onDragEnded: handleDragEnd
         )
-        .ignoresSafeArea()
+        #if os(visionOS)
+          // A compact card, so its real 3D flip turns within the window's shallow depth without
+          // poking far out of the glass, and leaves room for the controls beneath it.
+          .frame(maxWidth: 360, maxHeight: 480)
+        #else
+          .ignoresSafeArea()
+        #endif
       }
 
       VStack(spacing: 0) {
-        QuizTopBar(index: session.currentIndex, total: session.total) { dismiss() }
-          .background {
-            GeometryReader { proxy in
-              Color.clear.preference(
-                key: TopBarBottomKey.self,
-                value: proxy.frame(in: .global).maxY
-              )
+        // On visionOS the top bar is a native toolbar ornament; elsewhere it floats over the
+        // stage and reports its bottom edge so the card can inset clear of it.
+        #if !os(visionOS)
+          QuizTopBar(index: session.currentIndex, total: session.total) { dismiss() }
+            .background {
+              GeometryReader { proxy in
+                Color.clear.preference(
+                  key: TopBarBottomKey.self,
+                  value: proxy.frame(in: .global).maxY
+                )
+              }
             }
-          }
+        #endif
 
         Spacer()
 
         JudgementControls(onJudge: judge)
+          #if os(visionOS)
+            // A tidy, bounded row that floats just forward of the card on its own plane — rather
+            // than spreading the buttons across the full width of the window.
+            .frame(maxWidth: 440)
+            .offset(z: 24)
+          #endif
       }
       .padding(20)
     }
-    .background { QuizStyle.ambientGradient.ignoresSafeArea() }
+    .quizAmbientBackground(QuizStyle.ambientGradient)
     .onPreferenceChange(TopBarBottomKey.self) { topBarBottom = $0 }
     .onGeometryChange(for: CGSize.self) {
       $0.size
     } action: {
       cardSize = $0
     }
+    #if os(visionOS)
+      .toolbar {
+        ToolbarItem(placement: .principal) {
+          QuizProgress(index: session.currentIndex, total: session.total)
+        }
+        ToolbarItem(placement: .cancellationAction) {
+          Button("Close quiz", systemImage: "xmark") { dismiss() }
+          .accessibilityIdentifier(AccessibilityID.quizCloseButton)
+        }
+      }
+    #endif
     #if os(macOS)
       .focusedSceneValue(\.quizJudge, QuizJudgeAction(judge: judge))
     #endif
@@ -221,18 +248,23 @@ private struct QuizCardStack: View {
 
   var body: some View {
     ZStack {
-      if let peek {
-        CharacterFlashcardView(
-          card: peek,
-          front: front,
-          back: back,
-          isFlipped: .constant(false),
-          contentInsets: contentInsets
-        )
-        .scaleEffect(peekScale)
-        .offset(y: peekOffsetY)
-        .allowsHitTesting(false)
-      }
+      // The peek previews the next card as the top card is swiped away — a gesture only iOS has.
+      // visionOS omits it: with no swipe it is purely decorative, and the flipping card turning
+      // edge-on would expose it, making the next card show through the flip.
+      #if !os(visionOS)
+        if let peek {
+          CharacterFlashcardView(
+            card: peek,
+            front: front,
+            back: back,
+            isFlipped: .constant(false),
+            contentInsets: contentInsets
+          )
+          .scaleEffect(peekScale)
+          .offset(y: peekOffsetY)
+          .allowsHitTesting(false)
+        }
+      #endif
 
       topCard
 
@@ -421,7 +453,7 @@ private struct JudgementControls: View {
   let onJudge: (QuizSession.Outcome) -> Void
 
   var body: some View {
-    GlassEffectContainer(spacing: 14) {
+    GlassContainer(spacing: 14) {
       HStack(spacing: 14) {
         QuizJudgementButton(title: "Skip", systemImage: "forward.fill") {
           onJudge(.skipped)

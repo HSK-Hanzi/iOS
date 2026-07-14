@@ -69,7 +69,9 @@ private struct ListeningRoundView: View {
 
   var body: some View {
     VStack(spacing: 24) {
-      QuizTopBar(index: session.currentIndex, total: session.total) { dismiss() }
+      #if !os(visionOS)
+        QuizTopBar(index: session.currentIndex, total: session.total) { dismiss() }
+      #endif
 
       Spacer(minLength: 0)
 
@@ -93,13 +95,24 @@ private struct ListeningRoundView: View {
     }
     .padding(20)
     .frame(maxWidth: .infinity, maxHeight: .infinity)
-    .background { QuizStyle.listeningGradient.ignoresSafeArea() }
+    .quizAmbientBackground(QuizStyle.listeningGradient)
     .animation(.smooth, value: phase)
     .onAppear { pronouncer.speak(sentence.hanzi) }
+    #if os(visionOS)
+      .toolbar {
+        ToolbarItem(placement: .principal) {
+          QuizProgress(index: session.currentIndex, total: session.total)
+        }
+        ToolbarItem(placement: .cancellationAction) {
+          Button("Close quiz", systemImage: "xmark") { dismiss() }
+          .accessibilityIdentifier(AccessibilityID.quizCloseButton)
+        }
+      }
+    #endif
   }
 
   private var controls: some View {
-    GlassEffectContainer(spacing: 14) {
+    GlassContainer(spacing: 14) {
       switch phase {
         case .listening:
           QuizJudgementButton(
@@ -151,25 +164,29 @@ private struct ListeningPrompt: View {
 
       Text("Type what you hear")
         .font(.headline)
-        .foregroundStyle(.white.opacity(0.9))
+        .foregroundStyle(QuizStyle.chromeLabel.opacity(0.9))
 
-      TextField("", text: $typed, prompt: Text("你好…").foregroundStyle(.white.opacity(0.5)))
-        .accessibilityIdentifier(AccessibilityID.listeningAnswerField)
-        .textFieldStyle(.plain)
-        .font(.title2)
-        .foregroundStyle(.white)
-        .multilineTextAlignment(.center)
-        .plainTextEntry()
-        .submitLabel(.done)
-        .onSubmit(check)
-        .padding(.vertical)
-        .padding(.horizontal)
-        .background(.white.opacity(0.14), in: .rect(cornerRadius: 16))
-        .overlay {
-          RoundedRectangle(cornerRadius: 16, style: .continuous)
-            .strokeBorder(.white.opacity(0.25), lineWidth: 1)
-        }
-        .frame(maxWidth: 420)
+      TextField(
+        "",
+        text: $typed,
+        prompt: Text("你好…").foregroundStyle(QuizStyle.chromeLabel.opacity(0.5))
+      )
+      .accessibilityIdentifier(AccessibilityID.listeningAnswerField)
+      .textFieldStyle(.plain)
+      .font(.title2)
+      .foregroundStyle(QuizStyle.chromeLabel)
+      .multilineTextAlignment(.center)
+      .plainTextEntry()
+      .submitLabel(.done)
+      .onSubmit(check)
+      .padding(.vertical)
+      .padding(.horizontal)
+      .background(.white.opacity(0.14), in: .rect(cornerRadius: 16))
+      .overlay {
+        RoundedRectangle(cornerRadius: 16, style: .continuous)
+          .strokeBorder(.white.opacity(0.25), lineWidth: 1)
+      }
+      .frame(maxWidth: 420)
 
       if warnsNoChineseInput {
         Label(
@@ -177,7 +194,7 @@ private struct ListeningPrompt: View {
           systemImage: "keyboard.badge.ellipsis"
         )
         .font(.footnote)
-        .foregroundStyle(.white)
+        .foregroundStyle(QuizStyle.chromeLabel)
         .padding(.vertical, 8)
         .padding(.horizontal)
         .background(.black.opacity(0.2), in: .capsule)
@@ -210,10 +227,10 @@ private struct PlayButton: View {
     Button(action: action) {
       Image(systemName: "speaker.wave.3.fill")
         .font(.system(size: diameter * 0.4))
-        .foregroundStyle(.white)
+        .foregroundStyle(QuizStyle.chromeLabel)
         .frame(width: diameter, height: diameter)
     }
-    .buttonStyle(.glass)
+    .glassButton()
     .clipShape(.circle)
     .accessibilityLabel("Play sentence")
     .accessibilityIdentifier(AccessibilityID.listeningReplay)
@@ -243,22 +260,22 @@ private struct RevealView: View {
       VStack {
         Text(script.render(sentence.hanzi))
           .font(.system(.title, design: .rounded).weight(.medium))
-          .foregroundStyle(.white)
+          .foregroundStyle(QuizStyle.chromeLabel)
           .multilineTextAlignment(.center)
         Text(sentence.reading(romanization))
           .font(.title3)
-          .foregroundStyle(.white.opacity(0.9))
+          .foregroundStyle(QuizStyle.chromeLabel.opacity(0.9))
           .multilineTextAlignment(.center)
         Text(sentence.translation)
           .font(.body)
-          .foregroundStyle(.white.opacity(0.85))
+          .foregroundStyle(QuizStyle.chromeLabel.opacity(0.85))
           .multilineTextAlignment(.center)
       }
 
       if !correct, !typed.isEmpty {
         Text("You typed: \(typed)")
           .font(.callout)
-          .foregroundStyle(.white.opacity(0.75))
+          .foregroundStyle(QuizStyle.chromeLabel.opacity(0.75))
           .multilineTextAlignment(.center)
       }
     }

@@ -113,6 +113,13 @@ struct ZiliApp: App {
       .modelContainer(modelContainer)
       .environment(appData)
       .environment(\.errorStore, errorStore)
+      #if os(visionOS)
+        // A landscape default suits the primary tab's wide master–detail dictionary while still
+        // seating the portrait-ish quiz screens; `.contentMinSize` gives a content-driven floor
+        // yet lets the learner resize the window freely.
+        .defaultSize(width: 1100, height: 760)
+        .windowResizability(.contentMinSize)
+      #endif
     #endif
   }
 
@@ -145,10 +152,13 @@ struct ZiliApp: App {
 
       options.tracesSampleRate = 0.2
 
-      options.configureProfiling = {
-        $0.sessionSampleRate = 0.2
-        $0.lifecycle = .trace
-      }
+      // Sentry offers no profiler on visionOS, where `configureProfiling` is unavailable.
+      #if !os(visionOS)
+        options.configureProfiling = {
+          $0.sessionSampleRate = 0.2
+          $0.lifecycle = .trace
+        }
+      #endif
 
       options.enableLogs = true
 

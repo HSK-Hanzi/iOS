@@ -52,7 +52,7 @@ struct QuizResultsView: View {
     .padding(28)
     .frame(maxWidth: 480)
     .frame(maxWidth: .infinity, maxHeight: .infinity)
-    .background { QuizStyle.ambientGradient.ignoresSafeArea() }
+    .quizAmbientBackground(QuizStyle.ambientGradient)
     .onAppear { appeared = true }
     .accessibilityIdentifier(AccessibilityID.quizResults)
   }
@@ -243,7 +243,7 @@ private struct ResultActions: View {
             .padding(.vertical, 6)
             .foregroundStyle(.white)
         }
-        .buttonStyle(.glassProminent)
+        .glassButton(prominent: true)
         .tint(QuizStyle.accent)
       }
 
@@ -256,7 +256,7 @@ private struct ResultActions: View {
             .frame(maxWidth: .infinity)
             .padding(.vertical, 6)
         }
-        .buttonStyle(.glass)
+        .glassButton()
         .disabled(addedToFavorites)
       }
 
@@ -266,7 +266,7 @@ private struct ResultActions: View {
             .frame(maxWidth: .infinity)
             .padding(.vertical, 6)
         }
-        .buttonStyle(.glass)
+        .glassButton()
         .accessibilityIdentifier(AccessibilityID.quizResultsDone)
       }
     }

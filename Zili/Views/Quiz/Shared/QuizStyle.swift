@@ -32,6 +32,19 @@ enum QuizStyle {
   /// Cinnabar red, the color of seal paste — for the results grade stamp.
   static let seal = Color("QuizSeal")
 
+  /// The color for chrome text that floats over the window background — a quiz's progress count,
+  /// a button label. On iOS and macOS it sits on an opaque gradient, so it stays white; on visionOS
+  /// it sits on system glass, where `.primary` lets the platform apply vibrancy for legibility.
+  /// Text that sits on a solid colored fill (a verdict badge, a study-mode card) keeps its own
+  /// explicit `.white` and does not use this.
+  static var chromeLabel: Color {
+    #if os(visionOS)
+      .primary
+    #else
+      .white
+    #endif
+  }
+
   /// The stage both quiz screens sit on: bright in light mode, deep indigo in dark.
   static let ambientGradient = LinearGradient(
     colors: [ambientTop, ambientBottom],

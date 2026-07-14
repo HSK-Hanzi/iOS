@@ -43,6 +43,11 @@ struct StudyModeCard: View {
       .background(background)
       .shadow(color: glow.opacity(0.45), radius: 20, y: 10)
       .contentShape(.rect(cornerRadius: Self.cornerRadius))
+      #if !os(macOS)
+        // Gaze and pointer feedback on visionOS (and pointer feedback on iPad); `hoverEffect` is
+        // unavailable on macOS, where this card isn't shown.
+        .hoverEffect()
+      #endif
       .accessibilityElement(children: .combine)
   }
 
@@ -108,5 +113,5 @@ struct StudyModeCard: View {
   }
   .scenePadding()
   .frame(maxWidth: .infinity, maxHeight: .infinity)
-  .background { QuizStyle.ambientGradient.ignoresSafeArea() }
+  .quizAmbientBackground(QuizStyle.ambientGradient)
 }

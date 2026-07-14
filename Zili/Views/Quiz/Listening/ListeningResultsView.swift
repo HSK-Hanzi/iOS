@@ -54,7 +54,7 @@ struct ListeningResultsView: View {
     .padding(28)
     .frame(maxWidth: 480)
     .frame(maxWidth: .infinity, maxHeight: .infinity)
-    .background { QuizStyle.ambientGradient.ignoresSafeArea() }
+    .quizAmbientBackground(QuizStyle.ambientGradient)
     .onAppear { appeared = true }
     .accessibilityIdentifier(AccessibilityID.quizResults)
   }
@@ -101,7 +101,7 @@ struct ListeningResultsView: View {
             .padding(.vertical, 6)
             .foregroundStyle(.white)
         }
-        .buttonStyle(.glassProminent)
+        .glassButton(prominent: true)
         .tint(QuizStyle.accent)
       }
       if let onDone {
@@ -110,7 +110,7 @@ struct ListeningResultsView: View {
             .frame(maxWidth: .infinity)
             .padding(.vertical, 6)
         }
-        .buttonStyle(.glass)
+        .glassButton()
         .accessibilityIdentifier(AccessibilityID.quizResultsDone)
       }
     }

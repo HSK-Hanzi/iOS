@@ -72,7 +72,7 @@
       }
       .scenePadding()
       .frame(maxWidth: .infinity, maxHeight: .infinity)
-      .background { QuizStyle.ambientGradient.ignoresSafeArea() }
+      .quizAmbientBackground(QuizStyle.ambientGradient)
     }
 
     @ViewBuilder
