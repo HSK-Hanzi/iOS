@@ -9,6 +9,7 @@
 
 #if os(macOS)
   import XCTest
+  import XCUITestKit
 
   /// Each quiz window deals and judges its own deck. Two recognition quizzes running at once must
   /// advance independently — the whole reason a quiz is a window rather than a tab.
@@ -21,11 +22,11 @@
     }
 
     @MainActor
-    func testConcurrentRecognitionQuizzesAdvanceIndependently() throws {
+    func testConcurrentRecognitionQuizzesAdvanceIndependently() async throws {
       let app = launchApp()
 
-      startRecognitionQuiz(in: app)
-      startRecognitionQuiz(in: app)
+      await startRecognitionQuiz(in: app)
+      await startRecognitionQuiz(in: app)
 
       XCTAssertEqual(progressLabels(in: app, reading: 1).count, 2, "Both quizzes start at card 1.")
 
@@ -51,17 +52,36 @@
     }
 
     /// Opens a recognition quiz with ⌘N and starts it from its configuration sheet, leaving the
-    /// new window frontmost and showing its first card.
+    /// new window frontmost and showing its first card. The Start click can be swallowed by the
+    /// sheet-dismiss transition; re-clicking until one more first-card label appears recovers the
+    /// dropped click without racing a click that has registered but not yet dealt.
     @MainActor
-    private func startRecognitionQuiz(in app: XCUIApplication) {
+    private func startRecognitionQuiz(in app: XCUIApplication) async {
+      let dealtBefore = progressLabels(in: app, reading: 1).count
       app.typeKey("n", modifierFlags: .command)
       let start = app.buttons["Start Quiz"].firstMatch
-      XCTAssertTrue(start.waitForExistence(timeout: 10), "The configuration sheet appears.")
-      start.click()
       XCTAssertTrue(
-        app.staticTexts[progressText(for: 1)].firstMatch.waitForExistence(timeout: 10),
-        "The quiz deals its first card."
+        start.wait(timeout: ScaledTimeouts.slowElement),
+        "The configuration sheet appears."
       )
+      let dealt = await Retry.untilVerified(
+        action: { if start.exists { start.forceTap() } },
+        until: { self.firstCardCount(in: app, reaches: dealtBefore + 1) }
+      )
+      XCTAssertTrue(dealt, "The quiz deals its first card.")
+    }
+
+    /// Waits for the number of quizzes showing their first card to reach `target`. Waiting rather
+    /// than sampling means a Start click that has registered but not yet dealt is not mistaken for
+    /// a dropped one and re-issued into the dismissing sheet.
+    @MainActor
+    private func firstCardCount(in app: XCUIApplication, reaches target: Int) -> Bool {
+      let predicate = NSPredicate(format: "count >= %d", target)
+      let expectation = XCTNSPredicateExpectation(
+        predicate: predicate,
+        object: progressLabels(in: app, reading: 1)
+      )
+      return XCTWaiter().wait(for: [expectation], timeout: ScaledTimeouts.element) == .completed
     }
 
     @MainActor

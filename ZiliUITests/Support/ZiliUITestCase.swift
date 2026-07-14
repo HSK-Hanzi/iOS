@@ -287,10 +287,20 @@ class ZiliUITestCase: XCTestCase {
   }
 
   /// Starts the quiz from its configuration form and waits for the first card's progress pill.
+  /// The form-dismiss transition can swallow the first Start tap, leaving a passive wait to time
+  /// out on a quiz that never dealt; when the pill doesn't appear,
+  /// ``XCUIElement/tap(untilExists:using:timeout:)`` re-taps with escalating force until it does,
+  /// stopping once Start has navigated away.
   func startQuiz() async {
     revealStartButton()
     await tap(AccessibilityID.quizStartButton, "Start Quiz.")
-    expect(AccessibilityID.quizProgress, "The quiz deals its first card.")
+    let progress = el(AccessibilityID.quizProgress)
+    if progress.wait() { return }
+    let dealt = el(AccessibilityID.quizStartButton).tap(
+      untilExists: progress,
+      using: XCUIElement.TapStrategy.escalating
+    )
+    XCTAssertTrue(dealt, "The quiz deals its first card.")
   }
 
   /// Scrolls a quiz configuration form so its foot-pinned Start button clears the bottom tab bar.
