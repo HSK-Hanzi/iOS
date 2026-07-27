@@ -13,7 +13,6 @@ import XCUITestKit
 /// Practice Characters: the HSK level grid and the built-in Favorites and Missed sets. Drilling a
 /// set lists its word cells, or its empty state when the set holds nothing; Clear All empties a set
 /// through a confirm-first dialog.
-@MainActor
 struct PracticeCharactersPage: Page {
   let test: ZiliUITestCase
 

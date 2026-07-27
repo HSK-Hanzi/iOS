@@ -13,7 +13,6 @@ import XCUITestKit
 /// The favorites set in Practice Characters: seeded favorites show as word cells, Clear All empties
 /// the set through its confirm-first dialog, and an unseeded run lands straight on the empty state.
 final class FavoritesUITests: ZiliUITestCase {
-  @MainActor
   func testSeededFavoritesAppearThenClear() async throws {
     launch(seed: [.favorites])
     await goToPracticeCharacters()
@@ -27,7 +26,6 @@ final class FavoritesUITests: ZiliUITestCase {
     expect(AccessibilityID.characterSetEmptyState, "Clearing empties the favorites set.")
   }
 
-  @MainActor
   func testFavoritesAreEmptyWithoutSeed() async throws {
     launch()
     await goToPracticeCharacters()
@@ -40,7 +38,6 @@ final class FavoritesUITests: ZiliUITestCase {
   /// Taps the "Clear All" button inside the confirmation dialog. The dialog's confirm button carries
   /// no identifier and shares its "Clear All" label with the toolbar button that raised it, so it's
   /// resolved by label while excluding that toolbar button by its identifier.
-  @MainActor
   private func confirmClearAll() {
     let confirm = app.buttons
       .matching(

@@ -8,7 +8,6 @@ import XCUITestKit
 
 /// A word's full entry, reached from a dictionary result or a practice word cell. Exposes the
 /// favorite toggle and asserts the entry is on screen.
-@MainActor
 struct WordEntryPage: Page {
   let test: ZiliUITestCase
 

@@ -21,7 +21,6 @@ import XCUITestKit
 /// identifiers are unique across the screens that can be on-screen at once, so a flow never has to
 /// know which window its element lives in. Navigation verbs only bring the right screen forward —
 /// tapping a tab on iOS, opening or raising a window on macOS.
-@MainActor
 class ZiliUITestCase: XCTestCase {
   private(set) var app: XCUIApplication!
 

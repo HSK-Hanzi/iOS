@@ -10,7 +10,6 @@ import XCUITestKit
 /// retry screen, and retrying — which fails again while the forced-failure flag persists — keeps
 /// that screen wired rather than dead-ending.
 final class LoadFailureUITests: ZiliUITestCase {
-  @MainActor
   func testLoadFailureShowsRetry() async throws {
     launch(failLexiconLoad: true)
 

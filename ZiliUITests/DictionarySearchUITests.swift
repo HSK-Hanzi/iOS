@@ -13,7 +13,6 @@ import XCUITestKit
 /// ``DictionaryPage`` rather than raw accessibility identifiers. The remaining flows still call
 /// ``ZiliUITestCase``'s verbs directly and are a follow-up migration.
 final class DictionarySearchUITests: ZiliUITestCase {
-  @MainActor
   func testSearchFindsAWordAndOpensItsEntry() async throws {
     launch()
     let dictionary = DictionaryPage.open(self)
@@ -29,7 +28,6 @@ final class DictionarySearchUITests: ZiliUITestCase {
     entry.expectVisible()
   }
 
-  @MainActor
   func testSearchWithNoMatchesShowsTheEmptyState() throws {
     launch()
     let dictionary = DictionaryPage.open(self)

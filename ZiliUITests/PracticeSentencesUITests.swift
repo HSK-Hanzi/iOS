@@ -9,7 +9,6 @@ import XCUITestKit
 /// Browsing the sentence corpora: drilling a corpus level down to a single sentence's detail, plus
 /// the empty Missed set a learner sees before they've missed anything.
 final class PracticeSentencesUITests: ZiliUITestCase {
-  @MainActor
   func testBrowseLevelToSentenceDetail() async throws {
     launch()
     await goToPracticeSentences()
@@ -21,7 +20,6 @@ final class PracticeSentencesUITests: ZiliUITestCase {
     expect(AccessibilityID.sentenceDetail, "The sentence's detail.")
   }
 
-  @MainActor
   func testMissedSentencesAreEmptyWithoutMisses() async throws {
     launch()
     await goToPracticeSentences()

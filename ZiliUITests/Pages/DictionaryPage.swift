@@ -8,7 +8,6 @@ import XCUITestKit
 
 /// The Dictionary screen: search the lexicon and drill a result into its full word entry, plus the
 /// pre-search prompt and no-results states that book-end a search.
-@MainActor
 struct DictionaryPage: Page {
   let test: ZiliUITestCase
 
