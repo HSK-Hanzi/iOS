@@ -15,7 +15,6 @@ final class DrawingQuizUITests: ZiliUITestCase {
   /// A round opens on its prompt, whose only control is "Draw it!"; the skip control appears once
   /// writing begins. Neither carries a stable deck size, so each card is advanced in two taps —
   /// begin writing, then skip — until the results seal appears.
-  @MainActor
   func testSkipThroughDrawingQuizToResults() async throws {
     launch()
     await openDrawingQuizConfiguration()

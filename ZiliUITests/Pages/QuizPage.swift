@@ -10,7 +10,6 @@ import XCUITestKit
 /// all three quiz kinds — recognition (flashcards), drawing, and listening — because they share a
 /// configuration form and a running frame (progress pill, close, results); the kind-specific
 /// controls (judge buttons, the draw button, the listening answer field) hang off the same page.
-@MainActor
 struct QuizPage: Page {
   let test: ZiliUITestCase
 

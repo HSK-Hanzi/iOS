@@ -11,7 +11,6 @@ import XCUITestKit
 /// Driving Settings: clearing the missed tallies through the confirm-first dialog (which leaves the
 /// reset disabled once there's nothing left to clear), and confirming the display pickers are present.
 final class SettingsUITests: ZiliUITestCase {
-  @MainActor
   func testResetAllMissedClearsAndDisables() async throws {
     launch(seed: [.misses])
     goToSettings()
@@ -31,7 +30,6 @@ final class SettingsUITests: ZiliUITestCase {
     XCTAssertFalse(reset.isEnabled, "Reset All Missed is disabled with no misses left.")
   }
 
-  @MainActor
   func testDisplayPickersArePresent() throws {
     launch()
     goToSettings()
@@ -44,7 +42,6 @@ final class SettingsUITests: ZiliUITestCase {
   /// per platform: on iOS a `confirmationDialog` is an action sheet, so its button lives under
   /// `app.sheets`; on macOS it presents inline, where the confirm shares the trigger's "Reset All
   /// Missed" label, so we take the last match of that label — the newly presented dialog button.
-  @MainActor
   private func confirmResetAllMissed() {
     #if os(macOS)
       let confirmations = app.buttons.matching(identifier: "Reset All Missed")

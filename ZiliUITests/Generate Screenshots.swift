@@ -21,7 +21,6 @@ final class GenerateScreenshots: ZiliUITestCase {
     setupSnapshot(app)
   }
 
-  @MainActor
   func testGenerateScreenshots() async throws {
     launch(seed: [.favorites, .misses])
 

@@ -9,7 +9,6 @@ import XCUITestKit
 /// Practice Sentences: the corpus level grid and the built-in Favorites and Missed sets. Drilling a
 /// level lists its sentence rows, and a row opens that sentence's detail; an empty set drills into
 /// its empty state.
-@MainActor
 struct PracticeSentencesPage: Page {
   let test: ZiliUITestCase
 

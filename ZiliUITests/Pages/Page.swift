@@ -11,7 +11,6 @@ import XCUITestKit
 /// vocabulary ("open the first result", "start the quiz") rather than in raw accessibility
 /// identifiers. Pages hold no state of their own beyond the ``test`` they drive; they never
 /// re-implement navigation or waiting, only delegate to the base case's `el`/`tap`/`expect` verbs.
-@MainActor
 protocol Page {
   /// The test case whose portable verbs this page drives.
   var test: ZiliUITestCase { get }

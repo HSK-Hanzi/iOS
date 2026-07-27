@@ -9,7 +9,6 @@ import XCUITestKit
 /// Browsing the character syllabus: drill an HSK band into its words and open a word's entry, plus
 /// the Missed set's empty state when nothing has been missed.
 final class PracticeCharactersUITests: ZiliUITestCase {
-  @MainActor
   func testBrowseLevelToWordEntry() async throws {
     launch()
     await goToPracticeCharacters()
@@ -21,7 +20,6 @@ final class PracticeCharactersUITests: ZiliUITestCase {
     expect(AccessibilityID.wordEntry, "The word's entry.")
   }
 
-  @MainActor
   func testMissedSetIsEmptyWithoutMisses() async throws {
     launch()
     await goToPracticeCharacters()

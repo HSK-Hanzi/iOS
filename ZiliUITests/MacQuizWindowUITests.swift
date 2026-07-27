@@ -21,7 +21,6 @@
       continueAfterFailure = false
     }
 
-    @MainActor
     func testConcurrentRecognitionQuizzesAdvanceIndependently() async throws {
       let app = launchApp()
 
@@ -41,7 +40,6 @@
     /// the language database is in hand. Ignoring persisted window state keeps the launch
     /// deterministic — a saved-state window left over from a prior run would otherwise starve
     /// the app's declared scenes of the window slot they need to appear.
-    @MainActor
     private func launchApp() -> XCUIApplication {
       let app = XCUIApplication()
       app.launchArguments = ["-ApplePersistenceIgnoreState", "YES"]
@@ -55,7 +53,6 @@
     /// new window frontmost and showing its first card. The Start click can be swallowed by the
     /// sheet-dismiss transition; re-clicking until one more first-card label appears recovers the
     /// dropped click without racing a click that has registered but not yet dealt.
-    @MainActor
     private func startRecognitionQuiz(in app: XCUIApplication) async {
       let dealtBefore = progressLabels(in: app, reading: 1).count
       app.typeKey("n", modifierFlags: .command)
@@ -74,7 +71,6 @@
     /// Waits for the number of quizzes showing their first card to reach `target`. Waiting rather
     /// than sampling means a Start click that has registered but not yet dealt is not mistaken for
     /// a dropped one and re-issued into the dismissing sheet.
-    @MainActor
     private func firstCardCount(in app: XCUIApplication, reaches target: Int) -> Bool {
       let predicate = NSPredicate(format: "count >= %d", target)
       let expectation = XCTNSPredicateExpectation(
@@ -84,7 +80,6 @@
       return XCTWaiter().wait(for: [expectation], timeout: ScaledTimeouts.element) == .completed
     }
 
-    @MainActor
     private func progressLabels(in app: XCUIApplication, reading card: Int) -> XCUIElementQuery {
       app.staticTexts.matching(identifier: progressText(for: card))
     }

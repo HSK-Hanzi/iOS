@@ -14,7 +14,6 @@ import XCUITestKit
 /// `QuizEmptyDeckView` is unreachable through the recognition setup. `QuizEmptyDeckViewTests`-style
 /// coverage would need a seam the UI doesn't offer, so the empty case is left to the view's preview.
 final class RecognitionQuizUITests: ZiliUITestCase {
-  @MainActor
   func testRunQuizToResults() async throws {
     launch()
     await openRecognitionQuizConfiguration()

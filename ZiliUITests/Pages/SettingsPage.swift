@@ -12,7 +12,6 @@ import XCUITestKit
 
 /// Settings: the display pickers (character set, romanization), the "Reset All Missed" control with
 /// its confirm-first dialog, and the link out to About.
-@MainActor
 struct SettingsPage: Page {
   let test: ZiliUITestCase
 

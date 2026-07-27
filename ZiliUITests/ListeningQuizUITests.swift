@@ -10,7 +10,6 @@ import XCUITestKit
 /// CJK entry is unreliable in the simulator, so every answer is a deliberately-wrong latin "x",
 /// exercising the wrong-answer grading path from the first prompt all the way to the results seal.
 final class ListeningQuizUITests: ZiliUITestCase {
-  @MainActor
   func testWrongAnswersAreGradedToResults() async throws {
     launch()
     await openListeningQuizConfiguration()

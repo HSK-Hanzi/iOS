@@ -8,7 +8,6 @@ import XCUITestKit
 
 /// The lexicon-load failure gate: when the language database can't be opened, the app shows a retry
 /// screen in place of any feature content.
-@MainActor
 struct LoadFailurePage: Page {
   let test: ZiliUITestCase
 
