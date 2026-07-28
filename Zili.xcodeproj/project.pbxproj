@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 77;
+	objectVersion = 100;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -69,27 +69,21 @@
 /* Begin PBXFrameworksBuildPhase section */
 		01DD75D72FFBE56F000CA793 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
 			files = (
 				01DD76E62FFCB321000CA793 /* GRDB in Frameworks */,
 				5E17A9000000000000000003 /* Sentry in Frameworks */,
 			);
-			runOnlyForDeploymentPostprocessing = 0;
 		};
 		01DD75E82FFBE570000CA793 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
 			files = (
 			);
-			runOnlyForDeploymentPostprocessing = 0;
 		};
 		01DD75F22FFBE570000CA793 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
 			files = (
 				A11CE5701000000000000003 /* XCUITestKit in Frameworks */,
 			);
-			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
@@ -128,8 +122,6 @@
 				5E17A9000000000000000004 /* Upload Debug Symbols to Sentry */,
 			);
 			buildRules = (
-			);
-			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
 				01DD75DC2FFBE56F000CA793 /* Zili */,
@@ -224,7 +216,7 @@
 				5E17A9000000000000000001 /* XCRemoteSwiftPackageReference "sentry-cocoa" */,
 				A11CE5701000000000000001 /* XCRemoteSwiftPackageReference "XCUITestKit" */,
 			);
-			preferredProjectObjectVersion = 77;
+			preferredProjectObjectVersion = 100;
 			productRefGroup = 01DD75DB2FFBE56F000CA793 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -239,35 +231,24 @@
 /* Begin PBXResourcesBuildPhase section */
 		01DD75D82FFBE56F000CA793 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
 			files = (
 			);
-			runOnlyForDeploymentPostprocessing = 0;
 		};
 		01DD75E92FFBE570000CA793 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
 			files = (
 			);
-			runOnlyForDeploymentPostprocessing = 0;
 		};
 		01DD75F32FFBE570000CA793 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
 			files = (
 			);
-			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
 		4077CCF52F6490507C3BCBAF /* Copy Data Resources */ = {
 			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
 			inputPaths = (
 				"$(SRCROOT)/Tools/generate_db.py",
 				"$(SRCROOT)/Data/Open/CEDICT.plist",
@@ -280,8 +261,6 @@
 				"$(SRCROOT)/Data/Open/PracticeSentences.plist",
 			);
 			name = "Copy Data Resources";
-			outputFileListPaths = (
-			);
 			outputPaths = (
 				"$(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/CEDICT.sqlite",
 				"$(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/SUBTLEX-CH-Words.sqlite",
@@ -290,49 +269,148 @@
 				"$(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/HSKVocabulary.plist",
 				"$(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/PracticeSentences.plist",
 			);
-			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "set -eu\n# Bundles the app's data from the non-synchronized Data/ tree. Word dictionaries, word frequency,\n# stroke order, and character data are converted to prebuilt SQLite databases (generated once,\n# cached by timestamp) so the app queries them on disk; the HSK syllabus stays a plist. Open data\n# is always included; licensed dictionaries only when INCLUDE_LICENSED_DICTIONARIES is set (Debug).\nDEST=\"${BUILT_PRODUCTS_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}\"\nGEN=\"${SRCROOT}/Tools/generate_db.py\"\nOPEN=\"${SRCROOT}/Data/Open\"\nLICENSED=\"${SRCROOT}/Data/Proprietary\"\nFREQUENCY_PLIST=\"${OPEN}/SUBTLEX-CH-Words.plist\"\nREADINGS_PLIST=\"${OPEN}/CharacterReadings.plist\"\nmkdir -p \"${DEST}\"\n\n# outdated <dest> <src...> — true when dest is missing or older than the generator or any source.\noutdated() {\n  dest=\"$1\"\n  shift\n  [ -e \"${dest}\" ] || return 0\n  [ \"${GEN}\" -nt \"${dest}\" ] && return 0\n  for src in \"$@\"; do\n    [ \"${src}\" -nt \"${dest}\" ] && return 0\n  done\n  return 1\n}\n\n# copy_plist <src> — bundles a plist as-is (like the HSK syllabus and the sentence corpora),\n# refreshing the copy only when the source is newer. A missing source is skipped, not an error.\ncopy_plist() {\n  src=\"$1\"\n  name=\"$(basename \"${src}\")\"\n  [ -e \"${src}\" ] || return 0\n  if [ ! -e \"${DEST}/${name}\" ] || [ \"${src}\" -nt \"${DEST}/${name}\" ]; then\n    cp -f \"${src}\" \"${DEST}/${name}\"\n    echo \"note: bundled data ${name}\"\n  fi\n}\n\n# Word frequency ranks are folded into every dictionary, so dictionaries depend on the frequency\n# plist as well as their own source.\ngen_dictionary() {\n  base=\"$(basename \"$1\" .plist)\"\n  out=\"${DEST}/${base}.sqlite\"\n  if outdated \"${out}\" \"$1\" \"${FREQUENCY_PLIST}\" \"${READINGS_PLIST}\"; then\n    /usr/bin/env python3 \"${GEN}\" dictionary \"$1\" \"${out}\" --frequency \"${FREQUENCY_PLIST}\" --readings \"${READINGS_PLIST}\"\n    rm -f \"${DEST}/${base}.plist\"\n    echo \"note: generated ${base}.sqlite\"\n  fi\n}\n\ngen_dictionary \"${OPEN}/CEDICT.plist\"\n\nout=\"${DEST}/SUBTLEX-CH-Words.sqlite\"\nif outdated \"${out}\" \"${FREQUENCY_PLIST}\"; then\n  /usr/bin/env python3 \"${GEN}\" frequency \"${FREQUENCY_PLIST}\" \"${out}\"\n  rm -f \"${DEST}/SUBTLEX-CH-Words.plist\"\n  echo \"note: generated SUBTLEX-CH-Words.sqlite\"\nfi\n\nout=\"${DEST}/HanziStrokeOrder.sqlite\"\nif outdated \"${out}\" \"${OPEN}/HanziStrokeOrder.plist\"; then\n  /usr/bin/env python3 \"${GEN}\" strokes \"${OPEN}/HanziStrokeOrder.plist\" \"${out}\"\n  rm -f \"${DEST}/HanziStrokeOrder.plist\"\n  echo \"note: generated HanziStrokeOrder.sqlite\"\nfi\n\nout=\"${DEST}/Characters.sqlite\"\nif outdated \"${out}\" \"${OPEN}/CharacterReadings.plist\" \"${OPEN}/CharacterEtymology.plist\" \"${OPEN}/CharacterFrequency.plist\"; then\n  /usr/bin/env python3 \"${GEN}\" characters \\\n    \"${OPEN}/CharacterReadings.plist\" \"${OPEN}/CharacterEtymology.plist\" \\\n    \"${OPEN}/CharacterFrequency.plist\" \"${out}\"\n  rm -f \"${DEST}/CharacterReadings.plist\" \"${DEST}/CharacterEtymology.plist\" \\\n    \"${DEST}/CharacterFrequency.plist\"\n  echo \"note: generated Characters.sqlite\"\nfi\n\ncopy_plist \"${OPEN}/HSKVocabulary.plist\"\ncopy_plist \"${OPEN}/PracticeSentences.plist\"\n\ncase \" ${SWIFT_ACTIVE_COMPILATION_CONDITIONS:-} \" in\n  *\" INCLUDE_LICENSED_DICTIONARIES \"*)\n    if [ -e \"${LICENSED}/HSKSentences.plist\" ]; then\n      copy_plist \"${LICENSED}/HSKSentences.plist\"\n      for f in \"${LICENSED}\"/*.plist; do\n        [ -e \"${f}\" ] || continue\n        [ \"$(basename \"${f}\")\" = \"HSKSentences.plist\" ] && continue\n        gen_dictionary \"${f}\"\n      done\n    else\n      echo \"note: proprietary data absent (Data/Proprietary not checked out); building open-only\"\n    fi\n    ;;\nesac\n";
+			shellScript = (
+				"set -eu",
+				"# Bundles the app's data from the non-synchronized Data/ tree. Word dictionaries, word frequency,",
+				"# stroke order, and character data are converted to prebuilt SQLite databases (generated once,",
+				"# cached by timestamp) so the app queries them on disk; the HSK syllabus stays a plist. Open data",
+				"# is always included; licensed dictionaries only when INCLUDE_LICENSED_DICTIONARIES is set (Debug).",
+				"DEST=\"${BUILT_PRODUCTS_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}\"",
+				"GEN=\"${SRCROOT}/Tools/generate_db.py\"",
+				"OPEN=\"${SRCROOT}/Data/Open\"",
+				"LICENSED=\"${SRCROOT}/Data/Proprietary\"",
+				"FREQUENCY_PLIST=\"${OPEN}/SUBTLEX-CH-Words.plist\"",
+				"READINGS_PLIST=\"${OPEN}/CharacterReadings.plist\"",
+				"mkdir -p \"${DEST}\"",
+				"",
+				"# outdated <dest> <src...> — true when dest is missing or older than the generator or any source.",
+				"outdated() {",
+				"  dest=\"$1\"",
+				"  shift",
+				"  [ -e \"${dest}\" ] || return 0",
+				"  [ \"${GEN}\" -nt \"${dest}\" ] && return 0",
+				"  for src in \"$@\"; do",
+				"    [ \"${src}\" -nt \"${dest}\" ] && return 0",
+				"  done",
+				"  return 1",
+				"}",
+				"",
+				"# copy_plist <src> — bundles a plist as-is (like the HSK syllabus and the sentence corpora),",
+				"# refreshing the copy only when the source is newer. A missing source is skipped, not an error.",
+				"copy_plist() {",
+				"  src=\"$1\"",
+				"  name=\"$(basename \"${src}\")\"",
+				"  [ -e \"${src}\" ] || return 0",
+				"  if [ ! -e \"${DEST}/${name}\" ] || [ \"${src}\" -nt \"${DEST}/${name}\" ]; then",
+				"    cp -f \"${src}\" \"${DEST}/${name}\"",
+				"    echo \"note: bundled data ${name}\"",
+				"  fi",
+				"}",
+				"",
+				"# Word frequency ranks are folded into every dictionary, so dictionaries depend on the frequency",
+				"# plist as well as their own source.",
+				"gen_dictionary() {",
+				"  base=\"$(basename \"$1\" .plist)\"",
+				"  out=\"${DEST}/${base}.sqlite\"",
+				"  if outdated \"${out}\" \"$1\" \"${FREQUENCY_PLIST}\" \"${READINGS_PLIST}\"; then",
+				"    /usr/bin/env python3 \"${GEN}\" dictionary \"$1\" \"${out}\" --frequency \"${FREQUENCY_PLIST}\" --readings \"${READINGS_PLIST}\"",
+				"    rm -f \"${DEST}/${base}.plist\"",
+				"    echo \"note: generated ${base}.sqlite\"",
+				"  fi",
+				"}",
+				"",
+				"gen_dictionary \"${OPEN}/CEDICT.plist\"",
+				"",
+				"out=\"${DEST}/SUBTLEX-CH-Words.sqlite\"",
+				"if outdated \"${out}\" \"${FREQUENCY_PLIST}\"; then",
+				"  /usr/bin/env python3 \"${GEN}\" frequency \"${FREQUENCY_PLIST}\" \"${out}\"",
+				"  rm -f \"${DEST}/SUBTLEX-CH-Words.plist\"",
+				"  echo \"note: generated SUBTLEX-CH-Words.sqlite\"",
+				"fi",
+				"",
+				"out=\"${DEST}/HanziStrokeOrder.sqlite\"",
+				"if outdated \"${out}\" \"${OPEN}/HanziStrokeOrder.plist\"; then",
+				"  /usr/bin/env python3 \"${GEN}\" strokes \"${OPEN}/HanziStrokeOrder.plist\" \"${out}\"",
+				"  rm -f \"${DEST}/HanziStrokeOrder.plist\"",
+				"  echo \"note: generated HanziStrokeOrder.sqlite\"",
+				"fi",
+				"",
+				"out=\"${DEST}/Characters.sqlite\"",
+				"if outdated \"${out}\" \"${OPEN}/CharacterReadings.plist\" \"${OPEN}/CharacterEtymology.plist\" \"${OPEN}/CharacterFrequency.plist\"; then",
+				"  /usr/bin/env python3 \"${GEN}\" characters \\",
+				"    \"${OPEN}/CharacterReadings.plist\" \"${OPEN}/CharacterEtymology.plist\" \\",
+				"    \"${OPEN}/CharacterFrequency.plist\" \"${out}\"",
+				"  rm -f \"${DEST}/CharacterReadings.plist\" \"${DEST}/CharacterEtymology.plist\" \\",
+				"    \"${DEST}/CharacterFrequency.plist\"",
+				"  echo \"note: generated Characters.sqlite\"",
+				"fi",
+				"",
+				"copy_plist \"${OPEN}/HSKVocabulary.plist\"",
+				"copy_plist \"${OPEN}/PracticeSentences.plist\"",
+				"",
+				"case \" ${SWIFT_ACTIVE_COMPILATION_CONDITIONS:-} \" in",
+				"  *\" INCLUDE_LICENSED_DICTIONARIES \"*)",
+				"    if [ -e \"${LICENSED}/HSKSentences.plist\" ]; then",
+				"      copy_plist \"${LICENSED}/HSKSentences.plist\"",
+				"      for f in \"${LICENSED}\"/*.plist; do",
+				"        [ -e \"${f}\" ] || continue",
+				"        [ \"$(basename \"${f}\")\" = \"HSKSentences.plist\" ] && continue",
+				"        gen_dictionary \"${f}\"",
+				"      done",
+				"    else",
+				"      echo \"note: proprietary data absent (Data/Proprietary not checked out); building open-only\"",
+				"    fi",
+				"    ;;",
+				"esac",
+				"",
+			);
 		};
 		5E17A9000000000000000004 /* Upload Debug Symbols to Sentry */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
-			buildActionMask = 2147483647;
-			files = (
-			);
 			inputPaths = (
 				"${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Resources/DWARF/${TARGET_NAME}",
 			);
 			name = "Upload Debug Symbols to Sentry";
-			outputPaths = (
-			);
 			runOnlyForDeploymentPostprocessing = 1;
 			shellPath = /bin/sh;
-			shellScript = "# Uploads debug symbols and source context to Sentry so production crash reports symbolicate.\nif [[ \"$(uname -m)\" == arm64 ]]; then\n  export PATH=\"/opt/homebrew/bin:$PATH\"\nfi\n\nif which sentry-cli >/dev/null; then\n  export SENTRY_ORG=timcodes\n  export SENTRY_PROJECT=zili\n  ERROR=$(sentry-cli debug-files upload --include-sources \"$DWARF_DSYM_FOLDER_PATH\" 2>&1 >/dev/null)\n  if [ ! $? -eq 0 ]; then\n    echo \"warning: sentry-cli - $ERROR\"\n  fi\nelse\n  echo \"warning: sentry-cli not installed, download from https://github.com/getsentry/sentry-cli/releases\"\nfi\n";
+			shellScript = (
+				"# Uploads debug symbols and source context to Sentry so production crash reports symbolicate.",
+				"if [[ \"$(uname -m)\" == arm64 ]]; then",
+				"  export PATH=\"/opt/homebrew/bin:$PATH\"",
+				"fi",
+				"",
+				"if which sentry-cli >/dev/null; then",
+				"  export SENTRY_ORG=timcodes",
+				"  export SENTRY_PROJECT=zili",
+				"  ERROR=$(sentry-cli debug-files upload --include-sources \"$DWARF_DSYM_FOLDER_PATH\" 2>&1 >/dev/null)",
+				"  if [ ! $? -eq 0 ]; then",
+				"    echo \"warning: sentry-cli - $ERROR\"",
+				"  fi",
+				"else",
+				"  echo \"warning: sentry-cli not installed, download from https://github.com/getsentry/sentry-cli/releases\"",
+				"fi",
+				"",
+			);
 		};
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		01DD75D62FFBE56F000CA793 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
 			files = (
 			);
-			runOnlyForDeploymentPostprocessing = 0;
 		};
 		01DD75E72FFBE570000CA793 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
 			files = (
 			);
-			runOnlyForDeploymentPostprocessing = 0;
 		};
 		01DD75F12FFBE570000CA793 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
 			files = (
 			);
-			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
@@ -350,7 +428,7 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
-		01DD75FF2FFBE570000CA793 /* Debug */ = {
+		01DD75FF2FFBE570000CA793 /* Debug configuration for PBXNativeTarget "Zili" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -398,7 +476,7 @@
 			};
 			name = Debug;
 		};
-		01DD76002FFBE570000CA793 /* Release */ = {
+		01DD76002FFBE570000CA793 /* Release configuration for PBXNativeTarget "Zili" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -445,7 +523,7 @@
 			};
 			name = Release;
 		};
-		01DD76012FFBE570000CA793 /* Debug */ = {
+		01DD76012FFBE570000CA793 /* Debug configuration for PBXProject "Zili" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -510,7 +588,7 @@
 			};
 			name = Debug;
 		};
-		01DD76022FFBE570000CA793 /* Release */ = {
+		01DD76022FFBE570000CA793 /* Release configuration for PBXProject "Zili" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -567,7 +645,7 @@
 			};
 			name = Release;
 		};
-		01DD76042FFBE570000CA793 /* Debug */ = {
+		01DD76042FFBE570000CA793 /* Debug configuration for PBXNativeTarget "ZiliTests" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
@@ -593,7 +671,7 @@
 			};
 			name = Debug;
 		};
-		01DD76052FFBE570000CA793 /* Release */ = {
+		01DD76052FFBE570000CA793 /* Release configuration for PBXNativeTarget "ZiliTests" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
@@ -619,7 +697,7 @@
 			};
 			name = Release;
 		};
-		01DD76072FFBE570000CA793 /* Debug */ = {
+		01DD76072FFBE570000CA793 /* Debug configuration for PBXNativeTarget "ZiliUITests" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
@@ -645,7 +723,7 @@
 			};
 			name = Debug;
 		};
-		01DD76082FFBE570000CA793 /* Release */ = {
+		01DD76082FFBE570000CA793 /* Release configuration for PBXNativeTarget "ZiliUITests" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
@@ -677,37 +755,33 @@
 		01DD75D52FFBE56F000CA793 /* Build configuration list for PBXProject "Zili" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				01DD76012FFBE570000CA793 /* Debug */,
-				01DD76022FFBE570000CA793 /* Release */,
+				01DD76012FFBE570000CA793 /* Debug configuration for PBXProject "Zili" */,
+				01DD76022FFBE570000CA793 /* Release configuration for PBXProject "Zili" */,
 			);
-			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 		01DD75FE2FFBE570000CA793 /* Build configuration list for PBXNativeTarget "Zili" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				01DD75FF2FFBE570000CA793 /* Debug */,
-				01DD76002FFBE570000CA793 /* Release */,
+				01DD75FF2FFBE570000CA793 /* Debug configuration for PBXNativeTarget "Zili" */,
+				01DD76002FFBE570000CA793 /* Release configuration for PBXNativeTarget "Zili" */,
 			);
-			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 		01DD76032FFBE570000CA793 /* Build configuration list for PBXNativeTarget "ZiliTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				01DD76042FFBE570000CA793 /* Debug */,
-				01DD76052FFBE570000CA793 /* Release */,
+				01DD76042FFBE570000CA793 /* Debug configuration for PBXNativeTarget "ZiliTests" */,
+				01DD76052FFBE570000CA793 /* Release configuration for PBXNativeTarget "ZiliTests" */,
 			);
-			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 		01DD76062FFBE570000CA793 /* Build configuration list for PBXNativeTarget "ZiliUITests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				01DD76072FFBE570000CA793 /* Debug */,
-				01DD76082FFBE570000CA793 /* Release */,
+				01DD76072FFBE570000CA793 /* Debug configuration for PBXNativeTarget "ZiliUITests" */,
+				01DD76082FFBE570000CA793 /* Release configuration for PBXNativeTarget "ZiliUITests" */,
 			);
-			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
