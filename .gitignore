@@ -24,3 +24,8 @@ fastlane/report.xml
 fastlane/Preview.html
 fastlane/test_output/
 screenshots/
+
+# fastlane secrets — fastlane loads fastlane/.env automatically
+fastlane/.env
+fastlane/.env.*
+!fastlane/.env.example
