@@ -43,9 +43,9 @@ struct QuizResultsView: View {
 
       ResultActions(
         reDrillCount: session.wordsToReDrill.count,
-        reviewWordCount: session.wordsMarkedForReview.count,
+        unstarredReviewCount: wordsToFavorite.count,
         onReDrill: session.reDrill,
-        onAddToFavorites: { favorites.addAll(session.wordsMarkedForReview) },
+        onAddToFavorites: { favorites.addAll(wordsToFavorite) },
         onDone: onDone
       )
     }
@@ -63,6 +63,12 @@ struct QuizResultsView: View {
 
   private var grade: SessionGrade {
     .forAccuracy(accuracy)
+  }
+
+  /// The words marked for review that aren't starred yet — what the favorites button offers.
+  /// A deck whose review cards are all already favorites offers nothing, and the button goes away.
+  private var wordsToFavorite: [String] {
+    session.wordsMarkedForReview.filter { !favorites.isFavorite($0) }
   }
 
   private var segments: [OutcomeSegment] {
@@ -224,14 +230,18 @@ private struct ResultLegend: View {
   }
 }
 
-/// The end-of-results actions: re-drill the missed cards, star the reviewed ones, and finish.
+/// The end-of-results actions: re-drill the missed cards, star the reviewed ones that aren't
+/// starred already, and finish.
 private struct ResultActions: View {
   let reDrillCount: Int
-  let reviewWordCount: Int
+  let unstarredReviewCount: Int
   let onReDrill: () -> Void
   let onAddToFavorites: () -> Void
   let onDone: (() -> Void)?
 
+  /// Holds the favorites button on screen once it's been tapped. Starring the words drops
+  /// ``unstarredReviewCount`` to zero, which would otherwise whisk the button away before the
+  /// learner sees it confirm.
   @State private var addedToFavorites = false
 
   var body: some View {
@@ -247,7 +257,7 @@ private struct ResultActions: View {
         .tint(QuizStyle.accent)
       }
 
-      if reviewWordCount > 0 {
+      if unstarredReviewCount > 0 || addedToFavorites {
         Button {
           onAddToFavorites()
           addedToFavorites = true
@@ -277,13 +287,15 @@ private struct ResultActions: View {
       if addedToFavorites {
         Label("Added to Favorites", systemImage: "checkmark")
       } else {
-        Text("Add \(reviewWordCount) to Favorites")
+        Text("Add \(unstarredReviewCount) to Favorites")
       }
     }
   }
 }
 
-#Preview("Results") {
+/// A finished session — four right, 学生 marked for review — for the previews below.
+@MainActor
+private func previewSession() -> QuizSession {
   let session = QuizSession(deck: [
     QuizCard(word: "你好", hanzi: "你好", reading: "nǐ hǎo", definition: "hello; hi"),
     QuizCard(word: "谢谢", hanzi: "谢谢", reading: "xiè xie", definition: "thank you"),
@@ -296,7 +308,19 @@ private struct ResultActions: View {
   session.mark(.correct)
   session.mark(.correct)
   session.mark(.needsReview)
-  return QuizResultsView(onDone: {})
-    .environment(session)
+  return session
+}
+
+#Preview("Results") {
+  QuizResultsView(onDone: {})
+    .environment(previewSession())
     .environment(FavoritesStore.inMemory())
+}
+
+#Preview("Results · review words already starred") {
+  let favorites = FavoritesStore.inMemory()
+  favorites.addAll(["学生"])
+  return QuizResultsView(onDone: {})
+    .environment(previewSession())
+    .environment(favorites)
 }
