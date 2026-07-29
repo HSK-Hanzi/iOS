@@ -1,0 +1,520 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Zili: Learn Chinese — HSK flashcards &amp; stroke order</title>
+    <meta
+      name="description"
+      content="A free study companion for learning Chinese through HSK. Mark the words you're learning, then quiz yourself on reading, writing, and listening."
+    />
+    <link rel="canonical" href="https://hsk-hanzi.github.io/iOS/" />
+    <meta name="author" content="Tim Morgan" />
+    <meta
+      name="robots"
+      content="index, follow, max-image-preview:large, max-snippet:-1"
+    />
+    <meta name="color-scheme" content="light dark" />
+
+    <link rel="icon" href="img/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="img/apple-touch-icon.png" />
+    <meta name="apple-itunes-app" content="app-id=6790533407" />
+    <meta
+      name="theme-color"
+      content="#eee3d0"
+      media="(prefers-color-scheme: light)"
+    />
+    <meta
+      name="theme-color"
+      content="#14100d"
+      media="(prefers-color-scheme: dark)"
+    />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Zili" />
+    <meta property="og:locale" content="en_US" />
+    <meta
+      property="og:title"
+      content="Zili: Learn Chinese — an HSK study companion"
+    />
+    <meta
+      property="og:description"
+      content="Mark the words and sentences you're learning, then quiz yourself on reading, writing, and listening. Free for iPhone, iPad, Mac, and Apple Vision Pro."
+    />
+    <meta property="og:url" content="https://hsk-hanzi.github.io/iOS/" />
+    <meta
+      property="og:image"
+      content="https://hsk-hanzi.github.io/iOS/img/og.png"
+    />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="The Zili seal in a Chinese practice square, beside the words “Mark what you're learning. Quiz until it sticks.”"
+    />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content="Zili: Learn Chinese — an HSK study companion"
+    />
+    <meta
+      name="twitter:description"
+      content="Mark the words and sentences you're learning, then quiz yourself on reading, writing, and listening. Free for iPhone, iPad, Mac, and Apple Vision Pro."
+    />
+    <meta
+      name="twitter:image"
+      content="https://hsk-hanzi.github.io/iOS/img/og.png"
+    />
+    <meta
+      name="twitter:image:alt"
+      content="The Zili seal in a Chinese practice square, beside the words “Mark what you're learning. Quiz until it sticks.”"
+    />
+
+    <link
+      rel="preload"
+      href="css/fonts/instrument-serif-latin.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href="css/fonts/instrument-sans-latin.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link rel="stylesheet" href="css/main.css" />
+    <script src="js/main.js" defer></script>
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "@id": "https://hsk-hanzi.github.io/iOS/#website",
+            "url": "https://hsk-hanzi.github.io/iOS/",
+            "name": "Zili",
+            "description": "A free study companion for learning Chinese through HSK. Mark the words you're learning, then quiz yourself on reading, writing, and listening.",
+            "inLanguage": "en",
+            "publisher": { "@id": "https://hsk-hanzi.github.io/iOS/#author" }
+          },
+          {
+            "@type": "Person",
+            "@id": "https://hsk-hanzi.github.io/iOS/#author",
+            "name": "Tim Morgan",
+            "url": "https://github.com/RISCfuture"
+          },
+          {
+            "@type": "SoftwareApplication",
+            "@id": "https://hsk-hanzi.github.io/iOS/#app",
+            "name": "Zili: Learn Chinese",
+            "alternateName": "Zili 字里",
+            "url": "https://hsk-hanzi.github.io/iOS/",
+            "description": "A study companion for learning Chinese through the HSK levels. Mark the words and sentences you're learning, then quiz yourself on reading, writing, and listening.",
+            "applicationCategory": "EducationalApplication",
+            "applicationSubCategory": "Language Learning",
+            "operatingSystem": "iOS 26.0 or later, macOS 26.0 or later, visionOS",
+            "softwareVersion": "1.0",
+            "datePublished": "2026-07-21",
+            "inLanguage": "en",
+            "isAccessibleForFree": true,
+            "installUrl": "https://apps.apple.com/us/app/zili-learn-chinese/id6790533407",
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD"
+            },
+            "author": { "@id": "https://hsk-hanzi.github.io/iOS/#author" },
+            "license": "https://github.com/HSK-Hanzi/iOS/blob/main/LICENSE",
+            "screenshot": [
+              "https://hsk-hanzi.github.io/iOS/img/iphone-practice-characters.webp",
+              "https://hsk-hanzi.github.io/iOS/img/iphone-flashcard.webp",
+              "https://hsk-hanzi.github.io/iOS/img/iphone-drawing-quiz.webp",
+              "https://hsk-hanzi.github.io/iOS/img/iphone-listening-quiz.webp",
+              "https://hsk-hanzi.github.io/iOS/img/iphone-practice-sentences.webp"
+            ]
+          }
+        ]
+      }
+    </script>
+  </head>
+
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header class="site-header">
+      <nav class="site-nav" aria-label="Primary">
+        <a class="wordmark" href="./">
+          <img
+            class="wordmark__seal"
+            src="img/seal.svg"
+            alt=""
+            width="1024"
+            height="1024"
+          />
+          <span class="wordmark__latin">Zili</span>
+        </a>
+
+        <button
+          class="nav-toggle"
+          type="button"
+          aria-expanded="false"
+          aria-controls="nav-links"
+        >
+          Menu
+        </button>
+
+        <ul class="nav-links" id="nav-links">
+          <li><a href="#how-it-works">How it works</a></li>
+          <li><a href="#features">Features</a></li>
+          <li><a href="#details">Details</a></li>
+          <li><a href="privacy.html">Privacy</a></li>
+          <li><a href="https://github.com/HSK-Hanzi/iOS">GitHub</a></li>
+        </ul>
+
+        <a
+          class="app-store-badge app-store-badge--small"
+          href="https://apps.apple.com/us/app/zili-learn-chinese/id6790533407"
+        >
+          Download
+        </a>
+      </nav>
+    </header>
+
+    <main id="main">
+      <section class="hero">
+        <div class="hero__seal-cell tianzige">
+          <img
+            class="hero__seal"
+            src="img/seal.svg"
+            alt="字里, the app's name in small-seal script"
+            width="1024"
+            height="1024"
+          />
+        </div>
+
+        <div class="hero__copy">
+          <h1 class="hero__title">
+            Zili <span class="hero__hanzi" lang="zh-Hans">字里</span>
+          </h1>
+
+          <p class="hero__tagline">
+            Mark what you're learning. Quiz until it sticks.
+          </p>
+
+          <p class="hero__subhead">
+            A study companion for learning Chinese through the HSK levels. Flag
+            the words and sentences you're working on right now, then drill them
+            on reading, writing, and listening — until you don't need to
+            anymore.
+          </p>
+
+          <p class="hero__cta">
+            <a
+              class="app-store-badge"
+              href="https://apps.apple.com/us/app/zili-learn-chinese/id6790533407"
+            >
+              Download on the App&nbsp;Store
+            </a>
+            <span class="hero__platforms">
+              iPhone · iPad · Mac · Apple&nbsp;Vision&nbsp;Pro
+            </span>
+          </p>
+        </div>
+      </section>
+
+      <section id="how-it-works" class="intro">
+        <div class="intro__body">
+          <p class="eyebrow">How it works</p>
+          <h2>Built around how you actually study</h2>
+          <p>
+            You're already learning Chinese somewhere — a class, a textbook, an
+            HSK level you're working through. The hard part isn't finding
+            vocabulary. It's the drilling: recognizing Hanzi on sight, recalling
+            the tones, writing the strokes in the right order, and catching the
+            words when someone says them out loud.
+          </p>
+          <p>
+            Zili is built for that middle part. As you go, mark the words and
+            sentences you want to work on. They collect into your own study
+            list, and every quiz in the app can draw from it — or from a whole
+            HSK level, or from just the items you keep getting wrong.
+          </p>
+        </div>
+      </section>
+
+      <section id="features" class="features" aria-label="Features">
+        <article class="feature">
+          <div class="feature__copy">
+            <p class="feature__mark">
+              <span class="feature__glyph tianzige" lang="zh-Hans" aria-hidden="true"
+                >记</span
+              >
+              <span class="feature__label">
+                Your list
+                <span class="feature__pinyin">jì · to mark down</span>
+              </span>
+            </p>
+            <h2>Your list, not a stranger's deck</h2>
+            <p>
+              Favorite any word or sentence as you meet it and it joins your
+              study set. Zili also keeps count of what you miss in quizzes, so
+              the words giving you trouble become a set of their own — no
+              bookkeeping on your part.
+            </p>
+          </div>
+          <img
+            class="shot"
+            src="img/iphone-practice-characters.webp"
+            alt="The Level 1 word set as a grid of tiles, each word above its reading"
+            width="828"
+            height="1800"
+            loading="lazy"
+          />
+        </article>
+
+        <article class="feature feature--reversed">
+          <div class="feature__copy">
+            <p class="feature__mark">
+              <span class="feature__glyph tianzige" lang="zh-Hans" aria-hidden="true"
+                >考</span
+              >
+              <span class="feature__label">
+                Flashcards
+                <span class="feature__pinyin">kǎo · to test</span>
+              </span>
+            </p>
+            <h2>Quiz yourself in whichever direction is hard</h2>
+            <p>
+              Flashcards drill the pairing you choose — English to Chinese or
+              back, Hanzi or reading, meaning or pronunciation. Cards reverse
+              with a physical flip. Pull them from an HSK level, your favorites,
+              or your missed pile.
+            </p>
+          </div>
+          <img
+            class="shot"
+            src="img/iphone-flashcard.webp"
+            alt="A flashcard showing 他们 and its reading, above Skip, Needs Review, and Correct buttons"
+            width="828"
+            height="1800"
+            loading="lazy"
+          />
+        </article>
+
+        <article class="feature">
+          <div class="feature__copy">
+            <p class="feature__mark">
+              <span class="feature__glyph tianzige" lang="zh-Hans" aria-hidden="true"
+                >写</span
+              >
+              <span class="feature__label">
+                Stroke order
+                <span class="feature__pinyin">xiě · to write</span>
+              </span>
+            </p>
+            <h2>Get the strokes right</h2>
+            <p>
+              Drawing quizzes put a character in front of you and ask you to
+              write it. Every stroke is marked on both order and direction, with
+              an animated hint when you slip — so you learn to produce a
+              character, not just recognize one.
+            </p>
+          </div>
+          <img
+            class="shot"
+            src="img/iphone-drawing-quiz.webp"
+            alt="A drawing quiz showing the character 面 and its reading, above a Draw it! button"
+            width="828"
+            height="1800"
+            loading="lazy"
+          />
+        </article>
+
+        <article class="feature feature--reversed">
+          <div class="feature__copy">
+            <p class="feature__mark">
+              <span class="feature__glyph tianzige" lang="zh-Hans" aria-hidden="true"
+                >听</span
+              >
+              <span class="feature__label">
+                Listening
+                <span class="feature__pinyin">tīng · to listen</span>
+              </span>
+            </p>
+            <h2>Catch it when it's spoken</h2>
+            <p>
+              Listening quizzes play a sentence aloud and ask you to type back
+              what you heard. Reading a character you know is one skill;
+              recognizing it at speaking speed is a different one.
+            </p>
+          </div>
+          <img
+            class="shot"
+            src="img/iphone-listening-quiz.webp"
+            alt="A listening quiz prompting “Type what you hear” beneath a speaker button"
+            width="828"
+            height="1800"
+            loading="lazy"
+          />
+        </article>
+
+        <article class="feature">
+          <div class="feature__copy">
+            <p class="feature__mark">
+              <span class="feature__glyph tianzige" lang="zh-Hans" aria-hidden="true"
+                >句</span
+              >
+              <span class="feature__label">
+                Sentences
+                <span class="feature__pinyin">jù · sentence</span>
+              </span>
+            </p>
+            <h2>See the words in real sentences</h2>
+            <p>
+              Practice pairs each level with example sentences and conversations
+              from HSK material, so vocabulary shows up in the grammar you'll
+              actually meet it in. Favorite the ones worth drilling and they
+              feed straight into listening quizzes.
+            </p>
+          </div>
+          <img
+            class="shot"
+            src="img/iphone-practice-sentences.webp"
+            alt="A list of Level 1 practice sentences, each above its reading"
+            width="828"
+            height="1800"
+            loading="lazy"
+          />
+        </article>
+      </section>
+
+      <section id="details" class="details">
+        <p class="eyebrow">Details</p>
+        <h2>The rest of it</h2>
+        <ul class="details__grid">
+          <li>
+            <h3>Both HSK standards</h3>
+            <p>
+              Work through the nine levels of HSK 3.0 or the six levels of the
+              HSK 2.0 syllabus it replaced.
+            </p>
+          </li>
+          <li>
+            <h3>Simplified or traditional</h3>
+            <p>
+              Pick the character set you're learning; the whole app follows it.
+            </p>
+          </li>
+          <li>
+            <h3>Four romanizations</h3>
+            <p>
+              Readings render as pinyin, zhuyin (bopomofo), Wade-Giles, or
+              Gwoyeu Romatzyh.
+            </p>
+          </li>
+          <li>
+            <h3>Everything spoken aloud</h3>
+            <p>
+              Hear any word or sentence pronounced, anywhere it appears in the
+              app.
+            </p>
+          </li>
+          <li>
+            <h3>Look anything up</h3>
+            <p>
+              A CC-CEDICT dictionary is built in. Tap any Hanzi phrase in the
+              app to see its reading and meaning without losing your place.
+            </p>
+          </li>
+          <li>
+            <h3>Syncs over iCloud</h3>
+            <p>
+              Your study list and missed-answer counts follow you between
+              devices, in your own private iCloud container.
+            </p>
+          </li>
+          <li>
+            <h3>Works offline</h3>
+            <p>
+              The vocabulary, sentences, and stroke data ship inside the app. No
+              network, no account to create.
+            </p>
+          </li>
+          <li>
+            <h3>Native on every device</h3>
+            <p>
+              One universal app for iPhone, iPad, Mac, and Apple Vision Pro,
+              written in SwiftUI.
+            </p>
+          </li>
+        </ul>
+      </section>
+
+      <section id="open-source" class="open-source">
+        <p class="eyebrow">Open source</p>
+        <h2>Read the source</h2>
+        <p>
+          Zili is MIT-licensed and developed in the open. File an issue, send a
+          pull request, or just have a look at how it works.
+        </p>
+        <p>
+          <a class="link-button" href="https://github.com/HSK-Hanzi/iOS">
+            View on GitHub
+          </a>
+        </p>
+      </section>
+
+      <section class="closing-cta">
+        <div class="closing-cta__inner">
+          <img
+            class="closing-cta__seal"
+            src="img/seal.svg"
+            alt=""
+            width="1024"
+            height="1024"
+          />
+          <h2>Start with the words in front of you.</h2>
+          <p>
+            <a
+              class="app-store-badge"
+              href="https://apps.apple.com/us/app/zili-learn-chinese/id6790533407"
+            >
+              Download on the App&nbsp;Store
+            </a>
+          </p>
+          <p class="closing-cta__requirements">
+            Requires iOS 26 or macOS 26.
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="site-footer__inner">
+        <ul class="footer-links">
+          <li><a href="privacy.html">Privacy policy</a></li>
+          <li><a href="https://github.com/HSK-Hanzi/iOS">GitHub</a></li>
+          <li>
+            <a href="https://github.com/HSK-Hanzi/iOS/blob/main/CREDITS.md">
+              Credits
+            </a>
+          </li>
+          <li><a href="mailto:apple@timothymorgan.info">Support</a></li>
+        </ul>
+
+        <p class="footer-disclaimer">
+          Zili is an independent study aid. It is not affiliated with, endorsed
+          by, or sponsored by HSK, Hanban, or any official Chinese-language
+          testing body.
+        </p>
+
+        <p class="footer-copyright">© 2026 Timothy Morgan</p>
+      </div>
+    </footer>
+  </body>
+</html>
