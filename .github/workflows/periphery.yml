@@ -54,8 +54,13 @@ jobs:
 
       - name: Enable macros
         run: defaults write com.apple.dt.Xcode IDESkipMacroFingerprintValidation -bool YES
+      # The runner image freezes Homebrew's formula index at the image's build date, so a bare
+      # `brew install` can resolve to a Periphery old enough to analyze this project differently
+      # than a current one does. Refresh the index first so every run agrees on the version.
       - name: Install Periphery
-        run: brew install periphery
+        run: |
+          brew update
+          brew install periphery
       # Zili builds for both iOS and macOS, and a symbol used only under `#if os(...)` on one platform
       # looks unused to a single-platform scan, so the index must cover both. Xcode 26's build service
       # traps (SIGTRAP, surfacing as "exit status 5") when one `build-for-testing` invocation targets an
