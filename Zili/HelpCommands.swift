@@ -13,7 +13,7 @@ import SwiftUI
       CommandGroup(replacing: .help) {
         Link(
           "Privacy Policy",
-          destination: URL(string: "https://github.com/HSK-Hanzi/iOS/blob/main/PRIVACY.md")!
+          destination: URL(string: "https://hsk-hanzi.github.io/iOS/privacy.html")!
         )
         Link("Source code", destination: URL(string: "https://github.com/HSK-Hanzi/iOS")!)
         Link("Official HSK test site", destination: URL(string: "https://www.chinesetest.cn")!)

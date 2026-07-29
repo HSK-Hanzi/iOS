@@ -1,0 +1,688 @@
+/*
+ * Zili — "ink and grid"
+ *
+ * The palette is lifted from the app's own icon: cinnabar seal ink pressed into
+ * warm paper. The recurring structural device is the 田字格 (tián zì gé), the
+ * cross-ruled square Chinese learners write characters into — used to frame the
+ * seal and to mark each feature, never as loose decoration.
+ */
+
+:root {
+  color-scheme: light dark;
+
+  /* Paper and ink. --paper is the AppIcon.icon fill, converted from display-p3. */
+  --paper: light-dark(#eee3d0, #14100d);
+  --paper-lift: light-dark(#f7f1e6, #1e1915);
+  --paper-sink: light-dark(#e6d9c2, #0e0b09);
+  --ink: light-dark(#1a1613, #f2e9dc);
+  --ink-soft: light-dark(#6b6259, #a89c8c);
+  --rule: light-dark(#d3c4a9, #322a22);
+
+  /* The seal's own ink, and the app's brighter QuizSeal for lifts. */
+  --cinnabar: light-dark(#c0201a, #e8564a);
+  --cinnabar-lift: light-dark(#d8382e, #f0736a);
+
+  --font-display: "Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --font-ui:
+    "Instrument Sans", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-han: "PingFang SC", "Hiragino Sans GB", "Noto Serif SC", serif;
+
+  --measure: 34rem;
+  --page-width: 70rem;
+  --gutter: clamp(1.25rem, 5vw, 3.5rem);
+  --section-gap: clamp(4.5rem, 11vw, 9rem);
+
+  --stamp-ease: cubic-bezier(0.2, 1.2, 0.35, 1);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: 1.0625rem;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  line-height: 1.02;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+  margin-block: 0 0.4em;
+}
+
+h1 {
+  font-size: clamp(3rem, 8vw, 5.25rem);
+}
+
+h2 {
+  font-size: clamp(2rem, 4.4vw, 3.1rem);
+}
+
+h3 {
+  margin-block: 0 0.35em;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+}
+
+p {
+  margin-block: 0 1rem;
+  max-width: var(--measure);
+  text-wrap: pretty;
+}
+
+a {
+  color: var(--cinnabar);
+  text-underline-offset: 0.2em;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+:where(a, button):focus-visible {
+  outline: 2px solid var(--cinnabar);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+.skip-link {
+  position: absolute;
+  inset-inline-start: -100vw;
+  top: 0;
+  z-index: 10;
+  padding: 0.75rem 1rem;
+  background: var(--paper-lift);
+}
+
+.skip-link:focus {
+  inset-inline-start: 0;
+}
+
+/* An eyebrow: small, wide-tracked, the page's utility voice. */
+.eyebrow {
+  margin: 0 0 0.75rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+/* ---------- 田字格 ---------- */
+
+/* The practice square: a hairline box quartered by dashed centre lines. It
+   frames the seal in the hero and carries each feature's character. */
+.tianzige {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  border: 1px solid var(--rule);
+}
+
+.tianzige::before,
+.tianzige::after {
+  content: "";
+  position: absolute;
+  border-style: dashed;
+  border-color: var(--rule);
+  opacity: 0.85;
+}
+
+.tianzige::before {
+  inset-inline: 0;
+  top: 50%;
+  border-width: 1px 0 0;
+}
+
+.tianzige::after {
+  inset-block: 0;
+  left: 50%;
+  border-width: 0 0 0 1px;
+}
+
+/* ---------- Header ---------- */
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: color-mix(in srgb, var(--paper) 88%, transparent);
+  backdrop-filter: blur(14px) saturate(1.3);
+  border-bottom: 1px solid var(--rule);
+}
+
+.site-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1.25rem;
+  max-width: var(--page-width);
+  margin-inline: auto;
+  padding: 0.85rem var(--gutter);
+}
+
+.wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin-inline-end: auto;
+  color: inherit;
+  text-decoration: none;
+}
+
+.wordmark__seal {
+  width: 1.6rem;
+  height: 1.6rem;
+}
+
+.wordmark__latin {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  letter-spacing: 0.01em;
+}
+
+.nav-toggle {
+  display: none;
+  padding: 0.4rem 0.8rem;
+  font: inherit;
+  font-size: 0.875rem;
+  color: inherit;
+  background: none;
+  border: 1px solid var(--rule);
+  border-radius: 0.4rem;
+}
+
+.nav-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.9375rem;
+}
+
+.nav-links a {
+  position: relative;
+  color: var(--ink-soft);
+  text-decoration: none;
+  transition: color 0.18s ease;
+}
+
+/* A cinnabar tick under the section you're reading — the page's only nav state. */
+.nav-links a::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  bottom: -0.4rem;
+  height: 2px;
+  background: var(--cinnabar);
+  transform: scaleX(0);
+  transition: transform 0.22s var(--stamp-ease);
+}
+
+.nav-links a:hover,
+.nav-links a[aria-current],
+.nav-links a[data-in-view] {
+  color: var(--ink);
+}
+
+.nav-links a[aria-current]::after,
+.nav-links a[data-in-view]::after {
+  transform: scaleX(1);
+}
+
+/* ---------- Buttons ---------- */
+
+.app-store-badge {
+  display: inline-block;
+  padding: 0.8rem 1.4rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--paper-lift);
+  text-decoration: none;
+  background: var(--cinnabar);
+  border-radius: 0.45rem;
+  transition:
+    background 0.18s ease,
+    transform 0.18s var(--stamp-ease);
+}
+
+.app-store-badge:hover {
+  background: var(--cinnabar-lift);
+  transform: translateY(-1px);
+}
+
+.app-store-badge--small {
+  padding: 0.45rem 0.9rem;
+  font-size: 0.875rem;
+}
+
+.link-button {
+  display: inline-block;
+  padding: 0.7rem 1.3rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--ink);
+  text-decoration: none;
+  border: 1px solid var(--ink);
+  border-radius: 0.45rem;
+  transition:
+    background 0.18s ease,
+    color 0.18s ease;
+}
+
+.link-button:hover {
+  color: var(--paper);
+  background: var(--ink);
+}
+
+/* ---------- Hero ---------- */
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, auto) minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(2rem, 7vw, 5.5rem);
+  max-width: var(--page-width);
+  margin-inline: auto;
+  padding: clamp(3.5rem, 9vw, 6.5rem) var(--gutter) var(--section-gap);
+}
+
+/* The thesis: the app's own chop, sitting in a practice square. */
+.hero__seal-cell {
+  width: clamp(11rem, 26vw, 17rem);
+}
+
+.hero__seal {
+  width: 74%;
+  height: auto;
+}
+
+.hero__title {
+  margin-block-end: 0.5rem;
+}
+
+.hero__title .hero__hanzi {
+  font-family: var(--font-han);
+  font-size: 0.42em;
+  letter-spacing: 0.08em;
+  color: var(--ink-soft);
+  vertical-align: 0.5em;
+  margin-inline-start: 0.5rem;
+}
+
+.hero__tagline {
+  max-width: 22ch;
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 3.4vw, 2.4rem);
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  margin-block-end: 1.25rem;
+}
+
+.hero__subhead {
+  color: var(--ink-soft);
+  max-width: 40ch;
+}
+
+.hero__cta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1.25rem;
+  margin-block: 2.25rem 0;
+  max-width: none;
+}
+
+.hero__platforms {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--ink-soft);
+}
+
+/* The stamp: the chop presses into the paper once, on load. */
+@media (prefers-reduced-motion: no-preference) {
+  .hero__seal {
+    animation: stamp 0.62s var(--stamp-ease) both;
+  }
+
+  .hero__seal-cell {
+    animation: fade-in 0.5s ease both;
+  }
+}
+
+@keyframes stamp {
+  from {
+    opacity: 0;
+    transform: scale(1.32) rotate(-4deg);
+  }
+
+  60% {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) rotate(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+/* ---------- Intro ---------- */
+
+.intro {
+  max-width: var(--page-width);
+  margin-inline: auto;
+  padding: var(--section-gap) var(--gutter);
+  border-block-start: 1px solid var(--rule);
+}
+
+.intro__body {
+  max-width: 46rem;
+}
+
+.intro__body p {
+  max-width: none;
+  font-size: 1.1875rem;
+}
+
+.intro__body p + p {
+  margin-block-start: 1.25rem;
+}
+
+/* ---------- Features ---------- */
+
+.features {
+  max-width: var(--page-width);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+/* Equal columns so a reversed row can swap sides without resizing either one. */
+.feature {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: center;
+  gap: clamp(2rem, 6vw, 4.5rem);
+  padding-block: clamp(3.5rem, 7vw, 5.5rem);
+  border-block-start: 1px solid var(--rule);
+}
+
+.feature--reversed .feature__copy {
+  order: 2;
+}
+
+.feature__copy p {
+  color: var(--ink-soft);
+}
+
+/* Each feature is marked by the character for what it does, in a practice
+   square — the one place the page speaks Chinese without translating itself. */
+.feature__mark {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  margin-block-end: 1.5rem;
+}
+
+.feature__glyph {
+  width: 3.25rem;
+  font-family: var(--font-han);
+  font-size: 1.6rem;
+  line-height: 1;
+  color: var(--cinnabar);
+}
+
+.feature__label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.feature__pinyin {
+  display: block;
+  margin-block-start: 0.2rem;
+  font-size: 0.8125rem;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: var(--ink-soft);
+  opacity: 0.75;
+}
+
+.shot {
+  width: 100%;
+  max-width: 15.5rem;
+  height: auto;
+  margin: 0;
+  justify-self: center;
+  border: 1px solid var(--rule);
+  border-radius: 1.6rem;
+  box-shadow:
+    0 1px 2px color-mix(in srgb, var(--ink) 8%, transparent),
+    0 18px 40px -18px color-mix(in srgb, var(--ink) 32%, transparent);
+}
+
+/* ---------- Details ---------- */
+
+.details {
+  max-width: var(--page-width);
+  margin-inline: auto;
+  padding: var(--section-gap) var(--gutter);
+  border-block-start: 1px solid var(--rule);
+}
+
+.details__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15.5rem, 1fr));
+  gap: 1px;
+  margin: 2.75rem 0 0;
+  padding: 0;
+  list-style: none;
+  background: var(--rule);
+  border: 1px solid var(--rule);
+}
+
+.details__grid li {
+  padding: 1.75rem;
+  background: var(--paper);
+}
+
+.details__grid p {
+  margin: 0;
+  font-size: 0.9375rem;
+  color: var(--ink-soft);
+}
+
+/* ---------- Open source ---------- */
+
+.open-source {
+  max-width: var(--page-width);
+  margin-inline: auto;
+  padding: var(--section-gap) var(--gutter);
+  border-block-start: 1px solid var(--rule);
+}
+
+/* ---------- Closing ---------- */
+
+.closing-cta {
+  margin-block-start: var(--section-gap);
+  padding: var(--section-gap) var(--gutter);
+  text-align: center;
+  background: var(--paper-sink);
+  border-block-start: 1px solid var(--rule);
+}
+
+.closing-cta__inner {
+  max-width: 40rem;
+  margin-inline: auto;
+}
+
+.closing-cta p {
+  max-width: none;
+}
+
+.closing-cta__seal {
+  width: 2.75rem;
+  margin-block-end: 1.75rem;
+  opacity: 0.9;
+}
+
+.closing-cta__requirements {
+  margin-block-start: 1.25rem;
+  font-size: 0.875rem;
+  color: var(--ink-soft);
+}
+
+/* ---------- Prose ---------- */
+
+.prose {
+  max-width: 42rem;
+  margin-inline: auto;
+  padding: clamp(3rem, 8vw, 5rem) var(--gutter) var(--section-gap);
+}
+
+.prose h1 {
+  font-size: clamp(2.25rem, 5.5vw, 3.25rem);
+  margin-block-end: 1.5rem;
+}
+
+.prose h2 {
+  margin-block-start: 3rem;
+  font-size: clamp(1.4rem, 3vw, 1.85rem);
+}
+
+.prose h3 {
+  margin-block-start: 2rem;
+  font-size: 1.0625rem;
+}
+
+.prose p {
+  max-width: none;
+  color: var(--ink-soft);
+}
+
+.prose__effective {
+  font-size: 0.9375rem;
+}
+
+/* ---------- Footer ---------- */
+
+.site-footer {
+  padding: 3rem var(--gutter) 4rem;
+  background: var(--paper-sink);
+  border-block-start: 1px solid var(--rule);
+  color: var(--ink-soft);
+  font-size: 0.875rem;
+}
+
+.site-footer__inner {
+  max-width: var(--page-width);
+  margin-inline: auto;
+}
+
+.footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin: 0 0 1.75rem;
+  padding: 0;
+  list-style: none;
+}
+
+.footer-links a {
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.footer-links a:hover {
+  color: var(--cinnabar);
+}
+
+.footer-disclaimer,
+.footer-copyright {
+  max-width: 44rem;
+}
+
+.footer-copyright {
+  margin-block-start: 1rem;
+  margin-block-end: 0;
+}
+
+/* ---------- Narrow viewports ---------- */
+
+@media (width < 56rem) {
+  .feature {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: start;
+  }
+
+  .feature--reversed .feature__copy {
+    order: 0;
+  }
+
+  .shot {
+    justify-self: start;
+  }
+}
+
+@media (width < 48rem) {
+  .hero {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2.5rem;
+  }
+
+  .nav-toggle {
+    display: block;
+  }
+
+  .nav-links {
+    flex-basis: 100%;
+    flex-direction: column;
+    gap: 0.9rem;
+  }
+
+  .nav-links[hidden] {
+    display: none;
+  }
+
+  .nav-links a::after {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
