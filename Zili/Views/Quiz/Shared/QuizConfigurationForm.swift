@@ -13,6 +13,8 @@ struct QuizSourceSection: View {
   /// The bands to restore when the learner switches back from favorites, so the choice survives
   /// a round trip through the other source.
   @Binding var savedLevels: Set<HSKLevel>
+  /// Which favorites the deck draws — offered only while the favorites are the chosen source.
+  @Binding var sort: QuizDeckSort
   /// A snapshot of the words missed in the mode this quiz drills — the "Missed" deck's words.
   let missedWords: [String]
   let countLabel: Text
@@ -37,6 +39,8 @@ struct QuizSourceSection: View {
           if favorites.favoritedWords.isEmpty {
             Text("Star words to build a favorites deck.")
               .foregroundStyle(.secondary)
+          } else {
+            QuizSortPicker(sort: $sort)
           }
         case .missed:
           if missedWords.isEmpty {
@@ -49,6 +53,8 @@ struct QuizSourceSection: View {
     } footer: {
       countLabel
     }
+    .onChange(of: favorites.favoritedWords, initial: true) { _, _ in resnapshotSource() }
+    .onChange(of: missedWords) { _, _ in resnapshotSource() }
   }
 
   /// Switches the source between the saved HSK levels and a snapshot of the current favorites or
@@ -82,11 +88,36 @@ struct QuizSourceSection: View {
     )
   }
 
+  /// Retakes the snapshot the chosen set is built from, so a word starred or missed while this
+  /// form is open counts toward the deck it deals.
+  private func resnapshotSource() {
+    switch source {
+      case .hskLevels: break
+      case .favorites: source = .favorites(favorites.favoritedWords)
+      case .missed: source = .missed(missedWords)
+    }
+  }
+
   /// Which kind of word set feeds the quiz.
   private enum SourceKind: Hashable {
     case hskLevels
     case favorites
     case missed
+  }
+}
+
+/// Picks which of the learner's favorites a deck draws — the newest, the oldest, or a random
+/// sample. The deck is shuffled either way, so this chooses the sample and not the running order.
+struct QuizSortPicker: View {
+  @Binding var sort: QuizDeckSort
+
+  var body: some View {
+    Picker("Sort", selection: $sort) {
+      ForEach(QuizDeckSort.favoriteOptions, id: \.self) { option in
+        Text(option.displayName).tag(option)
+      }
+    }
+    .accessibilityIdentifier(AccessibilityID.quizSortPicker)
   }
 }
 
@@ -191,6 +222,7 @@ private struct QuizConfigurationSectionsPreview: View {
 
   @State private var source = QuizDeckSource.hskLevels([HSKLevel(standard: .new, band: 1)])
   @State private var savedLevels: Set<HSKLevel> = [HSKLevel(standard: .new, band: 1)]
+  @State private var sort = QuizDeckSort.random
   @State private var deckSize: Int? = 20
 
   var body: some View {
@@ -199,6 +231,7 @@ private struct QuizConfigurationSectionsPreview: View {
         available: Self.levels,
         source: $source,
         savedLevels: $savedLevels,
+        sort: $sort,
         missedWords: ["好", "谢谢"],
         countLabel: Text("\(150) words selected.")
       )

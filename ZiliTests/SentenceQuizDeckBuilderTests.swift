@@ -74,6 +74,26 @@ struct SentenceQuizDeckBuilderTests {
     #expect(deck.map(\.id) == ["d", "a"])
   }
 
+  @Test("Most Recent draws the newest favorites, Oldest the ones that have waited longest")
+  func favoriteSortsDrawFromEitherEnd() {
+    let library = Self.library()
+    let favoriteIDs = ["d", "c", "b", "a"]
+
+    func deck(_ sort: QuizDeckSort) -> Set<String> {
+      let sentences = SentenceQuizDeckBuilder.build(
+        for: .favorites,
+        in: library,
+        favoriteIDs: favoriteIDs,
+        sort: sort,
+        limit: 2
+      )
+      return Set(sentences.map(\.id))
+    }
+
+    #expect(deck(.mostRecent) == ["d", "c"])
+    #expect(deck(.oldest) == ["b", "a"])
+  }
+
   @Test(
     "Build caps the pool at limit and draws only from it, returning all when limit is nil",
     arguments: [nil, 0, 2, 10] as [Int?]

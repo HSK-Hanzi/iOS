@@ -24,6 +24,7 @@ struct ListeningQuizConfigurationForm: View {
   @State private var kind: SourceKind
   @State private var corpusID: String
   @State private var levels: Set<Int>
+  @State private var sort = QuizDeckSort.random
   @State private var deckSize: Int? = 20
 
   var body: some View {
@@ -61,6 +62,8 @@ struct ListeningQuizConfigurationForm: View {
           if favorites.favoritedIDs.isEmpty {
             Text("Star sentences to build a favorites deck.")
               .foregroundStyle(.secondary)
+          } else {
+            QuizSortPicker(sort: $sort)
           }
         case .missed:
           if sentenceMisses.missedSentenceIDs.isEmpty {
@@ -86,6 +89,12 @@ struct ListeningQuizConfigurationForm: View {
       case .favorites: .favorites
       case .missed: .missed(sentenceMisses.missedSentenceIDs)
     }
+  }
+
+  /// The sort to deal by: the learner's choice while their favorites are the source, and a random
+  /// sample otherwise — a set with no starring dates has no newest or oldest to draw.
+  private var deckSort: QuizDeckSort {
+    kind == .favorites ? sort : .random
   }
 
   private var sentenceCount: Int {
@@ -115,6 +124,7 @@ struct ListeningQuizConfigurationForm: View {
       for: source,
       in: library,
       favoriteIDs: favorites.favoritedIDs,
+      sort: deckSort,
       limit: deckSize
     )
     start(ListeningQuizSession(deck: deck, onMiss: { sentenceMisses.recordMiss($0) }))

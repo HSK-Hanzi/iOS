@@ -17,6 +17,7 @@ struct DrawingQuizConfigurationForm: View {
 
   @State private var source: QuizDeckSource
   @State private var savedLevels: Set<HSKLevel>
+  @State private var sort = QuizDeckSort.random
   @State private var deckSize: Int? = 20
 
   @Environment(WordMissStore.self)
@@ -31,6 +32,7 @@ struct DrawingQuizConfigurationForm: View {
         available: lexicon.availableLevels,
         source: $source,
         savedLevels: $savedLevels,
+        sort: $sort,
         missedWords: wordMisses.wordsMissed(in: .writing),
         countLabel: Text("\(characterCount) characters to draw.")
       )
@@ -46,6 +48,12 @@ struct DrawingQuizConfigurationForm: View {
   /// number the learner is choosing among.
   private var characterCount: Int {
     QuizDeckBuilder.drawableCharacters(of: source, in: lexicon).count
+  }
+
+  /// The sort to deal by: the learner's choice while their favorites are the source, and a random
+  /// sample otherwise — a set with no starring dates has no newest or oldest to draw.
+  private var deckSort: QuizDeckSort {
+    source.isFavorites ? sort : .random
   }
 
   init(
@@ -65,6 +73,7 @@ struct DrawingQuizConfigurationForm: View {
     let deck = QuizDeckBuilder.characterDeck(
       from: lexicon,
       source: source,
+      sort: deckSort,
       limit: deckSize,
       romanization: romanization
     )

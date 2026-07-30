@@ -33,6 +33,7 @@ struct FlashcardQuizConfigurationForm: View {
         available: lexicon.availableLevels,
         source: $configuration.source,
         savedLevels: $savedLevels,
+        sort: $configuration.sort,
         missedWords: wordMisses.wordsMissed(in: .recognizing),
         countLabel: Text("\(wordCount) words selected.")
       )
@@ -66,6 +67,12 @@ struct FlashcardQuizConfigurationForm: View {
     configuration.source.headwords(in: lexicon).count
   }
 
+  /// The sort to deal by: the learner's choice while their favorites are the source, and a random
+  /// sample otherwise — a set with no starring dates has no newest or oldest to draw.
+  private var deckSort: QuizDeckSort {
+    configuration.source.isFavorites ? configuration.sort : .random
+  }
+
   init(
     lexicon: Lexicon,
     configuration: FlashcardQuizConfiguration,
@@ -83,6 +90,7 @@ struct FlashcardQuizConfigurationForm: View {
     let deck = QuizDeckBuilder.build(
       from: lexicon,
       source: configuration.source,
+      sort: deckSort,
       limit: configuration.deckSize,
       romanization: romanization
     )
