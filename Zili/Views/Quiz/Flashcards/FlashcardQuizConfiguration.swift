@@ -20,6 +20,9 @@ final class FlashcardQuizConfiguration {
   /// Whether a Hanzi prompt also shows the reading (moot when the prompt is the definition).
   var showsReadingWithHanzi: Bool
 
+  /// Which of the learner's favorites the deck draws, when the favorites are the source.
+  var sort: QuizDeckSort
+
   /// The most cards to draw, or `nil` for the whole source.
   var deckSize: Int?
 
@@ -27,11 +30,13 @@ final class FlashcardQuizConfiguration {
     source: QuizDeckSource,
     direction: PromptDirection = .chineseToEnglish,
     showsReadingWithHanzi: Bool = true,
+    sort: QuizDeckSort = .random,
     deckSize: Int? = 20
   ) {
     self.source = source
     self.direction = direction
     self.showsReadingWithHanzi = showsReadingWithHanzi
+    self.sort = sort
     self.deckSize = deckSize
   }
 }

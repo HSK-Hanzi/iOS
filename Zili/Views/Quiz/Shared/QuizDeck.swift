@@ -21,6 +21,11 @@ enum QuizDeckSource: Hashable, Sendable {
     if case .hskLevels(let levels) = self { levels } else { [] }
   }
 
+  /// Whether this is the learner's favorites, whose snapshot order the sorts act on.
+  var isFavorites: Bool {
+    if case .favorites = self { true } else { false }
+  }
+
   var displayName: String {
     switch self {
       case .hskLevels(let levels): Self.summary(of: levels)
@@ -94,82 +99,124 @@ enum QuizDeckSource: Hashable, Sendable {
   }
 }
 
-/// How a deck's words are ordered before it's capped.
-enum QuizDeckOrder: Sendable {
-  /// A fresh random shuffle each build — the default, so each quiz draws a varied sample.
+/// Which items a deck draws: the source is sorted this way, the first of them taken, and the
+/// result shuffled — so the sort picks the sample, never the sequence the learner is asked in.
+enum QuizDeckSort: Hashable, Sendable {
+  /// A fresh random sample each build — the default, so each quiz draws varied items.
   case random
+  /// The source's own order, which for a favorites snapshot runs most recently starred first.
+  case mostRecent
+  /// That order reversed, for the stars that have waited longest.
+  case oldest
   /// The most common words first, by corpus frequency rank.
   case frequency
+
+  /// The sorts a favorites deck offers, in the order the picker lists them.
+  static let favoriteOptions: [Self] = [.random, .mostRecent, .oldest]
+
+  var displayName: String {
+    switch self {
+      case .random: String(localized: "Random")
+      case .mostRecent: String(localized: "Most Recent")
+      case .oldest: String(localized: "Oldest")
+      case .frequency: String(localized: "Most Common")
+    }
+  }
+
+  /// `items` in this sort's order, ready to be capped. `.frequency` sorts by `rank`; sources with
+  /// nothing to rank by keep the order they arrived in.
+  func sorted<T>(_ items: [T], rankedBy rank: ((T) -> Int)? = nil) -> [T] {
+    switch self {
+      case .random: items.shuffled()
+      case .mostRecent: items
+      case .oldest: Array(items.reversed())
+      case .frequency: rank.map { rank in items.sorted { rank($0) < rank($1) } } ?? items
+    }
+  }
 }
 
 /// Builds a deck of resolved ``QuizCard``s from the lexicon: it enumerates a source's
-/// headwords, orders them, resolves each word's Hanzi, reading, and definition, and caps the
-/// count. Pure and synchronous — the lexicon's queries hit on-disk indexes, so this is cheap.
+/// headwords, picks the ones `sort` calls for, resolves each word's Hanzi, reading, and
+/// definition, and shuffles what it drew. Pure and synchronous — the lexicon's queries hit
+/// on-disk indexes, so this is cheap.
 enum QuizDeckBuilder {
   private static let missingDefinition = "—"
 
-  /// A deck for `source`, read in `romanization`, arranged by `order` and capped at `limit`
-  /// cards (all of them when `limit` is `nil`).
+  /// A deck for `source`, read in `romanization`, drawn from the `limit` words `sort` picks out
+  /// (all of them when `limit` is `nil`) and shuffled.
   static func build(
     from lexicon: Lexicon,
     source: QuizDeckSource,
-    order: QuizDeckOrder = .random,
+    sort: QuizDeckSort = .random,
     limit: Int?,
     romanization: Romanization
   ) -> [QuizCard] {
-    let cards = arrange(source.headwords(in: lexicon), by: order, in: lexicon)
+    let headwords = sort.sorted(source.headwords(in: lexicon)) {
+      lexicon.lookup($0).frequencyRank ?? .max
+    }
+    return capped(headwords, at: limit)
+      .shuffled()
       .map {
         card(from: lexicon.lookup($0), romanization: romanization, inStandard: source.standard)
       }
-    guard let limit else { return cards }
-    return Array(cards.prefix(limit))
   }
 
-  /// A deck of the individual characters in `source`'s words, de-duplicated in word order and
-  /// narrowed to the characters the stroke library can draw. Shuffled before it is capped at
-  /// `limit`, so each quiz draws a varied sample without resolving every character in the source.
+  /// A deck of the individual characters in the words `sort` picks out of `source`, narrowed to
+  /// the characters the stroke library can draw. Shuffled a word at a time, so a compound's
+  /// characters arrive together in the order it writes them.
   static func characterDeck(
     from lexicon: Lexicon,
     source: QuizDeckSource,
+    sort: QuizDeckSort = .random,
     limit: Int?,
     romanization: Romanization
   ) -> [QuizCard] {
-    let drawable = drawableCharacters(of: source, in: lexicon).shuffled()
-    let chosen = limit.map { Array(drawable.prefix($0)) } ?? drawable
-    return chosen.map {
-      card(
-        from: lexicon.lookup(String($0)),
-        romanization: romanization,
-        inStandard: source.standard
-      )
-    }
+    let words = sort.sorted(source.headwords(in: lexicon))
+    return characterGroups(of: words, covering: limit, in: lexicon)
+      .shuffled()
+      .flatMap(\.self)
+      .map {
+        card(
+          from: lexicon.lookup(String($0)),
+          romanization: romanization,
+          inStandard: source.standard
+        )
+      }
   }
 
   /// Every distinct character across the source's words that the stroke library knows how to draw,
   /// in the order the words introduce them. Cheap enough for a live count — the stroke library's
   /// lookups hit an on-disk index — so the setup screen can size a deck from it.
   static func drawableCharacters(of source: QuizDeckSource, in lexicon: Lexicon) -> [Character] {
-    var seen = Set<Character>()
-    return source.headwords(in: lexicon)
+    characterGroups(of: source.headwords(in: lexicon), covering: nil, in: lexicon)
       .flatMap(\.self)
-      .filter { seen.insert($0).inserted }
-      .filter { lexicon.strokeGraphic(for: $0) != nil }
   }
 
-  /// The headwords in the requested order: a fresh shuffle, or ascending by frequency rank
-  /// (unranked words sort last).
-  private static func arrange(
-    _ headwords: [String],
-    by order: QuizDeckOrder,
+  /// The characters each word introduces — drawable, distinct across the deck, in the order the
+  /// word writes them — taking whole words until `limit` characters are covered, so a word is
+  /// never half-quizzed. The deck grows past `limit` to finish the word that reaches it.
+  private static func characterGroups(
+    of words: [String],
+    covering limit: Int?,
     in lexicon: Lexicon
-  ) -> [String] {
-    switch order {
-      case .random: headwords.shuffled()
-      case .frequency:
-        headwords.sorted {
-          (lexicon.lookup($0).frequencyRank ?? .max) < (lexicon.lookup($1).frequencyRank ?? .max)
-        }
+  ) -> [[Character]] {
+    var seen = Set<Character>()
+    var groups = [[Character]]()
+    var covered = 0
+    for word in words {
+      if let limit, covered >= limit { break }
+      let group = word.filter { lexicon.strokeGraphic(for: $0) != nil && seen.insert($0).inserted }
+      guard !group.isEmpty else { continue }
+      groups.append(Array(group))
+      covered += group.count
     }
+    return groups
+  }
+
+  /// The first `limit` of `items`, or all of them when there is no limit.
+  private static func capped<T>(_ items: [T], at limit: Int?) -> [T] {
+    guard let limit else { return items }
+    return Array(items.prefix(limit))
   }
 
   /// Resolves a lookup into a card: its simplified Hanzi, its reading in the chosen system, its
