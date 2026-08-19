@@ -9,7 +9,7 @@ import Foundation
 /// The vector geometry needed to draw a single Hanzi character stroke by stroke.
 ///
 /// Sourced from the `makemeahanzi` project. Each stroke is an SVG path (its filled
-/// outline) paired by index with a ``median`` — the centerline a brush travels along
+/// outline) paired by index with a ``medians`` — the centerline a brush travels along
 /// when the stroke is written.
 struct HanziGraphic: Decodable, Hashable, Sendable {
   /// Filled outlines, one per stroke, ordered by the sequence in which they are written.

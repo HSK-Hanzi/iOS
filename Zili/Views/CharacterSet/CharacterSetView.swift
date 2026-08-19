@@ -80,10 +80,15 @@ struct CharacterSetView: View {
   }
 
   /// - Parameters:
+  ///   - lexicon: The dictionary the cells look their words up in.
+  ///   - source: The deck whose words the grid shows.
+  ///   - title: The navigation title for the set.
   ///   - emptyTitle: The message shown when the set is empty.
   ///   - preservesSourceOrder: Keeps the source's own order (favorites, newest first) instead
   ///     of collating by character — collation is the default for syllabus bands.
   ///   - onClearAll: Supplied for clearable sets (favorites); adds the Clear All toolbar button.
+  ///   - selection: The word whose entry is showing, bound so the grid and the detail column
+  ///     stay in step.
   init(
     lexicon: Lexicon,
     source: QuizDeckSource,

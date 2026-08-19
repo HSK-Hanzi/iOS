@@ -69,7 +69,7 @@ final class QuizSession {
     outcomes = [:]
   }
 
-  /// Records `outcome` for the current card, reports it to ``onMiss`` when it's a miss, and
+  /// Records `outcome` for the current card, reports it to `onMiss` when it's a miss, and
   /// advances to the next.
   func mark(_ outcome: Outcome) {
     guard let current else { return }

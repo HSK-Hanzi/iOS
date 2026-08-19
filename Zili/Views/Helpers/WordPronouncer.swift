@@ -7,7 +7,7 @@ import AVFoundation
 
 /// Speaks a word or sentence aloud with the system's Mandarin text-to-speech voice.
 ///
-/// Held as view state so the underlying ``AVSpeechSynthesizer`` outlives each utterance;
+/// Held as view state so the underlying `AVSpeechSynthesizer` outlives each utterance;
 /// requesting new speech cuts off any still in progress. On iOS the audio session is set to
 /// playback before speaking, so a listening quiz is still heard with the ringer switched off.
 final class WordPronouncer {

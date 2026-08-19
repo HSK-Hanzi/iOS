@@ -109,3 +109,62 @@ jobs:
           name: test-results-${{ matrix.plan }}-${{ matrix.platform.name }}
           path: TestResults-${{ matrix.plan }}-${{ matrix.platform.name }}.xcresult
           if-no-files-found: ignore
+
+  documentation:
+    name: Build documentation
+    runs-on: macos-26
+    steps:
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+      # setup-swift xcode-selects the Xcode that can open the project's file format; keep it pinned to
+      # the same toolchain the lint and Periphery workflows use.
+      - uses: SwiftyLab/setup-swift@latest
+        with:
+          swift-version: "6.3"
+
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          submodules: false
+
+      # A documentation build compiles the app, and the build needs the open-licensed data. Data/Open
+      # is public, so rewrite its SSH submodule URL to anonymous HTTPS and init just that submodule
+      # (pulling its Git LFS plists). Data/Proprietary stays absent — the build falls back to open-only
+      # data — so CI never needs a key.
+      - name: Check out the open data submodule
+        run: |
+          git config --global url."https://github.com/".insteadOf "git@github.com:"
+          git submodule update --init Data/Open
+          git -C Data/Open lfs pull
+
+      # SwiftData's @Model and @Observable macros can fail fingerprint validation on hosted runners;
+      # skipping it lets the build resolve the macro implementations.
+      - name: Enable macros
+        run: defaults write com.apple.dt.Xcode IDESkipMacroFingerprintValidation -bool YES
+
+      - name: Cache SwiftPM dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/Library/Developer/Xcode/DerivedData/**/SourcePackages/checkouts
+            ~/Library/Caches/org.swift.swiftpm
+          key: spm-${{ runner.os }}-${{ hashFiles('**/Package.resolved') }}
+          restore-keys: |
+            spm-${{ runner.os }}-
+
+      # Zili is the only scheme, and its app target carries every documented symbol. macOS is the
+      # cheapest destination — no simulator to boot — and the product is only compiled, never
+      # launched, so signing is off entirely. DocC has no build setting for strictness, so
+      # --warnings-as-errors reaches it through OTHER_DOCC_FLAGS: an unresolved symbol link or an
+      # undocumented parameter then fails the job. Nothing consumes the .doccarchive here, so it
+      # builds into the runner's scratch directory rather than the checkout.
+      - name: Build documentation
+        run: |
+          xcodebuild docbuild \
+            -project Zili.xcodeproj \
+            -scheme Zili \
+            -destination "platform=macOS" \
+            -derivedDataPath "$RUNNER_TEMP/docs-dd" \
+            CODE_SIGNING_ALLOWED=NO \
+            OTHER_DOCC_FLAGS="--warnings-as-errors"

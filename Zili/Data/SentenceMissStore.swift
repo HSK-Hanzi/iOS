@@ -10,7 +10,7 @@ import SwiftData
 /// The learner's per-sentence miss tallies, the single source of truth the UI reads and mutates.
 ///
 /// It mirrors ``WordMissStore`` for sentences, which only the listening quiz tests — so a single
-/// tally per sentence suffices. A SwiftData ``ModelContext`` backs an in-memory mirror of each
+/// tally per sentence suffices. A SwiftData ``SwiftData/ModelContext`` backs an in-memory mirror of each
 /// sentence's count so its detail can show and reset one cheaply and reactively, injected into the
 /// environment so the listening quiz can record a miss. On every reload it de-duplicates the records
 /// CloudKit can produce for the same sentence, keeping one and **summing** the rest into it so an

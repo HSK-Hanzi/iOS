@@ -6,7 +6,7 @@
 import SwiftUI
 
 /// The user-facing text of an error, split into the lines a message can show: a general title from
-/// ``errorDescription``, the case-specific ``failureReason``, and a ``recoverySuggestion`` when the
+/// `errorDescription`, the case-specific ``failureReason``, and a ``recoverySuggestion`` when the
 /// failure is something the learner can act on. A plain error that isn't a `LocalizedError` falls
 /// back to its `localizedDescription` for the title alone.
 struct ErrorPresentation {

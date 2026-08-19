@@ -17,9 +17,9 @@
     static let listeningQuiz = "listening-quiz"
   }
 
-  /// The Dictionary window's root. It and both Practice windows carry
-  /// ``SwiftUI/Scene/defaultLaunchBehavior(_:)`` of `.presented`, so all three open together at
-  /// launch; thereafter window restoration decides what comes back.
+  /// The Dictionary window's root. It and both Practice windows carry a
+  /// `defaultLaunchBehavior(_:)` of `.presented`, so all three open together at launch; thereafter
+  /// window restoration decides what comes back.
   struct DictionaryWindow: View {
     var body: some View {
       LexiconGate { lexicon in

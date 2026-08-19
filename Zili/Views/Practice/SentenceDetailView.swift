@@ -8,7 +8,7 @@ import SwiftUI
 /// One sentence's detail: the Chinese shown large with individually tappable words, its reading
 /// transliterated live into the learner's chosen romanization, and its English translation. The
 /// toolbar stars the sentence and speaks it aloud. Tapping a word peeks its entry and can open the
-/// full dictionary entry, reusing the ``\.wordResolver`` the Practice tab installs.
+/// full dictionary entry, reusing the ``SwiftUICore/EnvironmentValues/wordResolver`` the Practice tab installs.
 struct SentenceDetailView: View {
   /// Caps the sentence and translation's line length so they don't run edge-to-edge in a wide
   /// detail column on iPad or Mac.

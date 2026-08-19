@@ -9,7 +9,7 @@ import SwiftData
 
 /// The learner's starred sentences, the single source of truth the UI reads and mutates.
 ///
-/// It mirrors ``FavoritesStore`` for sentences: a SwiftData ``ModelContext`` with an in-memory
+/// It mirrors ``FavoritesStore`` for sentences: a SwiftData ``SwiftData/ModelContext`` with an in-memory
 /// mirror of the favorited sentence ids so membership checks and star toggles are cheap and
 /// reactive, injected into the environment so any screen — a sentence's detail, the practice list,
 /// the listening-quiz results — can reach it. On every reload it de-duplicates the records CloudKit

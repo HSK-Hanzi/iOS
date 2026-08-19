@@ -55,7 +55,7 @@ final class ListeningQuizSession {
   }
 
   /// Records whether the current sentence was answered correctly, reports a wrong answer to
-  /// ``onMiss``, and advances to the next.
+  /// `onMiss`, and advances to the next.
   func mark(correct: Bool) {
     guard let current else { return }
     outcomes[current.id] = correct

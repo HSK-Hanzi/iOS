@@ -9,7 +9,7 @@ import SwiftData
 
 /// The learner's starred words, the single source of truth the UI reads and mutates.
 ///
-/// It wraps a SwiftData ``ModelContext`` and keeps an in-memory mirror of the favorited
+/// It wraps a SwiftData ``SwiftData/ModelContext`` and keeps an in-memory mirror of the favorited
 /// headwords so membership checks and star toggles are cheap and reactive. It is injected into
 /// the environment (like the app's other capabilities) so any screen — a word's entry, the
 /// Practice grid, the quiz results — can reach it.

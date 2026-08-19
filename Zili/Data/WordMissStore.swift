@@ -16,7 +16,7 @@ enum WordQuizMode: Sendable {
 
 /// The learner's per-word miss tallies, the single source of truth the UI reads and mutates.
 ///
-/// It mirrors ``FavoritesStore`` for miss counts: a SwiftData ``ModelContext`` with an in-memory
+/// It mirrors ``FavoritesStore`` for miss counts: a SwiftData ``SwiftData/ModelContext`` with an in-memory
 /// mirror of each word's tallies so a word's entry can show its counts cheaply and reactively,
 /// injected into the environment so a quiz can record a miss and a dictionary entry can show and
 /// reset one. On every reload it de-duplicates the records CloudKit can produce for the same word,
