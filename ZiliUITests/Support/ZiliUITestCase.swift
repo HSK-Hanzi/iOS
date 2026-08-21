@@ -43,7 +43,16 @@ class ZiliUITestCase: XCTestCase {
   func launch(seed: Set<Seed> = [], failLexiconLoad: Bool = false) -> XCUIApplication {
     let app = XCUIApplication()
     self.app = app
-    app.launchArguments = ["-uiTesting"]
+    // Every switch carries a value, including the bare-looking `-uiTesting`. The argument domain
+    // reads the token after a `-key` as that key's value, so a valueless switch swallows the switch
+    // that follows it and neither takes effect.
+    app.launchArguments = ["-uiTesting", "YES"]
+    #if os(macOS)
+      // A window restored from a previous run occupies the slot a declared scene needs to
+      // appear in, so ⌘1 raises nothing and the Dictionary window never arrives. Launching
+      // without persisted state is what makes the window deterministic.
+      app.launchArguments += ["-ApplePersistenceIgnoreState", "YES"]
+    #endif
     prepareForLaunch()
     if !seed.isEmpty {
       app.launchEnvironment["SEED"] = seed.map(\.rawValue).sorted().joined(separator: ",")
@@ -60,7 +69,9 @@ class ZiliUITestCase: XCTestCase {
         failLexiconLoad
         ? app.descendant(id: AccessibilityID.loadFailureRetry)
         : app.windows[MacWindow.dictionary].searchFields.firstMatch
-      XCTAssertTrue(ready.wait(), "The app opened its first window.")
+      // The window is only ready once the lexicon is loaded, which takes far longer than an
+      // ordinary element wait — the same budget `MacQuizWindowUITests` gives it.
+      XCTAssertTrue(ready.wait(scaledSeconds: 60), "The app opened its first window.")
     #else
       app.launchAndWaitUntilReady { app in
         failLexiconLoad
