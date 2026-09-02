@@ -45,7 +45,8 @@ struct FlashcardQuizView: View {
 /// The active drill: a progress header, the card stack, and the judgement controls, all on the
 /// ambient stage. Tapping the card flips it to reveal the answer; each judgement throws the card
 /// off in its outcome's direction to reveal the next card underneath. On iOS the card can also be
-/// swiped; on macOS the same throws are driven by the ⌘←/⌘→/⌘↑ Quiz menu commands.
+/// swiped. A hardware keyboard turns the card with Space and judges it with an unmodified arrow;
+/// on macOS the ⌘←/⌘→/⌘↑ Quiz menu commands drive the same throws.
 private struct RunningQuizView: View {
   @Environment(FlashcardQuizConfiguration.self)
   private var configuration
@@ -63,8 +64,19 @@ private struct RunningQuizView: View {
   @State private var cardSize = CGSize.zero
   @State private var topBarBottom: CGFloat = 0
 
+  /// Which side the top card shows. It belongs to the stage rather than to the card so the
+  /// keyboard can turn it, and is returned to the prompt only once a judged card has finished
+  /// leaving — a card keeps whichever side it was on all the way off screen.
+  @State private var isFlipped = false
+
+  /// Focus for the key handlers below. The stage has no control to inherit focus from, so it
+  /// gives itself one — see ``keyboardFocusTarget``.
+  @FocusState private var isFocused: Bool
+
   var body: some View {
     ZStack {
+      keyboardFocusTarget
+
       if let current = session.current {
         let faces = configuration.direction
           .faces(showingReadingWithHanzi: configuration.showsReadingWithHanzi)
@@ -77,6 +89,7 @@ private struct RunningQuizView: View {
           drag: drag,
           size: cardSize,
           isThrowing: isThrowing,
+          isFlipped: $isFlipped,
           onDragChanged: { drag = $0 },
           onDragEnded: handleDragEnd
         )
@@ -137,6 +150,39 @@ private struct RunningQuizView: View {
     #if os(macOS)
       .focusedSceneValue(\.quizJudge, QuizJudgeAction(judge: judge))
     #endif
+    .onAppear { isFocused = true }
+    .onKeyPress(.space) { flipByKey() }
+    .onKeyPress(.rightArrow) { judgeByKey(.correct) }
+    .onKeyPress(.leftArrow) { judgeByKey(.needsReview) }
+    .onKeyPress(.upArrow) { judgeByKey(.skipped) }
+  }
+
+  /// Somewhere for the stage's key handlers to hold focus. It is invisible and never hit-tested,
+  /// so it takes focus only when the stage hands it over on appear. Suppressing its focus ring
+  /// stays confined to it: `focusEffectDisabled(_:)` sets an inherited environment value, and
+  /// applied to the whole stage it would strip the judgement buttons' rings too.
+  private var keyboardFocusTarget: some View {
+    Color.clear
+      .focusable()
+      .focusEffectDisabled()
+      .focused($isFocused)
+      .allowsHitTesting(false)
+  }
+
+  /// Turns the card over, ignoring a press that lands while a throw is in flight so a card already
+  /// on its way off screen cannot flip. The key is claimed either way: an unhandled press carries
+  /// on up the responder chain, where the Mac answers it with a beep.
+  private func flipByKey() -> KeyPress.Result {
+    if !isThrowing { isFlipped.toggle() }
+    return .handled
+  }
+
+  /// Judges by key in the direction the swipe and the Quiz menu already use — right correct, left
+  /// needs-review, up skip. ``judge(_:)`` ignores a press that lands mid-throw, and the key is
+  /// claimed either way so mashing an arrow through the throw doesn't beep.
+  private func judgeByKey(_ outcome: QuizSession.Outcome) -> KeyPress.Result {
+    judge(outcome)
+    return .handled
   }
 
   /// Records the outcome for the current card and throws it off in that outcome's direction; the
@@ -146,18 +192,24 @@ private struct RunningQuizView: View {
     isThrowing = true
     // Reduced motion advances to the next card without flinging the current one off-screen.
     guard !reduceMotion else {
-      session.mark(outcome)
-      drag = .zero
-      isThrowing = false
+      advance(outcome)
       return
     }
     withAnimation(.spring(response: 0.4, dampingFraction: 0.82)) {
       drag = ThrowDirection.of(outcome).offScreenVector(in: cardSize)
     } completion: {
-      session.mark(outcome)
-      drag = .zero
-      isThrowing = false
+      advance(outcome)
     }
+  }
+
+  /// Retires the judged card and readies the next: its outcome recorded, the displacement cleared,
+  /// and the flip turned back to the prompt. Called once the throw has settled, so the card that
+  /// is leaving is never seen turning back over on its way out.
+  private func advance(_ outcome: QuizSession.Outcome) {
+    session.mark(outcome)
+    drag = .zero
+    isFlipped = false
+    isThrowing = false
   }
 
   /// Judges the card when a swipe is carried past its threshold, otherwise springs it back to rest
@@ -243,6 +295,7 @@ private struct QuizCardStack: View {
   let drag: CGSize
   let size: CGSize
   let isThrowing: Bool
+  @Binding var isFlipped: Bool
   let onDragChanged: (CGSize) -> Void
   let onDragEnded: (DragGesture.Value) -> Void
 
@@ -276,13 +329,24 @@ private struct QuizCardStack: View {
   }
 
   private var topCard: some View {
-    FlippableQuizCard(card: current, front: front, back: back, contentInsets: contentInsets)
-      .id(current.word)
-      .rotationEffect(.degrees(Double(drag.width) / Self.dragRotationDivisor), anchor: .bottom)
-      .offset(drag)
-      #if os(iOS)
-        .gesture(dragGesture)
-      #endif
+    // Keyed by word, so the card taking over is a fresh flip card resting at its prompt angle
+    // rather than unwinding from the turn the outgoing card was left on.
+    CharacterFlashcardView(
+      card: current,
+      front: front,
+      back: back,
+      isFlipped: $isFlipped,
+      contentInsets: contentInsets
+    )
+    .id(current.word)
+    .rotationEffect(
+      .degrees(Double(drag.width) / Self.dragRotationDivisor),
+      anchor: .bottom
+    )
+    .offset(drag)
+    #if os(iOS)
+      .gesture(dragGesture)
+    #endif
   }
 
   #if os(iOS)
@@ -307,28 +371,6 @@ private struct QuizCardStack: View {
 
   private var peekOffsetY: Double {
     Self.peekRestOffset * (1 - dragProgress)
-  }
-}
-
-/// A single card in the quiz, owning its own flip so it always enters showing its prompt and keeps
-/// whichever side it was on as it is thrown away — the stack keys it by word, so each card is a
-/// fresh view rather than the previous card's content swapped in place.
-private struct FlippableQuizCard: View {
-  let card: QuizCard
-  let front: FlashcardFace
-  let back: FlashcardFace
-  let contentInsets: EdgeInsets
-
-  @State private var isFlipped = false
-
-  var body: some View {
-    CharacterFlashcardView(
-      card: card,
-      front: front,
-      back: back,
-      isFlipped: $isFlipped,
-      contentInsets: contentInsets
-    )
   }
 }
 

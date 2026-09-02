@@ -179,6 +179,29 @@ class ZiliUITestCase: XCTestCase {
     return element
   }
 
+  /// Asserts the text `element` renders comes to begin with `prefix` within the (scaled) timeout.
+  ///
+  /// Two platform facts shape this. An element carrying an accessibility identifier of its own —
+  /// the quiz's progress pill, say — is matched on that identifier, so its text is only readable
+  /// once the element is in hand rather than by looking it up. And a `Text` reports its content as
+  /// the accessibility label on iOS but as the *value* on macOS, so both are matched.
+  @discardableResult
+  func expectText(of element: XCUIElement, beginningWith prefix: String, _ message: String) -> Bool
+  {
+    let expectation = XCTNSPredicateExpectation(
+      predicate: NSPredicate(
+        format: "label BEGINSWITH %@ OR value BEGINSWITH %@",
+        prefix,
+        prefix
+      ),
+      object: element
+    )
+    let outcome = XCTWaiter().wait(for: [expectation], timeout: ScaledTimeouts.element)
+    let matched = outcome == .completed
+    XCTAssertTrue(matched, message)
+    return matched
+  }
+
   /// Types `text` into `field`, focusing it first. Bridges the platforms: iOS uses XCUITestKit's
   /// keyboard-aware `clearAndType`; macOS (a hardware keyboard, no software one) clicks and types.
   func type(_ text: String, into field: XCUIElement) {
