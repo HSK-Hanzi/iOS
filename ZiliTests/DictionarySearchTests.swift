@@ -119,4 +119,30 @@ struct DictionarySearchTests {
     #expect(frequency.perMillion > 0)
     #expect(lexicon.frequency.rank(of: "好") != nil)
   }
+
+  // MARK: Single-headword resolution
+
+  /// The resolution an App Intent needs: one answer, whichever way the word was written.
+  @Test("Headword resolution answers a single word for Han script, pinyin, and English")
+  func resolvesOneHeadwordFromAnyInput() async throws {
+    let lexicon = try await Lexicon.load()
+
+    #expect(lexicon.headword(matching: "好") == "好")
+    #expect(lexicon.headword(matching: "  你好  ") == "你好")
+    #expect(lexicon.headword(matching: "nǐhǎo") == "你好")
+    #expect(lexicon.headword(matching: "hello") == "喂")
+    #expect(lexicon.headword(matching: "") == nil)
+    #expect(lexicon.headword(matching: "zzzzqqq") == nil)
+  }
+
+  /// A word written in traditional script resolves to its simplified headword — the form the HSK
+  /// syllabus, the frequency list, favorites, and misses are all keyed by. Resolving it to the
+  /// traditional spelling would find dictionary entries but silently lose all four.
+  @Test("Headword resolution normalizes traditional script to the simplified headword")
+  func resolvesTraditionalToSimplified() async throws {
+    let lexicon = try await Lexicon.load()
+
+    #expect(lexicon.headword(matching: "學習") == "学习")
+    #expect(!lexicon.lookup("学习").hskEntries.isEmpty)
+  }
 }
