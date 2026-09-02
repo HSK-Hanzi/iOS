@@ -158,7 +158,8 @@ struct Lexicon: Sendable {
 
   /// The longest headword that is a prefix of `run` — a greedy match from the start of the
   /// text, across every loaded dictionary and the HSK core. Returns `nil` when not even the
-  /// first character is a headword. Used to segment a tapped run of Chinese text.
+  /// first character is a headword. ``WordSegmenter`` falls back to this within a single token,
+  /// where the surrounding context has already been decided.
   nonisolated func longestHeadword(prefixing run: String) -> String? {
     let characters = Array(run)
     for length in stride(from: min(characters.count, Self.maxHeadwordLength), through: 1, by: -1) {
@@ -168,8 +169,17 @@ struct Lexicon: Sendable {
     return nil
   }
 
-  nonisolated private func containsHeadword(_ word: String) -> Bool {
+  /// Whether `word` is a headword in any loaded dictionary or the HSK core. ``WordSegmenter``
+  /// probes with this to decide whether a token needs splitting further.
+  nonisolated func containsHeadword(_ word: String) -> Bool {
     dictionaries.contains { $0.containsHeadword(word) } || !hsk[word].isEmpty
+  }
+
+  /// Whether `word` is in the HSK syllabus — the vocabulary the app actually teaches, which is a
+  /// far smaller set than the dictionaries. ``WordSegmenter`` merges two tokens only when they
+  /// spell one of these, so an obscure dictionary idiom cannot overrule the tokenizer.
+  nonisolated func containsSyllabusWord(_ word: String) -> Bool {
+    !hsk[word].isEmpty
   }
 
   // MARK: Search

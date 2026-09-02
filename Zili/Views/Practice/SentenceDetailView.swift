@@ -98,13 +98,7 @@ private struct SentenceDetailPreview: View {
       Group {
         if let lexicon, let sentence = lexicon.sentences.defaultCorpus?.allSentences.first {
           SentenceDetailView(sentence: sentence)
-            .environment(
-              \.wordResolver,
-              WordResolver(
-                longestMatch: { lexicon.longestHeadword(prefixing: $0) },
-                lookUp: { lexicon.lookup($0) }
-              )
-            )
+            .environment(\.wordResolver, WordResolver(lexicon: lexicon))
         } else {
           ProgressView()
         }

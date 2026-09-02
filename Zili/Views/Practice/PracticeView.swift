@@ -25,13 +25,7 @@ struct PracticeView: View {
         PracticeSplit(lexicon: lexicon)
       }
     }
-    .environment(
-      \.wordResolver,
-      WordResolver(
-        longestMatch: { lexicon.longestHeadword(prefixing: $0) },
-        lookUp: { lexicon.lookup($0) }
-      )
-    )
+    .environment(\.wordResolver, WordResolver(lexicon: lexicon))
   }
 }
 
