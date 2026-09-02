@@ -8,6 +8,7 @@
 import Sentry
 import SwiftData
 import SwiftUI
+import TipKit
 
 @main
 struct ZiliApp: App {
@@ -130,6 +131,7 @@ struct ZiliApp: App {
     modelContainer = container
     _appData = State(initialValue: AppData(container: container, uiTest: uiTest))
     Self.prewarmScriptConverterIfNeeded()
+    Self.configureTips(uiTest: uiTest)
   }
 
   /// Starts Sentry crash and error reporting for a shipped launch. A test run gets none: Sentry's
@@ -184,6 +186,28 @@ struct ZiliApp: App {
         == ChineseScript.traditional.rawValue
     else { return }
     Task.detached(priority: .utility) { _ = HanziConverter.shared }
+  }
+
+  /// Prepares TipKit. A shipped launch keeps its record in the app's CloudKit container, so
+  /// dismissing a tip on one device dismisses it on the rest — the same container
+  /// ``makeModelContainer(uiTest:)`` syncs the learner's favorites and misses through.
+  ///
+  /// A UI test run hides every tip instead: an unexpected popover sits over the view under test
+  /// and takes the hit-testing meant for it. That run also skips CloudKit, because the test
+  /// workflows build without the entitlements file and there is no container to reach.
+  ///
+  /// A datastore that won't open is not worth a launch. TipKit's only consequence here is whether
+  /// a hint appears, so a failure leaves the app tipless and otherwise untouched.
+  private static func configureTips(uiTest: UITestConfiguration) {
+    guard !uiTest.isEnabled else {
+      Tips.hideAllTipsForTesting()
+      try? Tips.configure([.datastoreLocation(.applicationDefault)])
+      return
+    }
+    try? Tips.configure([
+      .displayFrequency(.immediate),
+      .cloudKitContainer(.named("iCloud.codes.tim.Zili"))
+    ])
   }
 
   /// The app's store, or a throwaway in-memory one when a UI test asked for determinism — no
