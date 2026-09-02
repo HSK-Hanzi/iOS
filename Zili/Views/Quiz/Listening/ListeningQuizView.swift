@@ -258,7 +258,7 @@ private struct RevealView: View {
       )
 
       VStack {
-        Text(script.render(sentence.hanzi))
+        Text(script.spoken(sentence.hanzi))
           .font(.system(.title, design: .rounded).weight(.medium))
           .foregroundStyle(QuizStyle.chromeLabel)
           .multilineTextAlignment(.center)

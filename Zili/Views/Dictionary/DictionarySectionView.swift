@@ -154,7 +154,7 @@ private struct CrossReferenceLinks: View {
           Button {
             selectWord(word)
           } label: {
-            Text(script.render(word))
+            Text(script.spoken(word))
               .font(.callout)
               .padding(.horizontal, 8)
               .padding(.vertical, 3)

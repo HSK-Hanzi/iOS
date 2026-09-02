@@ -134,7 +134,7 @@ private struct CharacterPrompt: View {
 
   var body: some View {
     VStack(spacing: 16) {
-      Text(card.hanzi)
+      Text(AttributedString.spokenHanzi(card.hanzi, in: .simplified))
         .font(.system(size: hanziSize, weight: .medium))
         .minimumScaleFactor(0.4)
         .foregroundStyle(QuizStyle.chromeLabel)
@@ -160,7 +160,7 @@ private struct CharacterHeader: View {
 
   var body: some View {
     HStack(alignment: .firstTextBaseline, spacing: 14) {
-      Text(card.hanzi)
+      Text(AttributedString.spokenHanzi(card.hanzi, in: .simplified))
         .font(.system(size: hanziSize, weight: .medium))
       if !card.reading.isEmpty {
         Text(card.reading)

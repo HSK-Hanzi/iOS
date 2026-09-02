@@ -67,7 +67,7 @@ private struct SentenceRow: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 4) {
-      Text(script.render(sentence.hanzi))
+      Text(script.spoken(sentence.hanzi))
         .font(.title3)
       Text(sentence.reading(romanization))
         .font(.caption)

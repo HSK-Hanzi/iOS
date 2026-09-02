@@ -129,11 +129,11 @@ private struct WordCell: View {
     let levels = lookup.hskEntries.flatMap(\.levels)
     return StudyCardTile(palette: HSKPalette.palette(for: levels, inStandard: standard)) {
       VStack(spacing: 4) {
-        Text(script.render(word))
+        Text(script.spoken(word))
           .font(.title2)
           .foregroundStyle(.white)
         if let reading = lookup.romanization(romanization) {
-          Text(reading)
+          Text(romanization.spoken(reading))
             .font(.caption)
             .foregroundStyle(.white.opacity(0.85))
             .lineLimit(1)
@@ -142,6 +142,10 @@ private struct WordCell: View {
       }
     }
     .selectionRing(isSelected)
+    // Combining announces the word and its reading in the right voices; the gloss the tile has no
+    // room to show follows as the value.
+    .accessibilityElement(children: .combine)
+    .accessibilityValue(Text(lookup.primaryGloss ?? ""))
     .accessibilityAddTraits(isSelected ? [.isSelected] : [])
   }
 }

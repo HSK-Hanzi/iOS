@@ -42,7 +42,7 @@ struct DictionaryEntryView: View {
           ContentUnavailableView(
             String(localized: "No entry"),
             systemImage: "character.book.closed",
-            description: Text("Nothing was found for “\(lookup.word)”.")
+            description: Text(notFoundDescription)
           )
           .frame(maxWidth: .infinity)
         } else {
@@ -59,6 +59,16 @@ struct DictionaryEntryView: View {
 
   private var populatedResults: [WordLookup.DictionaryResult] {
     lookup.byDictionary.filter { !$0.entries.isEmpty }
+  }
+
+  /// The empty state's message, with the searched word tagged so VoiceOver speaks it in a Chinese
+  /// voice instead of spelling it out midway through an English sentence.
+  private var notFoundDescription: AttributedString {
+    var described = AttributedString(localized: "Nothing was found for “\(lookup.word)”.")
+    if let word = described.range(of: lookup.word) {
+      described[word].languageIdentifier = ChineseScript.simplified.languageIdentifier
+    }
+    return described
   }
 }
 
@@ -85,7 +95,7 @@ private struct WordHeaderView: View {
         HeadwordText(word: lookup.word, size: headwordSize, tint: titleColor)
           .accessibilityIdentifier(AccessibilityID.wordEntry)
         if let alternateScriptVariant {
-          Text(verbatim: "（\(alternateScriptVariant)）")
+          Text(AttributedString.spokenHanzi("（\(alternateScriptVariant)）", in: script.alternate))
             .font(.title3)
             .foregroundStyle(.secondary)
         }
@@ -192,7 +202,7 @@ private struct HeadwordText: View {
         Button {
           selectWord(String(characters[index]))
         } label: {
-          Text(String(displayCharacters[index]))
+          Text(AttributedString.spokenHanzi(String(displayCharacters[index]), in: script))
             .font(.system(size: size))
             .foregroundStyle(tint ?? .primary)
         }
