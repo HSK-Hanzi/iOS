@@ -42,6 +42,7 @@ struct ZiliApp: App {
       Window("Dictionary", id: WindowID.dictionary) {
         DictionaryWindow()
           .presentsErrors()
+          .wordPeekOverlay()
       }
       .keyboardShortcut("1")
       .defaultSize(width: 1000, height: 700)
@@ -61,6 +62,7 @@ struct ZiliApp: App {
       Window("Practice Characters", id: WindowID.practiceCharacters) {
         PracticeCharactersWindow()
           .presentsErrors()
+          .wordPeekOverlay()
       }
       .keyboardShortcut("2")
       .defaultSize(width: 1000, height: 700)
@@ -72,6 +74,7 @@ struct ZiliApp: App {
       Window("Practice Sentences", id: WindowID.practiceSentences) {
         PracticeSentencesWindow()
           .presentsErrors()
+          .wordPeekOverlay()
       }
       .keyboardShortcut("3")
       .defaultSize(width: 1000, height: 700)
@@ -110,6 +113,7 @@ struct ZiliApp: App {
       WindowGroup {
         ContentView()
           .presentsErrors()
+          .wordPeekOverlay()
       }
       .modelContainer(modelContainer)
       .environment(appData)

@@ -14,16 +14,12 @@ import TipKit
 /// Where there is a pointer — a Mac, an iPad with a trackpad, or a hovering Apple Pencil — resting
 /// on a character shows the same reading and gloss without the tap. The hover peek is a lighter
 /// thing than the tapped one: it reads only, offering no way through to the full entry, since a
-/// panel that took hit-testing would end the very hover that summoned it.
+/// panel that took hit-testing would end the very hover that summoned it. The run raises the peek
+/// but does not draw it — see ``SwiftUICore/View/wordPeekOverlay()``.
 ///
 /// Characters are laid out in a zero-spacing ``FlowLayout``, which flows and wraps like normal
 /// CJK text while giving each character its own hit target.
 struct ChineseText: View {
-  /// How wide a hover peek may grow, and how far from the pointer it sits. Matching the tapped
-  /// popover's own cap keeps the two the same shape.
-  private static let peekMaxWidth: CGFloat = 280
-  private static let peekOffset = CGSize(width: 12, height: 18)
-
   /// How long the pointer must rest before a peek appears. Without a beat of stillness, sweeping
   /// across a sentence strobes a peek per glyph.
   private static let hoverIntent = Duration.milliseconds(300)
@@ -37,6 +33,8 @@ struct ChineseText: View {
   private var selectWord
   @AppStorage(ChineseScript.storageKey)
   private var script = ChineseScript.simplified
+  @AppStorage(Romanization.storageKey)
+  private var romanization = Romanization.pinyin
 
   @State private var match: Match?
 
@@ -44,7 +42,6 @@ struct ChineseText: View {
   /// write it, so a hover never disturbs what a tap committed.
   @State private var hover: HoverTarget?
   @State private var peek: Peek?
-  @State private var runWidth: CGFloat = 0
 
   private var characters: [Character] { Array(text) }
 
@@ -98,40 +95,14 @@ struct ChineseText: View {
         }
       }
     }
-    .coordinateSpace(.named(hoverSpace))
-    .onGeometryChange(for: CGFloat.self) {
-      $0.size.width
-    } action: {
-      runWidth = $0
-    }
-    .overlay(alignment: .topLeading) { hoverPeek }
     .task(id: hover?.index) { await resolveHover() }
+    .preference(key: WordPeekKey.self, value: anchoredPeek)
   }
 
-  /// The peek the pointer summons, drawn beside it. It never takes hit-testing: a panel under the
-  /// pointer would end the hover that summoned it, which would dismiss the panel, which would
-  /// restore the hover — an oscillation. A tapped peek wins outright, so the two never stack.
-  @ViewBuilder private var hoverPeek: some View {
-    if let peek, match == nil {
-      let origin = peekOrigin(near: peek.point)
-      WordPeekContent(match: peek.match)
-        .padding(10)
-        .frame(maxWidth: Self.peekMaxWidth, alignment: .leading)
-        .fixedSize(horizontal: false, vertical: true)
-        .background(.regularMaterial, in: .rect(cornerRadius: 10))
-        .shadow(radius: 8, y: 3)
-        .offset(x: origin.x, y: origin.y)
-        .allowsHitTesting(false)
-    }
-  }
-
-  /// Where to draw a peek for a pointer at `point`, held clear of the run's trailing edge so a
-  /// word at the end of a line doesn't push its own peek off the side.
-  private func peekOrigin(near point: CGPoint) -> CGPoint {
-    CGPoint(
-      x: min(point.x + Self.peekOffset.width, max(0, runWidth - Self.peekMaxWidth)),
-      y: point.y + Self.peekOffset.height
-    )
+  /// The peek to hand up to whatever draws it. A tapped peek wins outright, so the two never stack.
+  private var anchoredPeek: AnchoredWordPeek? {
+    guard match == nil, let peek else { return nil }
+    return AnchoredWordPeek(peek: peek.peek, point: peek.point)
   }
 
   /// Records where the pointer is as it crosses the run. The peek itself waits on
@@ -163,8 +134,10 @@ struct ChineseText: View {
     try? await Task.sleep(for: Self.hoverIntent)
     guard !Task.isCancelled, let range = wordRange(containing: hover.index) else { return }
     let word = String(characters[range])
+    let match = Match(range: range, word: word, lookup: resolver.lookUp(word))
     peek = Peek(
-      match: Match(range: range, word: word, lookup: resolver.lookUp(word)),
+      range: range,
+      peek: WordPeek(match: match, script: script, romanization: romanization),
       point: hover.point
     )
   }
@@ -213,7 +186,7 @@ struct ChineseText: View {
   /// the pointer says which word it is about to look up before the peek even arrives.
   private func isWithinMatch(_ index: Int) -> Bool {
     if let match { return match.range.contains(index) }
-    return peek?.match.range.contains(index) ?? false
+    return peek?.range.contains(index) ?? false
   }
 
   private func presentation(for index: Int) -> Binding<Bool> {
@@ -237,16 +210,14 @@ struct ChineseText: View {
     let point: CGPoint
   }
 
-  /// A hover that outlasted the intent delay — the resolved word, and where to draw it.
+  /// A hover that outlasted the intent delay — the word's span in the run, how it reads, and the
+  /// pointer that raised it.
   private struct Peek {
-    let match: Match
+    let range: Range<Int>
+    let peek: WordPeek
     let point: CGPoint
   }
 }
-
-/// The coordinate space a run's cells report pointer positions in, so a peek is placed against the
-/// run that owns it rather than the window.
-private let hoverSpace = "ChineseText.run"
 
 /// What a cell reports as the pointer crosses it. An inert cell is distinct from an exit: passing
 /// over punctuation should dismiss the neighboring word's peek, whereas a cell's own exit may be
@@ -307,7 +278,8 @@ private struct CharacterCell: View {
       .background(isHighlighted ? Color.accentColor.opacity(0.18) : .clear)
       .contentShape(.rect)
       .onTapGesture { if isLookupable { onTap() } }
-      .onContinuousHover(coordinateSpace: .named(hoverSpace)) { phase in
+      // Global, because the peek is drawn by an ancestor of the whole scene rather than here.
+      .onContinuousHover(coordinateSpace: .global) { phase in
         switch phase {
           case let .active(point): onHover(isLookupable ? .over(point) : .overInert)
           case .ended: onHover(.left)
@@ -328,34 +300,14 @@ private struct CharacterCell: View {
   }
 }
 
-/// A matched word as a peek reads it: the word itself, its reading, and a short gloss. The half of
-/// a peek that only reads, so it serves the hover overlay — which cannot host a control — as well
-/// as the tapped popover that wraps it in one.
-private struct WordPeekContent: View {
-  let match: ChineseText.Match
-
-  @AppStorage(Romanization.storageKey)
-  private var romanization = Romanization.pinyin
-  @AppStorage(ChineseScript.storageKey)
-  private var script = ChineseScript.simplified
-
-  var body: some View {
-    VStack(alignment: .leading, spacing: 10) {
-      VStack(alignment: .leading, spacing: 2) {
-        Text(script.spoken(match.word))
-          .font(.title2)
-        if let reading = match.lookup.romanization(romanization) {
-          Text(reading)
-            .font(.headline)
-            .foregroundStyle(.secondary)
-        }
-      }
-      if let gloss = match.lookup.primaryGloss {
-        Text(gloss)
-          .font(.callout)
-          .fixedSize(horizontal: false, vertical: true)
-      }
-    }
+extension WordPeek {
+  /// How `match` reads in the learner's script and romanization.
+  init(match: ChineseText.Match, script: ChineseScript, romanization: Romanization) {
+    self.init(
+      word: script.spoken(match.word),
+      reading: match.lookup.romanization(romanization),
+      gloss: match.lookup.primaryGloss
+    )
   }
 }
 
@@ -365,9 +317,16 @@ private struct WordPeekPopover: View {
   let match: ChineseText.Match
   let onOpen: () -> Void
 
+  @AppStorage(Romanization.storageKey)
+  private var romanization = Romanization.pinyin
+  @AppStorage(ChineseScript.storageKey)
+  private var script = ChineseScript.simplified
+
   var body: some View {
     VStack(alignment: .leading, spacing: 10) {
-      WordPeekContent(match: match)
+      WordPeekContent(
+        peek: WordPeek(match: match, script: script, romanization: romanization)
+      )
       Button(action: onOpen) {
         Label("Open full entry", systemImage: "arrow.up.forward.square")
           .font(.callout)
