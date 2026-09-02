@@ -105,6 +105,8 @@ private struct FlashcardFaceContent: View {
 
   @AppStorage(ChineseScript.storageKey)
   private var script = ChineseScript.simplified
+  @AppStorage(Romanization.storageKey)
+  private var romanization = Romanization.pinyin
   @ScaledMetric(relativeTo: .largeTitle)
   private var hanziSize: CGFloat = 92
 
@@ -118,13 +120,13 @@ private struct FlashcardFaceContent: View {
   var body: some View {
     VStack(spacing: 18) {
       if face.showsHanzi {
-        Text(script.render(card.hanzi))
+        Text(script.spoken(card.hanzi))
           .font(.system(size: hanziSize, weight: .medium))
           .minimumScaleFactor(0.4)
           .foregroundStyle(.white)
       }
       if face.showsReading, !card.reading.isEmpty {
-        Text(card.reading)
+        Text(romanization.spoken(card.reading))
           .font(.system(.title, design: .rounded).weight(.medium))
           .foregroundStyle(.white.opacity(0.9))
       }

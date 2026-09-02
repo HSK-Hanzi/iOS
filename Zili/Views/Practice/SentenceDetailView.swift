@@ -35,7 +35,7 @@ struct SentenceDetailView: View {
             MissedBadge(count: misses) { sentenceMisses.reset(sentence.id) }
           }
         }
-        Text(sentence.reading(romanization))
+        Text(romanization.spoken(sentence.reading(romanization)))
           .font(.title3)
           .foregroundStyle(.secondary)
         Divider()

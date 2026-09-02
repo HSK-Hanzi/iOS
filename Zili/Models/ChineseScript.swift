@@ -22,6 +22,14 @@ enum ChineseScript: String, CaseIterable, Sendable {
   /// The `UserDefaults` / `@AppStorage` key backing the preference.
   static let storageKey = "chineseScript"
 
+  /// The other script, which is the one a word's alternate form is written in.
+  var alternate: Self {
+    switch self {
+      case .simplified: .traditional
+      case .traditional: .simplified
+    }
+  }
+
   /// `hanzi` rendered in this script. Simplified is the stored form, returned untouched so the
   /// default costs nothing; traditional is converted live. Conversion is length-preserving, so a
   /// caller may align the result character-by-character with the input.

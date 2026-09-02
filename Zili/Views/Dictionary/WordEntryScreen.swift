@@ -18,7 +18,9 @@ struct WordEntryScreen: View {
   var body: some View {
     let graphics = lexicon.strokes.graphics(in: word)
     return DictionaryEntryView(lookup: lexicon.lookup(word))
-      .navigationTitle(word)
+      // The title carries the canonical simplified headword, tagged so VoiceOver announces the
+      // screen in a Chinese voice rather than spelling the glyphs out.
+      .navigationTitle(Text(.spokenHanzi(word, in: .simplified)))
       .modifier(InlineNavigationTitle())
       .toolbar {
         ToolbarItemGroup(placement: .primaryAction) {

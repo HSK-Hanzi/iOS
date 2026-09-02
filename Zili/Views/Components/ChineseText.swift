@@ -42,23 +42,56 @@ struct ChineseText: View {
     return converted.count == characters.count ? converted : characters
   }
 
+  /// One entry per character, resolved together so the script conversion and the segmentation are
+  /// each done once for the whole run rather than once per character.
+  private var cells: [Cell] {
+    let displayed = displayCharacters
+    let words = words
+    return characters.indices.map { index in
+      Cell(
+        index: index,
+        character: displayed[index],
+        isLookupable: characters[index].isChineseIdeograph,
+        speech: speech(at: index, within: words, displaying: displayed)
+      )
+    }
+  }
+
   var body: some View {
     FlowLayout(spacing: 0) {
-      ForEach(characters.indices, id: \.self) { index in
+      ForEach(cells) { cell in
         CharacterCell(
-          character: displayCharacters[index],
+          character: cell.character,
           font: font,
-          isHighlighted: isWithinMatch(index),
-          isLookupable: characters[index].isChineseIdeograph,
-          onTap: { selectMatch(at: index) }
+          isHighlighted: isWithinMatch(cell.index),
+          isLookupable: cell.isLookupable,
+          speech: cell.speech,
+          script: script,
+          onTap: { selectMatch(at: cell.index) }
         )
-        .popover(isPresented: presentation(for: index)) {
+        .popover(isPresented: presentation(for: cell.index)) {
           if let match {
             WordPeekPopover(match: match, onOpen: openMatch)
           }
         }
       }
     }
+  }
+
+  /// How the character at `index` is announced. A character partway into a segmented word folds
+  /// into the element of that word's first character, so VoiceOver reads and moves by whole words
+  /// instead of glyph by glyph. A character that is a word on its own — and any the segmenter
+  /// covers no word for, such as punctuation — announces its own glyph.
+  private func speech(
+    at index: Int,
+    within words: [Range<Int>],
+    displaying displayed: [Character]
+  ) -> CellSpeech {
+    guard let word = words.first(where: { $0.contains(index) }), word.count > 1 else {
+      return .speaksGlyph
+    }
+    guard word.lowerBound == index else { return .foldedIntoWord }
+    return .speaksWord(String(displayed[word]))
   }
 
   private func selectMatch(at index: Int) {
@@ -101,6 +134,25 @@ struct ChineseText: View {
   }
 }
 
+/// A character of a ``ChineseText`` run as laid out: its glyph in the learner's script, whether
+/// tapping it looks anything up, and how VoiceOver announces it.
+private struct Cell: Identifiable {
+  let index: Int
+  let character: Character
+  let isLookupable: Bool
+  let speech: CellSpeech
+
+  var id: Int { index }
+}
+
+/// How a character participates in VoiceOver: it speaks its own glyph, it speaks the whole word it
+/// begins, or it is folded into the element of that word's first character.
+private enum CellSpeech {
+  case speaksGlyph
+  case speaksWord(String)
+  case foldedIntoWord
+}
+
 /// One character of a ``ChineseText`` run: a tap target that highlights while its word's peek
 /// is open.
 private struct CharacterCell: View {
@@ -108,21 +160,53 @@ private struct CharacterCell: View {
   let font: Font
   let isHighlighted: Bool
   let isLookupable: Bool
+  let speech: CellSpeech
+  let script: ChineseScript
   let onTap: () -> Void
 
   var body: some View {
     // Punctuation stays inert; the button trait is conditional, which the lint rule can't verify.
     // swiftlint:disable:next accessibility_trait_for_button
-    Text(String(character))
+    Text(.spokenHanzi(String(character), in: script))
       .font(font)
       .background(isHighlighted ? Color.accentColor.opacity(0.18) : .clear)
       .contentShape(.rect)
       .onTapGesture { if isLookupable { onTap() } }
       // Only characters that resolve to a word are actionable; punctuation is read as plain text.
       .accessibilityAddTraits(isLookupable ? .isButton : [])
-      .accessibilityHint(
-        isLookupable ? Text("Shows the word’s pinyin and meaning.") : Text(verbatim: "")
-      )
+      .modifier(CellAnnouncement(speech: speech, script: script, isLookupable: isLookupable))
+  }
+}
+
+/// Announces a ``CharacterCell``.
+///
+/// A character that begins a multi-character word announces that whole word, which the language on
+/// its own rendered glyph cannot express: only the locale of the content the element wraps reaches
+/// VoiceOver as the speech language. That locale governs the whole element, hint included, so a
+/// cell carrying it leaves the hint off rather than have an English sentence read out in a Chinese
+/// voice. Every other character announces its glyph, whose language rides on the rendered text and
+/// leaves the hint in the reader’s own voice.
+private struct CellAnnouncement: ViewModifier {
+  let speech: CellSpeech
+  let script: ChineseScript
+  let isLookupable: Bool
+
+  @ViewBuilder
+  func body(content: Content) -> some View {
+    switch speech {
+      case .speaksGlyph:
+        content.accessibilityHint(
+          isLookupable ? Text("Shows the word’s pinyin and meaning.") : Text(verbatim: "")
+        )
+      case let .speaksWord(word):
+        // The rest of the word's characters ride along on this element, so VoiceOver moves by
+        // words.
+        content
+          .environment(\.locale, script.locale)
+          .accessibilityLabel(Text(word))
+      case .foldedIntoWord:
+        content.accessibilityHidden(true)
+    }
   }
 }
 
@@ -140,10 +224,10 @@ private struct WordPeekPopover: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 10) {
       VStack(alignment: .leading, spacing: 2) {
-        Text(script.render(match.word))
+        Text(script.spoken(match.word))
           .font(.title2)
         if let reading = match.lookup.romanization(romanization) {
-          Text(reading)
+          Text(romanization.spoken(reading))
             .font(.headline)
             .foregroundStyle(.secondary)
         }

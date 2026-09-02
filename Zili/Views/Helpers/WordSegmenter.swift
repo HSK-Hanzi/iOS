@@ -33,8 +33,11 @@ final class WordSegmenter {
   private static let mergeWindow = 4
 
   /// How many segmentations to remember. Views re-render far more often than their text changes,
-  /// and each miss costs a tokenizer pass plus a burst of dictionary probes.
-  private static let memoLimit = 64
+  /// and each miss costs a tokenizer pass plus a burst of dictionary probes, so the memo has to
+  /// hold every run on screen at once: below that, the entries it evicts are text still displayed,
+  /// and every re-render segments them again. A dictionary entry can show a few hundred example
+  /// sentences, and a remembered segmentation is a few dozen bytes.
+  private static let memoLimit = 1024
 
   private let tokenizer = NLTokenizer(unit: .word)
   private var memo: [String: [Range<Int>]] = [:]

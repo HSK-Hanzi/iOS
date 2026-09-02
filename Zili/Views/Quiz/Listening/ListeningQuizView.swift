@@ -258,11 +258,11 @@ private struct RevealView: View {
       )
 
       VStack {
-        Text(script.render(sentence.hanzi))
+        Text(script.spoken(sentence.hanzi))
           .font(.system(.title, design: .rounded).weight(.medium))
           .foregroundStyle(QuizStyle.chromeLabel)
           .multilineTextAlignment(.center)
-        Text(sentence.reading(romanization))
+        Text(romanization.spoken(sentence.reading(romanization)))
           .font(.title3)
           .foregroundStyle(QuizStyle.chromeLabel.opacity(0.9))
           .multilineTextAlignment(.center)
