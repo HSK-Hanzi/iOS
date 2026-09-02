@@ -7,6 +7,12 @@ retain_swift_ui_previews: true
 # read yet (etymologies, alternate readings, licence flags). Keep those decoded-but-unread stored
 # properties rather than dropping data fidelity from the models.
 retain_assign_only_properties: true
+# App Intents types are reached only through the metadata Xcode extracts at build time, never from
+# Swift, so the whole directory looks dead to a scan. Retain rather than exclude from the report:
+# retention also keeps what these types exclusively call — Lexicon.headword(matching:), the
+# preference accessors — in the graph.
+retain_files:
+  - "**/Zili/Intents/**"
 report_exclude:
   - "**/ZiliTests/**"
   - "**/ZiliUITests/**"

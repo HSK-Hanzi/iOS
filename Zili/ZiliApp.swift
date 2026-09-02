@@ -185,10 +185,7 @@ struct ZiliApp: App {
   /// learner already reads traditional — so the simplified default never pays to parse a table it
   /// won't use.
   private static func prewarmScriptConverterIfNeeded() {
-    guard
-      UserDefaults.standard.string(forKey: ChineseScript.storageKey)
-        == ChineseScript.traditional.rawValue
-    else { return }
+    guard ChineseScript.preferred == .traditional else { return }
     Task.detached(priority: .utility) { _ = HanziConverter.shared }
   }
 
