@@ -170,9 +170,16 @@ struct Lexicon: Sendable {
   }
 
   /// Whether `word` is a headword in any loaded dictionary or the HSK core. ``WordSegmenter``
-  /// probes with this to decide whether two adjacent tokens spell one word.
+  /// probes with this to decide whether a token needs splitting further.
   nonisolated func containsHeadword(_ word: String) -> Bool {
     dictionaries.contains { $0.containsHeadword(word) } || !hsk[word].isEmpty
+  }
+
+  /// Whether `word` is in the HSK syllabus — the vocabulary the app actually teaches, which is a
+  /// far smaller set than the dictionaries. ``WordSegmenter`` merges two tokens only when they
+  /// spell one of these, so an obscure dictionary idiom cannot overrule the tokenizer.
+  nonisolated func containsSyllabusWord(_ word: String) -> Bool {
+    !hsk[word].isEmpty
   }
 
   // MARK: Search

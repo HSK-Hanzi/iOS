@@ -15,8 +15,11 @@ struct WordResolver {
   /// The longest headword that is a prefix of the given run, or `nil` if none matches.
   var longestMatch: @Sendable (String) -> String?
 
-  /// Whether the given text is itself a headword.
+  /// Whether the given text is itself a headword in any dictionary.
   var containsHeadword: @Sendable (String) -> Bool
+
+  /// Whether the given text is a word in the HSK syllabus.
+  var containsSyllabusWord: @Sendable (String) -> Bool
 
   /// The aggregated cross-dictionary lookup for a word.
   var lookUp: @Sendable (String) -> WordLookup
@@ -28,6 +31,7 @@ extension WordResolver {
     self.init(
       longestMatch: { lexicon.longestHeadword(prefixing: $0) },
       containsHeadword: { lexicon.containsHeadword($0) },
+      containsSyllabusWord: { lexicon.containsSyllabusWord($0) },
       lookUp: { lexicon.lookup($0) }
     )
   }
@@ -38,6 +42,7 @@ extension EnvironmentValues {
   @Entry var wordResolver = WordResolver(
     longestMatch: { _ in nil },
     containsHeadword: { _ in false },
+    containsSyllabusWord: { _ in false },
     lookUp: {
       WordLookup(word: $0, byDictionary: [], hskEntries: [], frequency: nil, frequencyRank: nil)
     }

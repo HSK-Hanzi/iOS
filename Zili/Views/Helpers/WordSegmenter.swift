@@ -14,9 +14,9 @@ import SwiftUI
 /// word that is not there. `NLTokenizer` is a statistical segmenter trained on Chinese, so it
 /// decides that boundary from context rather than from length.
 ///
-/// The tokenizer is not used alone. It also splits pairs that are themselves headwords
-/// (公共汽车 → 公共|汽车), and a few of its tokens have no dictionary entry, so its boundaries are
-/// the skeleton for a hybrid: adjacent tokens are **merged** where they spell one headword, and
+/// The tokenizer is not used alone. It also splits words the app teaches (公共汽车 → 公共|汽车),
+/// and a few of its tokens have no dictionary entry, so its boundaries are the skeleton for a
+/// hybrid: adjacent tokens are **merged** where they spell one word of the HSK syllabus, and
 /// tokens with no entry are **sub-split** with the dictionary's own greedy matcher, capped at the
 /// token's end.
 ///
@@ -74,9 +74,15 @@ final class WordSegmenter {
     }
   }
 
-  /// Joins adjacent tokens that together spell one headword, longest span first, repeating until
-  /// a pass changes nothing. Merging whole tokens cannot recreate the greedy bug: in
+  /// Joins adjacent tokens that together spell one *syllabus* word, longest span first, repeating
+  /// until a pass changes nothing. Merging whole tokens cannot recreate the greedy bug: in
   /// 还有面包和牛奶 the tokens are 和 and 牛奶, so the only candidate is 和牛奶 — never 和牛.
+  ///
+  /// The syllabus, not the dictionaries, is the bar. The tokenizer's split is right far more often
+  /// than it is wrong, and the dictionaries know enough rare idioms to overturn it almost anywhere:
+  /// 我在家里看书 tokenizes as 我|在|家里|看|书, but 在家里 is a dictionary headword meaning
+  /// "belong to a secret society", so a dictionary-wide probe would merge it and answer a tap on 在
+  /// with that. Only a word the app actually teaches — 公共汽车, 有点儿, 不太 — earns an override.
   private func merging(
     _ tokens: [Range<Int>],
     in characters: [Character],
@@ -103,7 +109,8 @@ final class WordSegmenter {
     return tokens
   }
 
-  /// The last token of the longest headword-spelling span starting at `start`, or `nil` if none.
+  /// The last token of the longest span starting at `start` that spells a syllabus word, or `nil`
+  /// if none does.
   private func mergeEnd(
     from start: Int,
     in tokens: [Range<Int>],
@@ -115,7 +122,7 @@ final class WordSegmenter {
     return (start + 1...furthest).reversed().first { end in
       guard isContiguous(tokens[start...end]) else { return false }
       let span = tokens[start].lowerBound..<tokens[end].upperBound
-      return resolver.containsHeadword(String(characters[span]))
+      return resolver.containsSyllabusWord(String(characters[span]))
     }
   }
 

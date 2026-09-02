@@ -70,6 +70,46 @@ struct WordSegmenterTests {
     #expect(try await words(in: "好，好") == ["好", "好"])
   }
 
+  /// A merge overrules the tokenizer, so only the syllabus may authorize one. The dictionaries
+  /// know 在家里 as "belong to a secret society", and a dictionary-wide probe merged 在 + 家里 into
+  /// it — answering a tap on 在 in 我在家里看书 with an idiom the sentence does not contain.
+  @Test("Only a syllabus word may overrule the tokenizer's split")
+  func mergesOnlySyllabusWords() {
+    let text = "我在家里看书"
+    let known: Set<String> = ["我", "在", "家里", "看", "书", "在家里"]
+
+    #expect(segmenting(text, headwords: known, syllabus: []) == ["我", "在", "家里", "看", "书"])
+    #expect(
+      segmenting(text, headwords: known, syllabus: ["在家里"])
+        == ["我", "在家里", "看", "书"]
+    )
+  }
+
+  /// Segments against a synthetic dictionary, so the rule under test is pinned independently of
+  /// which dictionaries a build happens to ship.
+  private func segmenting(
+    _ text: String,
+    headwords: Set<String>,
+    syllabus: Set<String>
+  ) -> [String] {
+    let resolver = WordResolver(
+      longestMatch: { run in
+        let characters = Array(run)
+        return (1...characters.count)
+          .reversed()
+          .map { String(characters[0..<$0]) }
+          .first { headwords.contains($0) }
+      },
+      containsHeadword: { headwords.contains($0) },
+      containsSyllabusWord: { syllabus.contains($0) },
+      lookUp: {
+        WordLookup(word: $0, byDictionary: [], hskEntries: [], frequency: nil, frequencyRank: nil)
+      }
+    )
+    let characters = Array(text)
+    return WordSegmenter().words(in: text, using: resolver).map { String(characters[$0]) }
+  }
+
   /// Every character of a word belongs to that word, so a tap that lands on a second or third
   /// character resolves the whole word rather than the bare character under the finger.
   @Test("A word covers all of its characters, not just its first")
