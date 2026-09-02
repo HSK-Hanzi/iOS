@@ -184,13 +184,15 @@ private struct WritingPad: View {
   let onComplete: (StrokeTestResult) -> Void
 
   var body: some View {
-    StrokeTestView(graphic: graphic, onComplete: onComplete)
+    StrokeTestView(graphic: graphic, isActive: verdict == nil, onComplete: onComplete)
       .padding(12)
       .background {
         RoundedRectangle(cornerRadius: Self.cornerRadius, style: .continuous)
           .fill(.white)
       }
       .environment(\.colorScheme, .light)
+      // Hit-testing stops touches on a graded pad; a Pencil squeeze is not hit-tested, so the pad
+      // goes inactive to stop that rather than disabled, which would dim its controls too.
       .allowsHitTesting(verdict == nil)
       .overlay { badge }
       .shadow(color: .black.opacity(0.25), radius: 20, y: 10)

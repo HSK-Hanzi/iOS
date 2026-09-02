@@ -5,6 +5,10 @@
 
 import SwiftUI
 
+#if os(iOS)
+  import UIKit
+#endif
+
 /// The app's settings: the display defaults — which script Hanzi appears in and how readings are
 /// written — and a reset for the learner's missed-word and -sentence tallies. On iOS it also holds
 /// the way into the About panel, which has no tab of its own.
@@ -30,6 +34,9 @@ struct SettingsView: View {
     #else
       Form {
         DisplaySection()
+        #if os(iOS)
+          PencilSection()
+        #endif
         ResetAllMissedSection()
         AboutLinkSection()
       }
@@ -68,6 +75,36 @@ private struct DisplaySection: View {
     }
   }
 }
+
+#if os(iOS)
+  /// What squeezing an Apple Pencil Pro does while writing. iPad only: no Pencil takes to an
+  /// iPhone, a Mac, or the Vision Pro, so the choice would be a dead control there.
+  private struct PencilSection: View {
+    @AppStorage(PencilSqueezeAction.storageKey)
+    private var squeezeAction = PencilSqueezeAction.hint
+
+    private var takesAPencil: Bool { UIDevice.current.userInterfaceIdiom == .pad }
+
+    var body: some View {
+      if takesAPencil {
+        Section {
+          Picker("Squeeze", selection: $squeezeAction) {
+            ForEach(PencilSqueezeAction.allCases, id: \.self) { action in
+              Text(action.displayName).tag(action)
+            }
+          }
+          .accessibilityIdentifier(AccessibilityID.settingsPencilSqueezePicker)
+        } header: {
+          Text("Apple Pencil")
+        } footer: {
+          Text(
+            "Squeezing an Apple Pencil Pro while practicing strokes reaches the stroke pad's controls without lifting the pen. Turning the squeeze off in Settings › Apple Pencil overrides this."
+          )
+        }
+      }
+    }
+  }
+#endif
 
 private extension ChineseScript {
   /// The name shown for this script in the Settings picker.

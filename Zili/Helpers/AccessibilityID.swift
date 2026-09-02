@@ -65,6 +65,7 @@ enum AccessibilityID {
   // Settings
   static let settingsScriptPicker = "settings.scriptPicker"
   static let settingsRomanizationPicker = "settings.romanizationPicker"
+  static let settingsPencilSqueezePicker = "settings.pencilSqueezePicker"
   static let settingsResetMissed = "settings.resetMissed"
   static let settingsAbout = "settings.about"
 

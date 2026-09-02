@@ -12,8 +12,8 @@ struct StrokePracticeScreen: View {
   let graphics: [(character: Character, graphic: HanziGraphic)]
 
   var body: some View {
-    CharacterCarousel(graphics: graphics, showsCharacterLabel: false) { graphic, _ in
-      StrokeTestView(graphic: graphic)
+    CharacterCarousel(graphics: graphics, showsCharacterLabel: false) { graphic, isActive in
+      StrokeTestView(graphic: graphic, isActive: isActive)
     }
     .navigationTitle("Practice")
     .modifier(InlineNavigationTitle())
