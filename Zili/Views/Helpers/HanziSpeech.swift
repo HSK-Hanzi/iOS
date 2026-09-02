@@ -18,6 +18,13 @@ import Foundation
 /// child's language, so a tagged headword beside a plain English gloss is announced with only the
 /// Hanzi in a Chinese voice. Where a view must announce something it does not render — a word
 /// spanning several character cells — set ``ChineseScript/locale`` on the content instead.
+///
+/// No test covers any of this. The speech language exists only once UIKit has built an
+/// accessibility tree, which needs a foreground-active scene, and unit tests run headless. Verify a
+/// change by hosting the view in a foregrounded Simulator and reading
+/// `UIAccessibilitySpeechAttributeLanguage` back off its `accessibilityAttributedLabel` — every
+/// other signal, the build and both linters and even an accessibility dump of the running app,
+/// reads identically whether the language survived or was silently dropped.
 extension ChineseScript {
   /// The BCP 47 identifier for this script, which is what selects a Chinese VoiceOver voice.
   var languageIdentifier: String {
