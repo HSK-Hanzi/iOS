@@ -22,6 +22,13 @@ enum ChineseScript: String, CaseIterable, Sendable {
   /// The `UserDefaults` / `@AppStorage` key backing the preference.
   static let storageKey = "chineseScript"
 
+  /// The learner's chosen script, read straight from `UserDefaults` — for the callers that have no
+  /// SwiftUI environment to read `@AppStorage` from, such as an App Intent running in the
+  /// background or the launch-time converter prewarm.
+  static var preferred: Self {
+    UserDefaults.standard.string(forKey: storageKey).flatMap(Self.init(rawValue:)) ?? .simplified
+  }
+
   /// The other script, which is the one a word's alternate form is written in.
   var alternate: Self {
     switch self {

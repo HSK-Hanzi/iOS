@@ -77,7 +77,7 @@ private struct SenseRow: View {
   var body: some View {
     HStack(alignment: .firstTextBaseline) {
       if numbered {
-        Text("\(number, format: .number)")
+        Text(number.formatted())
           .font(.callout.monospacedDigit())
           .foregroundStyle(.tertiary)
           .frame(minWidth: 16, alignment: .trailing)

@@ -78,6 +78,15 @@ struct WordLookupDisplayTests {
     #expect(lookup.primaryGloss == "名词")
   }
 
+  /// A word in the HSK core that no loaded dictionary covers — routine when only the open data
+  /// ships — still peeks with its curated meaning rather than nothing.
+  @Test("Primary gloss falls back to the curated HSK meaning")
+  func primaryGlossFallsBackToHSKMeaning() {
+    let lookup = lookup(hsk: [hskWord(meanings: ["word", "term"])])
+
+    #expect(lookup.primaryGloss == "word")
+  }
+
   /// No glosses means no peek gloss.
   @Test("Primary gloss is nil when there are no glosses")
   func primaryGlossNilWithoutGlosses() {

@@ -21,6 +21,13 @@ enum Romanization: String, CaseIterable, Sendable {
   /// The `UserDefaults` / `@AppStorage` key backing the preference.
   static let storageKey = "romanization"
 
+  /// The learner's chosen romanization, read straight from `UserDefaults` — for the callers that
+  /// have no SwiftUI environment to read `@AppStorage` from, such as an App Intent running in the
+  /// background.
+  static var preferred: Self {
+    UserDefaults.standard.string(forKey: storageKey).flatMap(Self.init(rawValue:)) ?? .pinyin
+  }
+
   var displayName: String {
     switch self {
       case .pinyin: String(localized: "Pinyin")
