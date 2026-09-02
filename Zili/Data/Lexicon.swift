@@ -205,6 +205,20 @@ struct Lexicon: Sendable {
     return rankedHeadwords(from: best, limit: limit)
   }
 
+  /// The one headword a free-text query means, or `nil` when nothing matches — for the callers that
+  /// need a single answer rather than a list, such as an App Intent handed a phrase by Siri.
+  ///
+  /// A word in the HSK core is taken at its word: that syllabus is keyed by simplified headword, so
+  /// a hit there is already canonical. Everything else — English, pinyin, a compound, or a word
+  /// written in traditional script — goes through ``searchHeadwords(matching:limit:)``, which ranks
+  /// on the one scale the search screen uses and always answers in simplified script.
+  nonisolated func headword(matching query: String) -> String? {
+    let query = query.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !query.isEmpty else { return nil }
+    if containsSyllabusWord(query) { return query }
+    return searchHeadwords(matching: query, limit: 1).first
+  }
+
   /// Simplified headwords whose English glosses best match `query`, by bm25 relevance (each sense
   /// is its own indexed document, so an exact-sense match wins over an incidental mention). A fully
   /// typed word matches exactly; an incomplete trailing word matches by prefix so results narrow as
