@@ -130,9 +130,14 @@ struct DictionarySearchTests {
     #expect(lexicon.headword(matching: "好") == "好")
     #expect(lexicon.headword(matching: "  你好  ") == "你好")
     #expect(lexicon.headword(matching: "nǐhǎo") == "你好")
-    #expect(lexicon.headword(matching: "hello") == "喂")
     #expect(lexicon.headword(matching: "") == nil)
     #expect(lexicon.headword(matching: "zzzzqqq") == nil)
+
+    // Which word an English gloss picks depends on which dictionaries shipped — the licensed ones
+    // are absent from CI — so this pins the behavior, not the ranking: one Chinese headword.
+    let english = try #require(lexicon.headword(matching: "hello"))
+    let isChineseScript = english.allSatisfy(\.isChineseIdeograph)
+    #expect(isChineseScript, "“\(english)” should be a Chinese headword.")
   }
 
   /// A word written in traditional script resolves to its simplified headword — the form the HSK
