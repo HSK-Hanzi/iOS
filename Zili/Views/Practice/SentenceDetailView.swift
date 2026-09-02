@@ -4,6 +4,7 @@
 //
 
 import SwiftUI
+import TipKit
 
 /// One sentence's detail: the Chinese shown large with individually tappable words, its reading
 /// transliterated live into the learner's chosen romanization, and its English translation. The
@@ -27,6 +28,7 @@ struct SentenceDetailView: View {
   var body: some View {
     ScrollView {
       VStack(alignment: .leading, spacing: 20) {
+        TipView(TapToLookUpTip())
         HStack(alignment: .firstTextBaseline) {
           ChineseText(text: sentence.hanzi, font: .title)
           Spacer(minLength: 12)

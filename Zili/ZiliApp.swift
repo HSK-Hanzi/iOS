@@ -8,6 +8,7 @@
 import Sentry
 import SwiftData
 import SwiftUI
+import TipKit
 
 @main
 struct ZiliApp: App {
@@ -130,14 +131,21 @@ struct ZiliApp: App {
     modelContainer = container
     _appData = State(initialValue: AppData(container: container, uiTest: uiTest))
     Self.prewarmScriptConverterIfNeeded()
+    Self.configureTips(uiTest: uiTest)
+  }
+
+  /// Whether XCTest hosts this launch. A UI test target drives the app as a separate process and
+  /// says so through ``UITestConfiguration``; a unit test target runs inside the app itself, where
+  /// XCTest's `XCTestConfigurationFilePath` is the only thing that gives it away.
+  private static func isUnitTesting() -> Bool {
+    ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
   }
 
   /// Starts Sentry crash and error reporting for a shipped launch. A test run gets none: Sentry's
   /// profiling and structured logging do main-thread work that keeps the run loop from going idle,
   /// stalling XCUITest's wait-for-idle, and a unit test has no telemetry worth sending.
   private static func startCrashReportingIfNeeded(uiTest: UITestConfiguration) {
-    let isUnitTesting = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
-    guard !uiTest.isEnabled, !isUnitTesting else { return }
+    guard !uiTest.isEnabled, !isUnitTesting() else { return }
 
     SentrySDK.start { options in
       options.dsn =
@@ -184,6 +192,29 @@ struct ZiliApp: App {
         == ChineseScript.traditional.rawValue
     else { return }
     Task.detached(priority: .utility) { _ = HanziConverter.shared }
+  }
+
+  /// Prepares TipKit. A shipped launch keeps its record in the app's CloudKit container, so
+  /// dismissing a tip on one device dismisses it on the rest — the same container
+  /// ``makeModelContainer(uiTest:)`` syncs the learner's favorites and misses through.
+  ///
+  /// A test run hides every tip and keeps its record on disk instead. A UI test needs the tips
+  /// gone because an unexpected tip pushes the view under test out from under the coordinates
+  /// aimed at it; both kinds need CloudKit gone because the macOS test workflow builds without
+  /// the entitlements file, leaving no container to reach.
+  ///
+  /// A datastore that won't open is not worth a launch. TipKit's only consequence here is whether
+  /// a hint appears, so a failure leaves the app tipless and otherwise untouched.
+  private static func configureTips(uiTest: UITestConfiguration) {
+    guard !uiTest.isEnabled, !isUnitTesting() else {
+      Tips.hideAllTipsForTesting()
+      try? Tips.configure([.datastoreLocation(.applicationDefault)])
+      return
+    }
+    try? Tips.configure([
+      .displayFrequency(.immediate),
+      .cloudKitContainer(.named("iCloud.codes.tim.Zili"))
+    ])
   }
 
   /// The app's store, or a throwaway in-memory one when a UI test asked for determinism — no

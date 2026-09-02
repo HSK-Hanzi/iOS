@@ -4,6 +4,7 @@
 //
 
 import SwiftUI
+import TipKit
 
 /// A run of Chinese text whose characters are individually tappable. The text is segmented into
 /// words by ``WordSegmenter``, so tapping any character peeks the whole word containing it — its
@@ -98,6 +99,10 @@ struct ChineseText: View {
     guard let range = wordRange(containing: index) else { return }
     let word = String(characters[range])
     match = Match(range: range, word: word, lookup: resolver.lookUp(word))
+    // The peek is on screen, so the gesture has been discovered and its tip has nothing left to
+    // teach — here rather than at the sentence that shows the tip, so a tap on a dictionary
+    // example counts too.
+    TapToLookUpTip().invalidate(reason: .actionPerformed)
   }
 
   /// The segmented word covering `index`. Falls back to a greedy match from the tap when the
