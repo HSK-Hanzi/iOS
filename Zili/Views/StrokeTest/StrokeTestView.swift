@@ -26,11 +26,17 @@ struct StrokeTestView: View {
 
   @Environment(\.accessibilityDifferentiateWithoutColor)
   private var differentiateWithoutColor
+  @AppStorage(PencilSqueezeAction.storageKey)
+  private var squeezeAction = PencilSqueezeAction.hint
 
   @State private var model: StrokeTestModel
   @State private var currentStroke: [CGPoint] = []
   @State private var showsHint: Bool
   @State private var playTrigger = 0
+
+  /// Whether a held Pencil squeeze is flashing the shadow. Kept apart from ``showsHint`` — see
+  /// ``respondToSqueeze(_:)``.
+  @State private var isSqueezeHinting = false
 
   var body: some View {
     canvas
@@ -44,7 +50,7 @@ struct StrokeTestView: View {
   private var canvas: some View {
     ZStack {
       PracticeGrid()
-      if showsHint {
+      if showsHint || isSqueezeHinting {
         ShadowGlyph(
           graphic: graphic,
           color: .primary.opacity(Self.shadowOpacity),
@@ -62,6 +68,7 @@ struct StrokeTestView: View {
     .contentShape(.rect)
     .gesture(drawGesture)
     .pencilCursor()
+    .pencilSqueeze(perform: respondToSqueeze)
     .accessibilityIdentifier("strokeTestCanvas")
     .accessibilityLabel(Text("Stroke practice canvas"))
     .accessibilityValue(Text(verdictSummary))
@@ -161,6 +168,23 @@ struct StrokeTestView: View {
     self.onComplete = onComplete
     _showsHint = State(initialValue: hint)
     _model = State(initialValue: StrokeTestModel(graphic: graphic, onComplete: onComplete))
+  }
+
+  /// Answers a squeeze of the Pencil with whatever the learner asked it to do. The controls sit at
+  /// the pad's bottom trailing corner, under a right-handed writer's palm, so this is the only
+  /// reach that doesn't mean lifting the pen off the page.
+  private func respondToSqueeze(_ squeeze: PencilSqueeze) {
+    switch squeezeAction {
+      case .hint:
+        // A separate flag, deliberately: `showsHint` also gates the Play button and is animated on
+        // change, so binding the squeeze to it would pop Play in and out on every squeeze.
+        isSqueezeHinting = squeeze == .began
+      case .undo:
+        // Only on release, so holding the squeeze takes back one stroke rather than repeating.
+        if squeeze == .completed { model.undo() }
+      case .off:
+        break
+    }
   }
 
   private func path(through points: [CGPoint]) -> Path {

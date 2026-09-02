@@ -191,7 +191,10 @@ private struct WritingPad: View {
           .fill(.white)
       }
       .environment(\.colorScheme, .light)
+      // Hit-testing stops touches on a graded pad; disabling is what stops a Pencil squeeze,
+      // which is not hit-tested and would otherwise still flash a hint or undo a stroke there.
       .allowsHitTesting(verdict == nil)
+      .disabled(verdict != nil)
       .overlay { badge }
       .shadow(color: .black.opacity(0.25), radius: 20, y: 10)
       .frame(maxWidth: 460)

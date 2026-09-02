@@ -30,6 +30,9 @@ struct SettingsView: View {
     #else
       Form {
         DisplaySection()
+        #if os(iOS)
+          PencilSection()
+        #endif
         ResetAllMissedSection()
         AboutLinkSection()
       }
@@ -68,6 +71,32 @@ private struct DisplaySection: View {
     }
   }
 }
+
+#if os(iOS)
+  /// What squeezing an Apple Pencil Pro does while writing. iOS only: there is no Pencil to squeeze
+  /// on a Mac or in the Vision Pro, so the choice would be a dead control there.
+  private struct PencilSection: View {
+    @AppStorage(PencilSqueezeAction.storageKey)
+    private var squeezeAction = PencilSqueezeAction.hint
+
+    var body: some View {
+      Section {
+        Picker("Squeeze", selection: $squeezeAction) {
+          ForEach(PencilSqueezeAction.allCases, id: \.self) { action in
+            Text(action.displayName).tag(action)
+          }
+        }
+        .accessibilityIdentifier(AccessibilityID.settingsPencilSqueezePicker)
+      } header: {
+        Text("Apple Pencil")
+      } footer: {
+        Text(
+          "Squeezing an Apple Pencil Pro while practicing strokes reaches the stroke pad's controls without lifting the pen. Turning the squeeze off in Settings › Apple Pencil overrides this."
+        )
+      }
+    }
+  }
+#endif
 
 private extension ChineseScript {
   /// The name shown for this script in the Settings picker.
