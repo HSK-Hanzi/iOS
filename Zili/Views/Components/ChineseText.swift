@@ -5,10 +5,10 @@
 
 import SwiftUI
 
-/// A run of Chinese text whose characters are individually tappable. Tapping a character
-/// greedily matches the longest dictionary headword starting there and shows a popover
-/// previewing that word — its Hanzi, pinyin, and a short gloss — with a way to open its full
-/// entry. Non-Han characters (punctuation, spaces) are inert.
+/// A run of Chinese text whose characters are individually tappable. The text is segmented into
+/// words by ``WordSegmenter``, so tapping any character peeks the whole word containing it — its
+/// Hanzi, pinyin, and a short gloss — with a way to open its full entry. Non-Han characters
+/// (punctuation, spaces) are inert.
 ///
 /// Characters are laid out in a zero-spacing ``FlowLayout``, which flows and wraps like normal
 /// CJK text while giving each character its own hit target.
@@ -26,6 +26,12 @@ struct ChineseText: View {
   @State private var match: Match?
 
   private var characters: [Character] { Array(text) }
+
+  /// The text split into words, as ranges over ``characters``. Segmenting is memoized on the
+  /// text, so re-rendering does not re-tokenize.
+  private var words: [Range<Int>] {
+    WordSegmenter.shared.words(in: text, using: resolver)
+  }
 
   /// The characters as shown, in the learner's chosen script. Conversion is length-preserving, so
   /// these align one-to-one with ``characters`` — the simplified originals, which stay the basis
@@ -56,9 +62,17 @@ struct ChineseText: View {
   }
 
   private func selectMatch(at index: Int) {
-    let run = String(characters[index...])
-    guard let word = resolver.longestMatch(run) else { return }
-    match = Match(index: index, word: word, lookup: resolver.lookUp(word))
+    guard let range = wordRange(containing: index) else { return }
+    let word = String(characters[range])
+    match = Match(range: range, word: word, lookup: resolver.lookUp(word))
+  }
+
+  /// The segmented word covering `index`. Falls back to a greedy match from the tap when the
+  /// segmenter covers no word there, so a tap never silently does nothing.
+  private func wordRange(containing index: Int) -> Range<Int>? {
+    if let word = words.first(where: { $0.contains(index) }) { return word }
+    guard let fallback = resolver.longestMatch(String(characters[index...])) else { return nil }
+    return index..<index + fallback.count
   }
 
   private func openMatch() {
@@ -68,22 +82,22 @@ struct ChineseText: View {
   }
 
   private func isWithinMatch(_ index: Int) -> Bool {
-    guard let match else { return false }
-    return (match.index..<match.index + match.length).contains(index)
+    match?.range.contains(index) ?? false
   }
 
   private func presentation(for index: Int) -> Binding<Bool> {
-    Binding(get: { match?.index == index }, set: { if !$0 { match = nil } })
+    Binding(get: { match?.range.lowerBound == index }, set: { if !$0 { match = nil } })
   }
 
-  /// A resolved tap: which character was tapped, the headword matched there, and its lookup.
+  /// A resolved tap: the word's span in the text, the word itself, and its lookup. Carrying the
+  /// range keeps the highlight and the lookup from diverging, and anchors the peek to the word's
+  /// first character however far into it the tap landed.
   struct Match: Identifiable {
-    let index: Int
+    let range: Range<Int>
     let word: String
     let lookup: WordLookup
 
-    var id: Int { index }
-    var length: Int { word.count }
+    var id: Int { range.lowerBound }
   }
 }
 
@@ -152,7 +166,7 @@ private struct WordPeekPopover: View {
 
 #Preview("Word peek") {
   WordPeekPopover(
-    match: ChineseText.Match(index: 0, word: "地方", lookup: .peekPreview),
+    match: ChineseText.Match(range: 0..<2, word: "地方", lookup: .peekPreview),
     onOpen: {}
   )
 }

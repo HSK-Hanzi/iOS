@@ -40,13 +40,7 @@ struct DictionarySearchView: View {
       WordDetailColumn(lexicon: lexicon, word: selection, path: $detailPath)
     }
     .environment(\.selectWord, WordSelectionAction { detailPath.append($0) })
-    .environment(
-      \.wordResolver,
-      WordResolver(
-        longestMatch: { lexicon.longestHeadword(prefixing: $0) },
-        lookUp: { lexicon.lookup($0) }
-      )
-    )
+    .environment(\.wordResolver, WordResolver(lexicon: lexicon))
     .onChange(of: selection) { detailPath = [] }
   }
 
