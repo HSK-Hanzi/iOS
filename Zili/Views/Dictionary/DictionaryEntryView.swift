@@ -88,6 +88,7 @@ private struct WordHeaderView: View {
           Text(verbatim: "（\(alternateScriptVariant)）")
             .font(.title3)
             .foregroundStyle(.secondary)
+            .accessibilityLabel(Text(.spokenHanzi(alternateScriptVariant, in: script.alternate)))
         }
         Spacer(minLength: 12)
         let misses = wordMisses.totalMisses(for: lookup.word)
@@ -197,6 +198,7 @@ private struct HeadwordText: View {
             .foregroundStyle(tint ?? .primary)
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(Text(.spokenHanzi(String(displayCharacters[index]), in: script)))
         .accessibilityHint(Text("Looks up this character"))
       }
     }

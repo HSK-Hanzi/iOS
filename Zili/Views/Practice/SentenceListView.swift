@@ -69,6 +69,7 @@ private struct SentenceRow: View {
     VStack(alignment: .leading, spacing: 4) {
       Text(script.render(sentence.hanzi))
         .font(.title3)
+        .accessibilityLabel(Text(.spokenHanzi(script.render(sentence.hanzi), in: script)))
       Text(sentence.reading(romanization))
         .font(.caption)
         .foregroundStyle(.secondary)

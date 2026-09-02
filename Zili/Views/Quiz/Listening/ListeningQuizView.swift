@@ -262,6 +262,7 @@ private struct RevealView: View {
           .font(.system(.title, design: .rounded).weight(.medium))
           .foregroundStyle(QuizStyle.chromeLabel)
           .multilineTextAlignment(.center)
+          .accessibilityLabel(Text(.spokenHanzi(script.render(sentence.hanzi), in: script)))
         Text(sentence.reading(romanization))
           .font(.title3)
           .foregroundStyle(QuizStyle.chromeLabel.opacity(0.9))

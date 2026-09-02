@@ -122,6 +122,7 @@ private struct FlashcardFaceContent: View {
           .font(.system(size: hanziSize, weight: .medium))
           .minimumScaleFactor(0.4)
           .foregroundStyle(.white)
+          .accessibilityLabel(Text(.spokenHanzi(script.render(card.hanzi), in: script)))
       }
       if face.showsReading, !card.reading.isEmpty {
         Text(card.reading)

@@ -109,7 +109,20 @@ private struct SearchResultRow: View {
       }
     }
     .padding(.vertical, 2)
-    .accessibilityElement(children: .combine)
+    // Spelled out rather than combined from the children, so the headword's run can be tagged
+    // Chinese while the gloss stays in the reader's own voice.
+    .accessibilityElement(children: .ignore)
+    .accessibilityLabel(
+      Text(
+        .spokenWord(
+          script.render(lookup.word),
+          in: script,
+          reading: lookup.romanization(romanization),
+          romanization: romanization,
+          gloss: lookup.primaryGloss
+        )
+      )
+    )
     .accessibilityIdentifier(AccessibilityID.dictionaryResultRow)
   }
 }

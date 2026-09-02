@@ -162,6 +162,7 @@ private struct CrossReferenceLinks: View {
           }
           .buttonStyle(.plain)
           .foregroundStyle(Color.accentColor)
+          .accessibilityLabel(Text(.spokenHanzi(script.render(word), in: script)))
           .accessibilityHint(Text("Looks up this word"))
         }
       }

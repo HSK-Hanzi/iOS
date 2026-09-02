@@ -66,6 +66,7 @@ private struct CarouselPage<Content: View>: View {
         Text(String(character))
           .font(.system(size: characterSize))
           .foregroundStyle(.secondary)
+          .accessibilityLabel(Text(.spokenHanzi(String(character), in: .simplified)))
       }
       content()
     }

@@ -142,6 +142,20 @@ private struct WordCell: View {
       }
     }
     .selectionRing(isSelected)
+    // A tile of bare glyphs says nothing on its own, so the cell announces the word with the
+    // reading beside it and the gloss the grid has no room for.
+    .accessibilityElement(children: .ignore)
+    .accessibilityLabel(
+      Text(
+        .spokenWord(
+          script.render(word),
+          in: script,
+          reading: lookup.romanization(romanization),
+          romanization: romanization,
+          gloss: lookup.primaryGloss
+        )
+      )
+    )
     .accessibilityAddTraits(isSelected ? [.isSelected] : [])
   }
 }
