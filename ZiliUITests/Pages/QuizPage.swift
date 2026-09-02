@@ -18,6 +18,9 @@ struct QuizPage: Page {
   /// The results seal shown once the deck runs out.
   var results: XCUIElement { el(AccessibilityID.quizResults) }
 
+  /// The progress pill, reading "1 / 20" on a freshly dealt default deck.
+  var progress: XCUIElement { el(AccessibilityID.quizProgress) }
+
   /// The recognition quiz's "I knew it" judge button.
   var correctButton: XCUIElement { el(AccessibilityID.quizCorrectButton) }
 
@@ -78,4 +81,24 @@ struct QuizPage: Page {
   func submitAnswer() async {
     await test.tap(AccessibilityID.listeningSubmit, "Check the typed answer.")
   }
+
+  #if os(macOS)
+    /// Turns the card over with the Space key.
+    func flipByKeyboard() {
+      test.app.typeKey(" ", modifierFlags: [])
+    }
+
+    /// Judges the card with an unmodified arrow key — the reach a hardware keyboard has without
+    /// the Mac's Quiz menu.
+    func judgeByKeyboard(_ key: XCUIKeyboardKey) {
+      test.app.typeKey(key, modifierFlags: [])
+    }
+
+    /// Waits for the progress pill to reach `card`. Only the card is matched, not the deck size
+    /// after it, so a changed default deck doesn't turn these into assertions about nothing.
+    @discardableResult
+    func expectProgress(card: Int, _ message: String) -> Bool {
+      test.expectText(of: progress, beginningWith: "\(card) / ", message)
+    }
+  #endif
 }
