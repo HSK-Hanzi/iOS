@@ -63,10 +63,9 @@ private struct CarouselPage<Content: View>: View {
   var body: some View {
     VStack(spacing: 32) {
       if showsCharacterLabel {
-        Text(String(character))
+        Text(AttributedString.spokenHanzi(String(character), in: .simplified))
           .font(.system(size: characterSize))
           .foregroundStyle(.secondary)
-          .accessibilityLabel(Text(.spokenHanzi(String(character), in: .simplified)))
       }
       content()
     }

@@ -93,10 +93,10 @@ private struct SearchResultRow: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 3) {
       HStack(alignment: .firstTextBaseline) {
-        Text(script.render(lookup.word))
+        Text(script.spoken(lookup.word))
           .font(.title3)
         if let reading = lookup.romanization(romanization) {
-          Text(reading)
+          Text(romanization.spoken(reading))
             .font(.subheadline)
             .foregroundStyle(.secondary)
         }
@@ -109,20 +109,9 @@ private struct SearchResultRow: View {
       }
     }
     .padding(.vertical, 2)
-    // Spelled out rather than combined from the children, so the headword's run can be tagged
-    // Chinese while the gloss stays in the reader's own voice.
-    .accessibilityElement(children: .ignore)
-    .accessibilityLabel(
-      Text(
-        .spokenWord(
-          script.render(lookup.word),
-          in: script,
-          reading: lookup.romanization(romanization),
-          romanization: romanization,
-          gloss: lookup.primaryGloss
-        )
-      )
-    )
+    // Combining keeps each child's language, so the headword is announced in a Chinese voice and
+    // the gloss in the reader's own.
+    .accessibilityElement(children: .combine)
     .accessibilityIdentifier(AccessibilityID.dictionaryResultRow)
   }
 }

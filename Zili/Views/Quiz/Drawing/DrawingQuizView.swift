@@ -134,11 +134,10 @@ private struct CharacterPrompt: View {
 
   var body: some View {
     VStack(spacing: 16) {
-      Text(card.hanzi)
+      Text(AttributedString.spokenHanzi(card.hanzi, in: .simplified))
         .font(.system(size: hanziSize, weight: .medium))
         .minimumScaleFactor(0.4)
         .foregroundStyle(QuizStyle.chromeLabel)
-        .accessibilityLabel(Text(.spokenHanzi(card.hanzi, in: .simplified)))
       if !card.reading.isEmpty {
         Text(card.reading)
           .font(.system(.title, design: .rounded).weight(.medium))
@@ -161,9 +160,8 @@ private struct CharacterHeader: View {
 
   var body: some View {
     HStack(alignment: .firstTextBaseline, spacing: 14) {
-      Text(card.hanzi)
+      Text(AttributedString.spokenHanzi(card.hanzi, in: .simplified))
         .font(.system(size: hanziSize, weight: .medium))
-        .accessibilityLabel(Text(.spokenHanzi(card.hanzi, in: .simplified)))
       if !card.reading.isEmpty {
         Text(card.reading)
           .font(.system(.title3, design: .rounded).weight(.medium))

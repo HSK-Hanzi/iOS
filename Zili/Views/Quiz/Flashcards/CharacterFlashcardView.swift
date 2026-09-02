@@ -118,11 +118,10 @@ private struct FlashcardFaceContent: View {
   var body: some View {
     VStack(spacing: 18) {
       if face.showsHanzi {
-        Text(script.render(card.hanzi))
+        Text(script.spoken(card.hanzi))
           .font(.system(size: hanziSize, weight: .medium))
           .minimumScaleFactor(0.4)
           .foregroundStyle(.white)
-          .accessibilityLabel(Text(.spokenHanzi(script.render(card.hanzi), in: script)))
       }
       if face.showsReading, !card.reading.isEmpty {
         Text(card.reading)

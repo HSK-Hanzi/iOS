@@ -95,10 +95,9 @@ private struct WordHeaderView: View {
         HeadwordText(word: lookup.word, size: headwordSize, tint: titleColor)
           .accessibilityIdentifier(AccessibilityID.wordEntry)
         if let alternateScriptVariant {
-          Text(verbatim: "（\(alternateScriptVariant)）")
+          Text(AttributedString.spokenHanzi("（\(alternateScriptVariant)）", in: script.alternate))
             .font(.title3)
             .foregroundStyle(.secondary)
-            .accessibilityLabel(Text(.spokenHanzi(alternateScriptVariant, in: script.alternate)))
         }
         Spacer(minLength: 12)
         let misses = wordMisses.totalMisses(for: lookup.word)
@@ -203,12 +202,11 @@ private struct HeadwordText: View {
         Button {
           selectWord(String(characters[index]))
         } label: {
-          Text(String(displayCharacters[index]))
+          Text(AttributedString.spokenHanzi(String(displayCharacters[index]), in: script))
             .font(.system(size: size))
             .foregroundStyle(tint ?? .primary)
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(Text(.spokenHanzi(String(displayCharacters[index]), in: script)))
         .accessibilityHint(Text("Looks up this character"))
       }
     }

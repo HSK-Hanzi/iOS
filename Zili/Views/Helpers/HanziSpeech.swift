@@ -5,47 +5,19 @@
 
 import Foundation
 
-/// Builds the accessibility labels that get VoiceOver into a Chinese voice on Hanzi.
+/// Tags Hanzi so VoiceOver speaks it in a Chinese voice rather than the interface voice, which
+/// otherwise spells out or mangles every character.
 ///
-/// Without a language identifier VoiceOver reads Hanzi with the interface voice, which spells out
-/// or mangles every character. SwiftUI has no `accessibilityLanguage` modifier, so the language
-/// travels as Foundation's `languageIdentifier` run attribute on an `AttributedString`, handed to
-/// a view as `.accessibilityLabel(Text(.spokenHanzi(…)))`.
+/// SwiftUI has no `accessibilityLanguage` modifier, and an explicit `.accessibilityLabel` cannot
+/// carry a language: SwiftUI rebuilds the label's speech attributes from the environment locale and
+/// discards any `languageIdentifier` the label's own text held. What survives is a language on the
+/// text a view *renders* — so that is where these tags go, and ``ChineseScript/spoken(_:)`` is the
+/// reading form of ``ChineseScript/render(_:)`` for every view that shows Hanzi.
 ///
-/// Only the Chinese runs are tagged. A gloss, and a reading written in the Latin alphabet, stay
-/// untagged so they keep the reader's own voice.
-extension AttributedString {
-  /// Parts of a label are separated by a comma, which VoiceOver reads as a pause.
-  private static let separator = ", "
-
-  /// `hanzi` tagged to be spoken in `script`.
-  static func spokenHanzi(_ hanzi: String, in script: ChineseScript) -> AttributedString {
-    var spoken = AttributedString(hanzi)
-    spoken.languageIdentifier = script.languageIdentifier
-    return spoken
-  }
-
-  /// A word announced together with the reading and gloss shown beside it. Absent or empty parts
-  /// are left out rather than announced as a pause.
-  static func spokenWord(
-    _ hanzi: String,
-    in script: ChineseScript,
-    reading: String?,
-    romanization: Romanization,
-    gloss: String?
-  ) -> AttributedString {
-    var spoken = spokenHanzi(hanzi, in: script)
-    if let reading, !reading.isEmpty {
-      spoken.append(AttributedString(separator))
-      spoken.append(romanization.spoken(reading))
-    }
-    if let gloss, !gloss.isEmpty {
-      spoken.append(AttributedString(separator + gloss))
-    }
-    return spoken
-  }
-}
-
+/// Combining is what assembles a whole row: `.accessibilityElement(children: .combine)` keeps each
+/// child's language, so a tagged headword beside a plain English gloss is announced with only the
+/// Hanzi in a Chinese voice. Where a view must announce something it does not render — a word
+/// spanning several character cells — set ``ChineseScript/locale`` on the content instead.
 extension ChineseScript {
   /// The BCP 47 identifier for this script, which is what selects a Chinese VoiceOver voice.
   var languageIdentifier: String {
@@ -53,6 +25,24 @@ extension ChineseScript {
       case .simplified: "zh-Hans"
       case .traditional: "zh-Hant"
     }
+  }
+
+  /// The locale to place on Hanzi whose announcement is spelled out in a separate label, which is
+  /// the only way the language reaches VoiceOver in that case.
+  var locale: Locale { Locale(identifier: languageIdentifier) }
+
+  /// `hanzi` rendered in this script and tagged to be spoken in it.
+  func spoken(_ hanzi: String) -> AttributedString {
+    .spokenHanzi(render(hanzi), in: self)
+  }
+}
+
+extension AttributedString {
+  /// `hanzi` tagged to be spoken in `script`, for text already written in that script.
+  static func spokenHanzi(_ hanzi: String, in script: ChineseScript) -> AttributedString {
+    var spoken = AttributedString(hanzi)
+    spoken.languageIdentifier = script.languageIdentifier
+    return spoken
   }
 }
 

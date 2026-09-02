@@ -154,7 +154,7 @@ private struct CrossReferenceLinks: View {
           Button {
             selectWord(word)
           } label: {
-            Text(script.render(word))
+            Text(script.spoken(word))
               .font(.callout)
               .padding(.horizontal, 8)
               .padding(.vertical, 3)
@@ -162,7 +162,6 @@ private struct CrossReferenceLinks: View {
           }
           .buttonStyle(.plain)
           .foregroundStyle(Color.accentColor)
-          .accessibilityLabel(Text(.spokenHanzi(script.render(word), in: script)))
           .accessibilityHint(Text("Looks up this word"))
         }
       }

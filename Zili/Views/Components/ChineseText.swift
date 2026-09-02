@@ -66,6 +66,7 @@ struct ChineseText: View {
           isHighlighted: isWithinMatch(cell.index),
           isLookupable: cell.isLookupable,
           speech: cell.speech,
+          script: script,
           onTap: { selectMatch(at: cell.index) }
         )
         .popover(isPresented: presentation(for: cell.index)) {
@@ -87,10 +88,10 @@ struct ChineseText: View {
     displaying displayed: [Character]
   ) -> CellSpeech {
     guard let word = words.first(where: { $0.contains(index) }) else {
-      return .speaks(.spokenHanzi(String(displayed[index]), in: script))
+      return .speaks(String(displayed[index]))
     }
     guard word.lowerBound == index else { return .foldedIntoWord }
-    return .speaks(.spokenHanzi(String(displayed[word]), in: script))
+    return .speaks(String(displayed[word]))
   }
 
   private func selectMatch(at index: Int) {
@@ -147,14 +148,14 @@ private struct Cell: Identifiable {
 /// How a character participates in VoiceOver: it either speaks a word — its own character, or the
 /// whole word it begins — or is folded into the element of that word's first character.
 private enum CellSpeech {
-  case speaks(AttributedString)
+  case speaks(String)
   case foldedIntoWord
 
   /// What VoiceOver announces. A folded character is hidden, so it announces nothing.
-  var label: AttributedString {
+  var label: String {
     switch self {
       case let .speaks(word): word
-      case .foldedIntoWord: AttributedString()
+      case .foldedIntoWord: ""
     }
   }
 
@@ -171,6 +172,7 @@ private struct CharacterCell: View {
   let isHighlighted: Bool
   let isLookupable: Bool
   let speech: CellSpeech
+  let script: ChineseScript
   let onTap: () -> Void
 
   var body: some View {
@@ -181,13 +183,16 @@ private struct CharacterCell: View {
       .background(isHighlighted ? Color.accentColor.opacity(0.18) : .clear)
       .contentShape(.rect)
       .onTapGesture { if isLookupable { onTap() } }
+      // A cell announces its whole word rather than its glyph, which a language on the rendered
+      // text can't express. Only the locale of the content it wraps reaches VoiceOver as the
+      // speech language, so the cell carries it and the label is spelled out around it.
+      .environment(\.locale, script.locale)
       // Only characters that resolve to a word are actionable; punctuation is read as plain text.
       .accessibilityAddTraits(isLookupable ? .isButton : [])
       .accessibilityHint(
         isLookupable ? Text("Shows the word’s pinyin and meaning.") : Text(verbatim: "")
       )
-      // The whole word, tagged Chinese, so VoiceOver speaks it in a Chinese voice and moves by
-      // words; the rest of the word's characters ride along on this element.
+      // The rest of the word's characters ride along on this element, so VoiceOver moves by words.
       .accessibilityLabel(Text(speech.label))
       .accessibilityHidden(speech.isFolded)
   }
@@ -207,9 +212,8 @@ private struct WordPeekPopover: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 10) {
       VStack(alignment: .leading, spacing: 2) {
-        Text(script.render(match.word))
+        Text(script.spoken(match.word))
           .font(.title2)
-          .accessibilityLabel(Text(.spokenHanzi(script.render(match.word), in: script)))
         if let reading = match.lookup.romanization(romanization) {
           Text(reading)
             .font(.headline)

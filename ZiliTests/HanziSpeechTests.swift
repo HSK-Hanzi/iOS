@@ -9,70 +9,38 @@ import Testing
 @testable import Zili
 
 struct HanziSpeechTests {
-  // MARK: spokenHanzi
+  // MARK: spoken
 
-  @Test("Hanzi is tagged with the script it is written in")
-  func hanziCarriesItsScript() {
-    #expect(AttributedString.spokenHanzi("你好", in: .simplified).languageIdentifier == "zh-Hans")
-    #expect(AttributedString.spokenHanzi("妳好", in: .traditional).languageIdentifier == "zh-Hant")
+  /// The reading form of `render(_:)`: it converts the script and tags the result in one step.
+  @Test("Spoken Hanzi is converted to the script it is tagged with")
+  func spokenConvertsAndTags() {
+    let simplified = ChineseScript.simplified.spoken("电脑")
+    let traditional = ChineseScript.traditional.spoken("电脑")
+
+    #expect(String(simplified.characters) == "电脑")
+    #expect(simplified.languageIdentifier == "zh-Hans")
+    #expect(String(traditional.characters) == "電腦")
+    #expect(traditional.languageIdentifier == "zh-Hant")
   }
 
-  // MARK: spokenWord
+  /// For Hanzi already written in the target script, which must not be converted again.
+  @Test("Pre-rendered Hanzi is tagged without further conversion")
+  func spokenHanziLeavesTextAlone() {
+    let spoken = AttributedString.spokenHanzi("電腦", in: .traditional)
 
-  /// Tagging the whole label Chinese would have a Chinese voice read the English gloss, so only
-  /// the Hanzi run carries a language.
-  @Test("A word's gloss is left in the reader's own language")
-  func glossIsUntagged() {
-    let spoken = AttributedString.spokenWord(
-      "你好",
-      in: .simplified,
-      reading: "nǐ hǎo",
-      romanization: .pinyin,
-      gloss: "hello"
-    )
-
-    #expect(String(spoken.characters) == "你好, nǐ hǎo, hello")
-    #expect(languages(of: spoken) == ["zh-Hans", nil])
+    #expect(String(spoken.characters) == "電腦")
+    #expect(spoken.languageIdentifier == "zh-Hant")
   }
 
-  /// Zhuyin is written in Chinese script, so a reader's own voice would skip it entirely.
-  @Test("A Zhuyin reading is tagged Chinese, a Latin one is not")
+  // MARK: readings
+
+  /// Zhuyin is written in Chinese script, so the reader's own voice would skip it entirely; the
+  /// Latin systems read better in that voice than in a Chinese one.
+  @Test("Only a Zhuyin reading is tagged Chinese")
   func onlyZhuyinReadingIsTagged() {
-    let zhuyin = AttributedString.spokenWord(
-      "你好",
-      in: .simplified,
-      reading: "ㄋㄧˇ ㄏㄠˇ",
-      romanization: .bopomofo,
-      gloss: nil
-    )
-    let wadeGiles = AttributedString.spokenWord(
-      "你好",
-      in: .simplified,
-      reading: "ni³ hao³",
-      romanization: .wadeGiles,
-      gloss: nil
-    )
-
-    #expect(languages(of: zhuyin) == ["zh-Hans", nil, "zh-Hant"])
-    #expect(languages(of: wadeGiles) == ["zh-Hans", nil])
-  }
-
-  /// A missing reading or gloss is left out rather than announced as a trailing pause.
-  @Test("Absent parts leave no dangling separator", arguments: [nil, ""])
-  func absentPartsAreOmitted(empty: String?) {
-    let spoken = AttributedString.spokenWord(
-      "茶",
-      in: .simplified,
-      reading: empty,
-      romanization: .pinyin,
-      gloss: empty
-    )
-
-    #expect(String(spoken.characters) == "茶")
-  }
-
-  /// The language of each run, in order — `nil` where a run carries none.
-  private func languages(of spoken: AttributedString) -> [String?] {
-    spoken.runs.map(\.languageIdentifier)
+    #expect(Romanization.bopomofo.spoken("ㄋㄧˇ ㄏㄠˇ").languageIdentifier == "zh-Hant")
+    #expect(Romanization.pinyin.spoken("nǐ hǎo").languageIdentifier == nil)
+    #expect(Romanization.wadeGiles.spoken("ni³ hao³").languageIdentifier == nil)
+    #expect(Romanization.gwoyeuRomatzyh.spoken("nii hao").languageIdentifier == nil)
   }
 }
