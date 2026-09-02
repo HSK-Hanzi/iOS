@@ -60,7 +60,7 @@ final class AppData {
       return
     }
     do {
-      state = .loaded(try await Lexicon.load())
+      state = .loaded(try await LexiconStore.shared.lexicon())
     } catch {
       SentrySDK.capture(error: error) { scope in
         scope.setTag(value: "lexicon", key: "component")
