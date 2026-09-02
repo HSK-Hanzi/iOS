@@ -11,6 +11,23 @@ struct WordPeek: Equatable {
   let word: AttributedString
   let reading: String?
   let gloss: String?
+
+  /// How `word` reads in the learner's script and romanization, from everything the lexicon knows
+  /// about it.
+  init(word: String, lookup: WordLookup, script: ChineseScript, romanization: Romanization) {
+    self.init(
+      word: script.spoken(word),
+      reading: lookup.romanization(romanization),
+      gloss: lookup.primaryGloss
+    )
+  }
+
+  /// A peek from strings the caller has already resolved.
+  init(word: AttributedString, reading: String?, gloss: String?) {
+    self.word = word
+    self.reading = reading
+    self.gloss = gloss
+  }
 }
 
 /// A peek and the pointer that raised it, in global coordinates. Global because the run that

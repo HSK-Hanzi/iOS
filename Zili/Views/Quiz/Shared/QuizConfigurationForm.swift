@@ -139,7 +139,7 @@ struct QuizDeckSizePicker: View {
 
   private static func label(_ size: Int?) -> String {
     guard let size else { return String(localized: "All") }
-    return String(localized: "\(size, format: .number)")
+    return size.formatted()
   }
 }
 

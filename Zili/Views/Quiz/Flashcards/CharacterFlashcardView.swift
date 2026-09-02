@@ -187,7 +187,7 @@ private struct SenseLine: View {
   var body: some View {
     HStack(alignment: .firstTextBaseline) {
       if numbered {
-        Text("\(number, format: .number)")
+        Text(number.formatted())
           .font(.system(.title3, design: .rounded).monospacedDigit())
           .foregroundStyle(.white.opacity(0.6))
           .frame(minWidth: 24, alignment: .trailing)

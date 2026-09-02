@@ -318,9 +318,10 @@ extension WordPeek {
   /// How `match` reads in the learner's script and romanization.
   init(match: ChineseText.Match, script: ChineseScript, romanization: Romanization) {
     self.init(
-      word: script.spoken(match.word),
-      reading: match.lookup.romanization(romanization),
-      gloss: match.lookup.primaryGloss
+      word: match.word,
+      lookup: match.lookup,
+      script: script,
+      romanization: romanization
     )
   }
 }
