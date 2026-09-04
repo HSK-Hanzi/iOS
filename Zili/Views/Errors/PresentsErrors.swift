@@ -21,7 +21,7 @@ struct ErrorPresentation {
   }
 
   init(_ error: any Error) {
-    let localized = error as? LocalizedError
+    let localized = error as? any LocalizedError
     title = localized?.errorDescription ?? error.localizedDescription
     failureReason = localized?.failureReason
     recoverySuggestion = localized?.recoverySuggestion

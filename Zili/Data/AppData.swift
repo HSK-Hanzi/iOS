@@ -71,7 +71,7 @@ final class AppData {
         scope.setContext(
           value: [
             "source": source,
-            "reason": (error as? LocalizedError)?.failureReason ?? error.localizedDescription
+            "reason": (error as? any LocalizedError)?.failureReason ?? error.localizedDescription
           ],
           key: "lexicon_load"
         )
