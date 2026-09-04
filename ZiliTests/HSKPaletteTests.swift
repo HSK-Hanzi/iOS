@@ -11,7 +11,7 @@ struct HSKPaletteTests {
   /// Scoped to a standard the word belongs to, the color comes from its band *within that
   /// standard* — not its lowest band across the syllabus.
   @Test
-  func bandInMatchingStandardIgnoresOtherStandards() {
+  func `band in matching standard ignores other standards`() {
     let levels = [
       HSKLevel(standard: .old, band: 1),
       HSKLevel(standard: .new, band: 6)
@@ -22,7 +22,7 @@ struct HSKPaletteTests {
 
   /// Off a standard (`nil`) the word keeps one identity color: its lowest band anywhere.
   @Test
-  func bandWithNoStandardTakesTheMinimumBand() {
+  func `band with no standard takes the minimum band`() {
     let levels = [
       HSKLevel(standard: .old, band: 5),
       HSKLevel(standard: .new, band: 2),
@@ -34,7 +34,7 @@ struct HSKPaletteTests {
 
   /// A standard the word doesn't belong to has no band, so it falls back to the lowest band.
   @Test
-  func bandFallsBackToMinimumWhenStandardHasNoMatch() {
+  func `band falls back to minimum when standard has no match`() {
     let levels = [
       HSKLevel(standard: .old, band: 3),
       HSKLevel(standard: .new, band: 7)
@@ -45,25 +45,25 @@ struct HSKPaletteTests {
 
   /// A word outside the syllabus has no band, whether or not a standard is asked for.
   @Test(arguments: [nil, HSKLevel.Standard.new])
-  func bandOfEmptyLevelsIsNil(_ standard: HSKLevel.Standard?) {
+  func `band of empty levels is nil`(_ standard: HSKLevel.Standard?) {
     #expect(HSKPalette.band(of: [HSKLevel](), inStandard: standard) == nil)
   }
 
   /// A missing or sub-one band wears the neutral gray, which also suppresses a colored title.
   @Test(arguments: [nil, 0, -1, -10])
-  func paletteIsNeutralForMissingOrNonPositiveBands(_ band: Int?) {
+  func `palette is neutral for missing or non-positive bands`(_ band: Int?) {
     #expect(HSKPalette.palette(forBand: band).isNeutral)
   }
 
   /// Each of the ten bands gets a real color, not the neutral fallback.
   @Test(arguments: 1...10)
-  func paletteIsColoredForValidBands(_ band: Int) {
+  func `palette is colored for valid bands`(_ band: Int) {
     #expect(!HSKPalette.palette(forBand: band).isNeutral)
   }
 
   /// Bands beyond the tenth wrap rather than crash, so an unexpected value still gets a color.
   @Test(arguments: [11, 20, 21, 100])
-  func paletteWrapsBandsBeyondTheTenth(_ band: Int) {
+  func `palette wraps bands beyond the tenth`(_ band: Int) {
     #expect(!HSKPalette.palette(forBand: band).isNeutral)
   }
 }

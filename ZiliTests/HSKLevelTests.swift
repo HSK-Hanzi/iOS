@@ -14,7 +14,7 @@ struct HSKLevelTests {
     (raw: "old-6", standard: .old, band: 6),
     (raw: "newest-1", standard: .newest, band: 1)
   ])
-  func parsesWellFormedTags(_ example: (raw: String, standard: HSKLevel.Standard, band: Int)) {
+  func `parses well-formed tags`(_ example: (raw: String, standard: HSKLevel.Standard, band: Int)) {
     let level = HSKLevel(rawValue: example.raw)
     #expect(level?.standard == example.standard)
     #expect(level?.band == example.band)
@@ -23,13 +23,13 @@ struct HSKLevelTests {
   /// Anything but exactly one known standard and one integer band, joined by a single hyphen,
   /// is rejected: no band, a non-integer band, an empty string, extra parts, or a bogus standard.
   @Test(arguments: ["new", "new-x", "", "a-b-c", "bogus-3"])
-  func rejectsMalformedTags(_ raw: String) {
+  func `rejects malformed tags`(_ raw: String) {
     #expect(HSKLevel(rawValue: raw) == nil)
   }
 
   /// Levels sort by standard first — newest before new before old — then by ascending band.
   @Test
-  func sortsByStandardThenBand() {
+  func `sorts by standard then band`() {
     let unsorted = [
       HSKLevel(standard: .old, band: 1),
       HSKLevel(standard: .new, band: 2),
@@ -51,7 +51,7 @@ struct HSKLevelTests {
 
   /// The standards themselves order by declaration: newest is earliest, old is latest.
   @Test
-  func standardOrdersByDeclaration() {
+  func `standard orders by declaration`() {
     #expect(HSKLevel.Standard.newest < .new)
     #expect(HSKLevel.Standard.new < .old)
   }

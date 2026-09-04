@@ -11,7 +11,7 @@ import Testing
 @MainActor
 struct StrokeTestModelTests {
   @Test
-  func firesOnCompleteOnceTheCharacterIsFinished() {
+  func `onComplete fires once the character is finished`() {
     var completions = 0
     let model = StrokeTestModel(graphic: PreviewHanzi.person, canvasSide: canvasSide) { _ in
       completions += 1
@@ -32,7 +32,7 @@ struct StrokeTestModelTests {
   }
 
   @Test
-  func undoTakesBackTheLastStrokeAndLetsTheCharacterFinishAgain() {
+  func `undo takes back the last stroke and lets the character finish again`() {
     var completions = 0
     let model = StrokeTestModel(graphic: PreviewHanzi.person, canvasSide: canvasSide) { _ in
       completions += 1
@@ -52,7 +52,7 @@ struct StrokeTestModelTests {
   }
 
   @Test
-  func clearReturnsToABlankPage() {
+  func `clear returns to a blank page`() {
     let model = StrokeTestModel(graphic: PreviewHanzi.person, canvasSide: canvasSide)
     for stroke in tracedStrokes(of: PreviewHanzi.person) {
       model.add(strokePoints: stroke)

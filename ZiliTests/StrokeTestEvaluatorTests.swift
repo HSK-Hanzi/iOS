@@ -38,7 +38,7 @@ struct StrokeTestEvaluatorTests {
   // MARK: Shape correctness
 
   @Test
-  func correctTraceIsAllGreen() {
+  func `a correct trace is all green`() {
     let result = StrokeTestEvaluator(targetStrokes: Self.cross).evaluate([
       .line(from: CGPoint(x: 100, y: 300), to: CGPoint(x: 500, y: 300)),
       .line(from: CGPoint(x: 300, y: 100), to: CGPoint(x: 300, y: 500))
@@ -48,7 +48,7 @@ struct StrokeTestEvaluatorTests {
   }
 
   @Test
-  func reversedStrokeIsIncorrect() {
+  func `a reversed stroke is incorrect`() {
     let result = StrokeTestEvaluator(targetStrokes: Self.cross).evaluate([
       .line(from: CGPoint(x: 500, y: 300), to: CGPoint(x: 100, y: 300)),  // right → left
       .line(from: CGPoint(x: 300, y: 100), to: CGPoint(x: 300, y: 500))
@@ -59,7 +59,7 @@ struct StrokeTestEvaluatorTests {
   /// A stub reaching neither end of the stroke it sits on must not claim it: the stroke is still
   /// owed, and letting the stub take it would push everything drawn afterwards onto the wrong target.
   @Test
-  func tooShortStrokeIsIncorrectAndClaimsNothing() {
+  func `a too-short stroke is incorrect and claims nothing`() {
     let result = StrokeTestEvaluator(targetStrokes: Self.cross).evaluate([
       .line(from: CGPoint(x: 100, y: 300), to: CGPoint(x: 500, y: 300)),
       .line(from: CGPoint(x: 300, y: 270), to: CGPoint(x: 300, y: 330))  // far too short
@@ -71,7 +71,7 @@ struct StrokeTestEvaluatorTests {
   // MARK: Order
 
   @Test
-  func strokeDrawnAheadOfItsTurnIsPurple() {
+  func `a stroke drawn ahead of its turn is purple`() {
     let result = StrokeTestEvaluator(targetStrokes: Self.cross).evaluate([
       .line(from: CGPoint(x: 300, y: 100), to: CGPoint(x: 300, y: 500)),  // vertical drawn first
       .line(from: CGPoint(x: 100, y: 300), to: CGPoint(x: 500, y: 300))  // horizontal second
@@ -80,7 +80,7 @@ struct StrokeTestEvaluatorTests {
   }
 
   @Test
-  func loneStrokeIsJudgedImmediately() {
+  func `a lone stroke is judged immediately`() {
     let result = StrokeTestEvaluator(targetStrokes: Self.cross).evaluate([
       .line(from: CGPoint(x: 100, y: 300), to: CGPoint(x: 500, y: 300))
     ])
@@ -89,7 +89,7 @@ struct StrokeTestEvaluatorTests {
   }
 
   @Test
-  func strokeBelongingNowhereLeavesTheSequenceIntact() {
+  func `a stroke belonging nowhere leaves the sequence intact`() {
     // A scribble in the corner claims no stroke, so the two that follow still meet the
     // character's first and second strokes rather than being pushed onto the wrong ones.
     let result = StrokeTestEvaluator(targetStrokes: Self.cross).evaluate([
@@ -104,7 +104,7 @@ struct StrokeTestEvaluatorTests {
   // MARK: Mismatch rejection
 
   @Test
-  func differentCharacterFlagsTheDivergingStroke() {
+  func `a different character flags the diverging stroke`() {
     // 二 drawn against 十. The first horizontal genuinely is a plausible 一, right where the
     // character wants one; only the second stroke reveals that this is the wrong character.
     let result = StrokeTestEvaluator(targetStrokes: Self.cross).evaluate([
@@ -116,7 +116,7 @@ struct StrokeTestEvaluatorTests {
   }
 
   @Test
-  func similarCharacterFlagsOnlyTheDivergingStroke() {
+  func `a similar character flags only the diverging stroke`() {
     // Strokes 0 and 1 trace the target; stroke 2 is a vertical where the character has a
     // horizontal — a different character sharing two strokes. Only stroke 2 is wrong.
     let result = StrokeTestEvaluator(targetStrokes: Self.threeBar).evaluate([
@@ -132,7 +132,7 @@ struct StrokeTestEvaluatorTests {
   /// 永's fifth stroke is a long diagonal overlapping its second, and its fourth ends where the
   /// fifth begins — the character most likely to have a stroke claimed by the wrong target.
   @Test
-  func perfectTraceOfRealGlyphIsAllGreen() {
+  func `a perfect trace of a real glyph is all green`() {
     let result = Self.eternityEvaluator.evaluate(Self.eternityTrace)
     #expect(result.verdicts == Array(repeating: .correct, count: 5))
     #expect(result.consumedTargetCount == 5)
@@ -142,7 +142,7 @@ struct StrokeTestEvaluatorTests {
   /// The property the whole design exists to guarantee: a stroke's verdict is settled the moment
   /// it is drawn, and no later stroke can revise it.
   @Test
-  func verdictsNeverChangeAsLaterStrokesArrive() {
+  func `verdicts never change as later strokes arrive`() {
     var settled: [StrokeVerdict] = []
     for drawn in 1...Self.eternityTrace.count {
       let verdicts = Self.eternityEvaluator.evaluate(Array(Self.eternityTrace.prefix(drawn)))

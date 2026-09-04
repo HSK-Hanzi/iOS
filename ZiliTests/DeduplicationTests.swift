@@ -22,8 +22,10 @@ struct DeduplicationTests {
     return ModelContext(container)
   }
 
-  @Test("Colliding miss records collapse to the smallest identifier, summing the losers' counts")
-  func keepsSmallestIdentifierAndSumsCounts() throws {
+  @Test
+  func `colliding miss records collapse to the smallest identifier, summing the losers' counts`()
+    throws
+  {
     let context = try inMemoryContext()
     let records = [
       WordMissCount(word: "好", writingMisses: 2, recognizingMisses: 1),
@@ -54,8 +56,8 @@ struct DeduplicationTests {
     #expect(survivor.recognizingMisses == 11)
   }
 
-  @Test("Each key converges independently on its smallest-identifier record")
-  func collapsesEachKeyToItsSurvivor() throws {
+  @Test
+  func `each key converges independently on its smallest-identifier record`() throws {
     let context = try inMemoryContext()
     let hao = [FavoriteWord(word: "好"), FavoriteWord(word: "好")]
     let ni = [FavoriteWord(word: "你"), FavoriteWord(word: "你"), FavoriteWord(word: "你")]
@@ -78,8 +80,8 @@ struct DeduplicationTests {
     #expect(Set(survivors.map(\.identifier)) == Set(expected))
   }
 
-  @Test("A collision-free store reports no change and deletes nothing")
-  func leavesUniqueRecordsUntouched() throws {
+  @Test
+  func `a collision-free store reports no change and deletes nothing`() throws {
     let context = try inMemoryContext()
     [FavoriteWord(word: "好"), FavoriteWord(word: "你"), FavoriteWord(word: "我")]
       .forEach(context.insert)

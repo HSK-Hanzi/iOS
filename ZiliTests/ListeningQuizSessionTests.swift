@@ -33,8 +33,8 @@ struct ListeningQuizSessionTests {
     )
   ]
 
-  @Test("Marking a sentence records its outcome, advances, and tallies right and wrong")
-  func marksAndAdvances() {
+  @Test
+  func `marking a sentence records its outcome, advances, and tallies right and wrong`() {
     let session = ListeningQuizSession(deck: Self.deck)
     #expect(session.current?.id == "a")
 
@@ -50,8 +50,8 @@ struct ListeningQuizSessionTests {
     #expect(session.incorrectCount == 1)
   }
 
-  @Test("Answering every sentence finishes the deck")
-  func finishesAfterLastCard() {
+  @Test
+  func `answering every sentence finishes the deck`() {
     let session = ListeningQuizSession(deck: Self.deck)
     session.mark(correct: true)
     session.mark(correct: false)
@@ -62,8 +62,8 @@ struct ListeningQuizSessionTests {
     #expect(session.current == nil)
   }
 
-  @Test("Marking past the end is a no-op")
-  func markingPastEndDoesNothing() {
+  @Test
+  func `marking past the end is a no-op`() {
     let session = ListeningQuizSession(deck: Self.deck)
     session.mark(correct: true)
     session.mark(correct: true)
@@ -75,8 +75,8 @@ struct ListeningQuizSessionTests {
     #expect(session.incorrectCount == 0)
   }
 
-  @Test("onMiss fires only for wrong answers, with the sentence's id")
-  func reportsOnlyWrongAnswersAsMisses() {
+  @Test
+  func `onMiss fires only for wrong answers, with the sentence's id`() {
     var missed: [String] = []
     let session = ListeningQuizSession(deck: Self.deck) { missed.append($0) }
 
@@ -87,8 +87,8 @@ struct ListeningQuizSessionTests {
     #expect(missed == ["a", "c"])
   }
 
-  @Test("The re-drill pile is the missed sentences, in deck order")
-  func reDrillPileIsMissedSentences() {
+  @Test
+  func `the re-drill pile is the missed sentences, in deck order`() {
     let session = ListeningQuizSession(deck: Self.deck)
     session.mark(correct: false)
     session.mark(correct: true)
@@ -97,8 +97,8 @@ struct ListeningQuizSessionTests {
     #expect(session.sentencesToReDrill.map(\.id) == ["a", "c"])
   }
 
-  @Test("Re-drilling restarts with only the missed sentences and clears progress")
-  func reDrillKeepsOnlyMisses() {
+  @Test
+  func `re-drilling restarts with only the missed sentences and clears progress`() {
     let session = ListeningQuizSession(deck: Self.deck)
     session.mark(correct: false)
     session.mark(correct: true)

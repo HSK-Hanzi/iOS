@@ -18,8 +18,8 @@ struct SentenceLibraryTests {
     )
   }
 
-  @Test("A corpus lists its levels ascending, whatever order its sentences arrived in")
-  func levelsAreSortedAscending() {
+  @Test
+  func `a corpus lists its levels ascending, whatever order its sentences arrived in`() {
     let corpus = SentenceCorpus(
       source: .practice,
       sentences: [
@@ -29,8 +29,8 @@ struct SentenceLibraryTests {
     #expect(corpus.levels == [1, 2, 3])
   }
 
-  @Test("A level's sentences keep their source order, and allSentences reads level by level")
-  func sentencesKeepSourceOrderWithinLevel() {
+  @Test
+  func `a level's sentences keep their source order, and allSentences reads level by level`() {
     let corpus = SentenceCorpus(
       source: .practice,
       sentences: [
@@ -46,8 +46,8 @@ struct SentenceLibraryTests {
     #expect(corpus.sentenceCount == 4)
   }
 
-  @Test("The library resolves a sentence and a corpus by id across every loaded corpus")
-  func libraryResolvesByID() {
+  @Test
+  func `the library resolves a sentence and a corpus by id across every loaded corpus`() {
     let first = SentenceCorpus(source: .practice, sentences: [Self.sentence("a", level: 1)])
     let library = SentenceLibrary(corpora: [first])
 
