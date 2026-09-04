@@ -12,7 +12,7 @@ import Testing
 struct SearchRelevanceTests {
   /// Attested words occupy 0.5…1; a word the corpus omits drops to 0 outright.
   @Test
-  func frequencyFallsOffLogarithmicallyToAFloorAndOffACliff() {
+  func `frequency falls off logarithmically to a floor and off a cliff`() {
     #expect(SearchRelevance.frequency(rank: 1) == 1.0)
     #expect(SearchRelevance.frequency(rank: 10) == 0.75)
     #expect(SearchRelevance.frequency(rank: 19) > SearchRelevance.frequency(rank: 930))
@@ -24,7 +24,7 @@ struct SearchRelevanceTests {
   /// loses even to a weak prefix match on the rarest word the corpus does know. This is what keeps
   /// 你好 on the page for `ni`, behind 48 characters that read exactly `ni`.
   @Test
-  func corpusPresenceOutranksExactness() {
+  func `corpus presence outranks exactness`() {
     let exactAndUnattested = SearchRelevance.score(
       isExact: true,
       similarity: 1.0,
@@ -40,7 +40,7 @@ struct SearchRelevanceTests {
 
   /// At the same frequency, an exact match always leads a prefix match.
   @Test
-  func exactnessLeadsAtEqualFrequency() {
+  func `exactness leads at equal frequency`() {
     for rank in [1, 500, 14968, SearchRelevance.unranked] {
       let exact = SearchRelevance.score(isExact: true, similarity: 1.0, rank: rank)
       let prefix = SearchRelevance.score(isExact: false, similarity: 0.5, rank: rank)
@@ -50,7 +50,7 @@ struct SearchRelevanceTests {
 
   /// Frequency orders the exact block: 很 (rank 19) above 恨 (930) above an unranked character.
   @Test
-  func frequencyOrdersTheExactBlock() {
+  func `frequency orders the exact block`() {
     let common = SearchRelevance.score(isExact: true, similarity: 1.0, rank: 19)
     let rarer = SearchRelevance.score(isExact: true, similarity: 1.0, rank: 930)
     let unranked = SearchRelevance.score(
@@ -66,7 +66,7 @@ struct SearchRelevanceTests {
   /// match — an exact pinyin match on an unranked character (哏) — the interleaving a concatenated
   /// merge cannot express.
   @Test
-  func englishInterleavesOnMerit() {
+  func `English interleaves on merit`() {
     let englishGloss = SearchRelevance.score(isExact: true, similarity: 1.0, rank: 14968)
     let rarePinyin = SearchRelevance.score(
       isExact: true,
@@ -78,7 +78,7 @@ struct SearchRelevanceTests {
 
   /// Similarity separates candidates that agree on exactness and frequency.
   @Test
-  func similarityBreaksTiesBetweenPrefixMatches() {
+  func `similarity breaks ties between prefix matches`() {
     let closer = SearchRelevance.score(isExact: false, similarity: 0.75, rank: 500)
     let farther = SearchRelevance.score(isExact: false, similarity: 0.33, rank: 500)
     #expect(closer > farther)
@@ -90,7 +90,7 @@ struct LexiconScoringTests {
   /// A query carrying tone digits is not English. Without that gate the FTS tokenizer strips the
   /// digit and `ni3` matches the English term "ni", surfacing 倪嗣冲.
   @Test
-  func englishIsGatedOnPlainLetterQueries() async throws {
+  func `English is gated on plain letter queries`() async throws {
     let lexicon = try await Lexicon.load()
     #expect(!lexicon.searchHeadwords(matching: "ni3").contains("倪嗣冲"))
     #expect(lexicon.searchHeadwords(matching: "ni3").first == "你")
@@ -99,7 +99,7 @@ struct LexiconScoringTests {
   /// Exactness leads, and frequency orders the exact block: not 一个 (a prefix match on a common
   /// word), and not 俺 or 唵 (exact matches on rare ones).
   @Test
-  func exactnessThenFrequencyLeadsTheResults() async throws {
+  func `exactness then frequency leads the results`() async throws {
     let lexicon = try await Lexicon.load()
     let results = lexicon.searchHeadwords(matching: "an")
     #expect(results.first == "按")
@@ -110,7 +110,7 @@ struct LexiconScoringTests {
   /// Per-sense indexing plus the similarity term demote an incidental gloss: 烤 is glossed
   /// "to roast; … to toast (bread)" and must not outrank 面包.
   @Test
-  func incidentalGlossesAreDemoted() async throws {
+  func `incidental glosses are demoted`() async throws {
     let lexicon = try await Lexicon.load()
     let results = lexicon.searchHeadwords(matching: "bread")
     let bread = try #require(results.firstIndex(of: "面包"))
@@ -121,7 +121,7 @@ struct LexiconScoringTests {
   /// Similarity is weighted equally on both sides. If it were dropped for Chinese, English would
   /// gain a free constant and 母鸡 would lead this query instead of 很.
   @Test
-  func similarityIsSymmetricAcrossLanguages() async throws {
+  func `similarity is symmetric across languages`() async throws {
     let lexicon = try await Lexicon.load()
     #expect(lexicon.searchHeadwords(matching: "hen").first == "很")
   }

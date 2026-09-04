@@ -12,8 +12,8 @@ import Testing
 /// CloudKit de-duplication that sums the records two devices can produce for the same key.
 @MainActor
 struct MissTrackingTests {
-  @Test("A word's misses are counted per mode, surfaced for drilling, and cleared by reset")
-  func wordMissesCountPerModeAndReset() {
+  @Test
+  func `a word's misses are counted per mode, surfaced for drilling, and cleared by reset`() {
     let store = WordMissStore.inMemory()
 
     store.recordMiss("好", mode: .writing)
@@ -34,8 +34,8 @@ struct MissTrackingTests {
     #expect(store.wordsMissed(in: .recognizing) == ["你"])
   }
 
-  @Test("A sentence's misses are counted, surfaced for drilling, and cleared by reset")
-  func sentenceMissesCountAndReset() {
+  @Test
+  func `a sentence's misses are counted, surfaced for drilling, and cleared by reset`() {
     let store = SentenceMissStore.inMemory()
 
     store.recordMiss("s1")
@@ -51,8 +51,8 @@ struct MissTrackingTests {
     #expect(store.missedSentenceIDs == ["s2"])
   }
 
-  @Test("De-duplication keeps one record per key and sums the losers' counts into it")
-  func deduplicationSumsDuplicateCounts() throws {
+  @Test
+  func `de-duplication keeps one record per key and sums the losers' counts into it`() throws {
     let container = try ModelContainer(
       for: WordMissCount.self,
       configurations: ModelConfiguration(isStoredInMemoryOnly: true)

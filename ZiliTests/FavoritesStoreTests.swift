@@ -12,8 +12,8 @@ import Testing
 /// parallel check covers the sentence store's equivalent API.
 @MainActor
 struct FavoritesStoreTests {
-  @Test("Toggling a word stars it, then unstars it")
-  func toggleStarsThenUnstars() {
+  @Test
+  func `toggling a word stars it, then unstars it`() {
     let store = FavoritesStore.inMemory()
 
     store.toggle("好")
@@ -25,8 +25,8 @@ struct FavoritesStoreTests {
     #expect(store.favoritedWords.isEmpty)
   }
 
-  @Test("addAll stars only the words that aren't already favorites, without duplicating")
-  func addAllSkipsExistingWords() {
+  @Test
+  func `addAll stars only the words that aren't already favorites, without duplicating`() {
     let store = FavoritesStore.inMemory()
     store.toggle("好")
 
@@ -36,8 +36,8 @@ struct FavoritesStoreTests {
     #expect(store.favoritedWords.count == 3)
   }
 
-  @Test("addAll is a no-op when every word is already favorited")
-  func addAllNoOpWhenAllPresent() {
+  @Test
+  func `addAll is a no-op when every word is already favorited`() {
     let store = FavoritesStore.inMemory()
     store.addAll(["你", "我"])
 
@@ -46,8 +46,8 @@ struct FavoritesStoreTests {
     #expect(store.favoritedWords.count == 2)
   }
 
-  @Test("clearAll unstars every favorited word")
-  func clearAllEmptiesTheStore() {
+  @Test
+  func `clearAll unstars every favorited word`() {
     let store = FavoritesStore.inMemory()
     store.addAll(["你", "我", "他"])
 
@@ -57,8 +57,8 @@ struct FavoritesStoreTests {
     #expect(!store.isFavorite("你"))
   }
 
-  @Test("favoritedWords lists the most recently added word first")
-  func favoritedWordsAreOrderedMostRecentFirst() {
+  @Test
+  func `favoritedWords lists the most recently added word first`() {
     let store = FavoritesStore.inMemory()
 
     store.toggle("你")
@@ -68,8 +68,8 @@ struct FavoritesStoreTests {
     #expect(store.favoritedWords == ["他", "我", "你"])
   }
 
-  @Test("The sentence store toggles membership and clears just like the word store")
-  func sentenceStoreTogglesAndClears() {
+  @Test
+  func `the sentence store toggles membership and clears just like the word store`() {
     let store = SentenceFavoritesStore.inMemory()
 
     store.toggle("s1")

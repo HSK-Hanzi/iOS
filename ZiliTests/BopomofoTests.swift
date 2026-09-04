@@ -25,7 +25,7 @@ struct BopomofoTests {
     (pinyin: "de", zhuyin: "˙ㄉㄜ"),  // neutral tone → leading dot
     (pinyin: "hao3", zhuyin: "ㄏㄠˇ")  // numbered input
   ])
-  func convertsPinyinToZhuyin(_ pair: (pinyin: String, zhuyin: String)) {
+  func `converts pinyin to Zhuyin`(_ pair: (pinyin: String, zhuyin: String)) {
     #expect(Bopomofo.transcription(of: pair.pinyin) == pair.zhuyin)
   }
 }

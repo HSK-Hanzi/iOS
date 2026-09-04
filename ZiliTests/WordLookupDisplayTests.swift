@@ -11,8 +11,8 @@ struct WordLookupDisplayTests {
   // MARK: definitionSenses
 
   /// A word in the HSK core shows its curated meanings, even when a dictionary also defines it.
-  @Test("Definition senses prefer the curated HSK meanings")
-  func definitionSensesPreferHSKMeanings() {
+  @Test
+  func `definition senses prefer the curated HSK meanings`() {
     let lookup = lookup(
       hsk: [hskWord(meanings: ["to be"])],
       dictionaries: [result("cedict", [entry(glosses: ["something else"])])]
@@ -23,8 +23,8 @@ struct WordLookupDisplayTests {
 
   /// Outside the HSK core, senses come from the first dictionary offering a bilingual entry —
   /// a leading monolingual source is skipped, and only that one dictionary's glosses are used.
-  @Test("Definition senses fall back to the first bilingual dictionary")
-  func definitionSensesFallBackToFirstBilingualDictionary() {
+  @Test
+  func `definition senses fall back to the first bilingual dictionary`() {
     let lookup = lookup(dictionaries: [
       result("xiandai-hanyu", [entry(glosses: ["名词。"])]),
       result("cedict", [entry(glosses: ["water", "river"])])
@@ -35,16 +35,16 @@ struct WordLookupDisplayTests {
 
   /// When every source is monolingual, definition senses fall through to all of its glosses
   /// rather than coming up empty.
-  @Test("Definition senses return monolingual glosses when nothing is bilingual")
-  func definitionSensesReturnMonolingualGlosses() {
+  @Test
+  func `definition senses return monolingual glosses when nothing is bilingual`() {
     let lookup = lookup(dictionaries: [result("xiandai-hanyu", [entry(glosses: ["名词。", "动词。"])])])
 
     #expect(lookup.definitionSenses == ["名词。", "动词。"])
   }
 
   /// A word in the HSK core but without curated meanings still falls back to the dictionaries.
-  @Test("Definition senses fall back when an HSK word has no meanings")
-  func definitionSensesFallBackWhenHSKHasNoMeanings() {
+  @Test
+  func `definition senses fall back when an HSK word has no meanings`() {
     let lookup = lookup(
       hsk: [hskWord(meanings: [])],
       dictionaries: [result("cedict", [entry(glosses: ["water"])])]
@@ -54,8 +54,8 @@ struct WordLookupDisplayTests {
   }
 
   /// Nothing known means no senses.
-  @Test("Definition senses are empty when nothing is known")
-  func definitionSensesEmptyWhenNothingKnown() {
+  @Test
+  func `definition senses are empty when nothing is known`() {
     #expect(lookup().definitionSenses.isEmpty)
   }
 
@@ -63,32 +63,32 @@ struct WordLookupDisplayTests {
 
   /// The peek gloss favors the first bilingual (ASCII-letter) gloss over an earlier
   /// monolingual one.
-  @Test("Primary gloss prefers a bilingual gloss over a monolingual one")
-  func primaryGlossPrefersBilingual() {
+  @Test
+  func `primary gloss prefers a bilingual gloss over a monolingual one`() {
     let lookup = lookup(dictionaries: [result("cedict", [entry(glosses: ["水", "water"])])])
 
     #expect(lookup.primaryGloss == "water")
   }
 
   /// With no bilingual gloss anywhere, the peek gloss falls back to the very first gloss.
-  @Test("Primary gloss falls back to the first gloss when none are bilingual")
-  func primaryGlossFallsBackToFirst() {
+  @Test
+  func `primary gloss falls back to the first gloss when none are bilingual`() {
     let lookup = lookup(dictionaries: [result("xiandai-hanyu", [entry(glosses: ["名词", "动词"])])])
 
     #expect(lookup.primaryGloss == "名词")
   }
 
   /// No glosses means no peek gloss.
-  @Test("Primary gloss is nil when there are no glosses")
-  func primaryGlossNilWithoutGlosses() {
+  @Test
+  func `primary gloss is nil when there are no glosses`() {
     #expect(lookup().primaryGloss == nil)
   }
 
   // MARK: romanization
 
   /// The authoritative HSK reading wins over a dictionary's pinyin.
-  @Test("Romanization prefers the HSK transcription over the dictionary reading")
-  func romanizationPrefersHSKTranscription() {
+  @Test
+  func `romanization prefers the HSK transcription over the dictionary reading`() {
     let lookup = lookup(
       hsk: [hskWord(transcriptions: transcript(pinyin: "nǐ"))],
       dictionaries: [result("cedict", [entry(pinyin: "hao3")])]
@@ -99,24 +99,24 @@ struct WordLookupDisplayTests {
 
   /// When the requested system has no HSK transcription, the reading is converted from the
   /// HSK pinyin instead.
-  @Test("Romanization converts the HSK pinyin when the system's transcription is empty")
-  func romanizationConvertsHSKPinyin() {
+  @Test
+  func `romanization converts the HSK pinyin when the system's transcription is empty`() {
     let lookup = lookup(hsk: [hskWord(transcriptions: transcript(pinyin: "hao3", wadeGiles: ""))])
 
     #expect(lookup.romanization(.wadeGiles) == "hǎo")
   }
 
   /// Outside the HSK core, the reading comes from the first dictionary entry's pinyin.
-  @Test("Romanization falls back to the first dictionary entry's pinyin")
-  func romanizationFallsBackToDictionaryPinyin() {
+  @Test
+  func `romanization falls back to the first dictionary entry's pinyin`() {
     let lookup = lookup(dictionaries: [result("cedict", [entry(pinyin: "hao3")])])
 
     #expect(lookup.romanization(.pinyin) == "hǎo")
   }
 
   /// No reading anywhere means no romanization.
-  @Test("Romanization is nil when nothing has a reading")
-  func romanizationNilWithoutReading() {
+  @Test
+  func `romanization is nil when nothing has a reading`() {
     #expect(lookup().romanization(.pinyin) == nil)
   }
 
