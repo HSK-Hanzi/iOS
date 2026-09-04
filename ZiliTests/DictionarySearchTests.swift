@@ -13,8 +13,8 @@ import Testing
 /// lazy, so each test loads its own lexicon.
 struct DictionarySearchTests {
   /// Han script: an exact headword outranks its compounds.
-  @Test("Chinese script prefixes match directly, exact headword first")
-  func searchesByChineseScript() async throws {
+  @Test
+  func `Chinese script prefixes match directly, exact headword first`() async throws {
     let lexicon = try await Lexicon.load()
     let results = lexicon.searchHeadwords(matching: "好")
     #expect(results.first == "好")
@@ -23,8 +23,8 @@ struct DictionarySearchTests {
   }
 
   /// Tone-marked pinyin narrows to the marked reading. 干活 (gànhuó) precedes 干活儿 (gànhuór).
-  @Test("Tone-marked pinyin matches directly")
-  func searchesByToneMarkedPinyin() async throws {
+  @Test
+  func `tone-marked pinyin matches directly`() async throws {
     let lexicon = try await Lexicon.load()
     #expect(lexicon.searchHeadwords(matching: "nǐhǎo").first == "你好")
 
@@ -36,8 +36,8 @@ struct DictionarySearchTests {
 
   /// Tone digits narrow to one tone, and still prefix longer words: 你 is nǐ (ni3), and gan1
   /// reaches 干净 (gānjìng) while gan4 does not.
-  @Test("Numbered pinyin matches directly and narrows by tone")
-  func searchesByNumberedPinyin() async throws {
+  @Test
+  func `numbered pinyin matches directly and narrows by tone`() async throws {
     let lexicon = try await Lexicon.load()
     #expect(lexicon.searchHeadwords(matching: "ni3").contains("你"))
     #expect(!lexicon.searchHeadwords(matching: "ni2").contains("你"))
@@ -48,8 +48,8 @@ struct DictionarySearchTests {
   /// Bare pinyin spans every tone, and the exact syllable leads regardless of tone. 76 headwords
   /// read exactly "an" — more than fill a page — so the unattested ones fall behind common
   /// compounds rather than crowding them out.
-  @Test("Bare pinyin matches every tone, exact syllable first")
-  func searchesByBarePinyin() async throws {
+  @Test
+  func `bare pinyin matches every tone, exact syllable first`() async throws {
     let lexicon = try await Lexicon.load()
     #expect(lexicon.searchHeadwords(matching: "nihao").contains("你好"))
     #expect(lexicon.searchHeadwords(matching: "ni").contains("你好"))
@@ -65,8 +65,8 @@ struct DictionarySearchTests {
   /// English is ranked by bm25 over per-sense glosses, so the exact word wins: 面包 ("bread") beats
   /// 烤 ("to roast; … to toast (bread)"), where bread is incidental. An incomplete trailing word
   /// still matches by prefix.
-  @Test("English glosses match by relevance, and prefix-match while typing")
-  func searchesByEnglish() async throws {
+  @Test
+  func `English glosses match by relevance, and prefix-match while typing`() async throws {
     let lexicon = try await Lexicon.load()
     #expect(lexicon.search(english: "bread").first == "面包")
     #expect(lexicon.search(english: "water").first == "水")
@@ -80,8 +80,8 @@ struct DictionarySearchTests {
   ///
   /// 母鸡 must be an English-*only* match — asserting on, say, 班 for `ban` would pass vacuously,
   /// because 班 is also a pinyin match.
-  @Test("An ambiguous English/pinyin query interleaves both")
-  func searchesAnAmbiguousQuery() async throws {
+  @Test
+  func `an ambiguous English/pinyin query interleaves both`() async throws {
     let lexicon = try await Lexicon.load()
     let results = lexicon.searchHeadwords(matching: "hen")
 
@@ -92,8 +92,8 @@ struct DictionarySearchTests {
     #expect(Set(results).count == results.count)
   }
 
-  @Test("A looked-up entry decodes its stored reading and senses")
-  func decodesStoredEntries() async throws {
+  @Test
+  func `a looked-up entry decodes its stored reading and senses`() async throws {
     let lexicon = try await Lexicon.load()
     let lookup = lexicon.lookup("你好")
 
@@ -103,8 +103,8 @@ struct DictionarySearchTests {
     #expect(!entry.senses.isEmpty)
   }
 
-  @Test("Stroke, character, and frequency data resolve from their SQLite stores")
-  func resolvesCharacterAndFrequencyData() async throws {
+  @Test
+  func `stroke, character, and frequency data resolve from their SQLite stores`() async throws {
     let lexicon = try await Lexicon.load()
 
     let graphic = try #require(lexicon.strokeGraphic(for: "好"))
@@ -123,8 +123,10 @@ struct DictionarySearchTests {
   // MARK: Single-headword resolution
 
   /// The resolution an App Intent needs: one answer, whichever way the word was written.
-  @Test("Headword resolution answers a single word for Han script, pinyin, and English")
-  func resolvesOneHeadwordFromAnyInput() async throws {
+  @Test
+  func `headword resolution answers a single word for Han script, pinyin, and English`()
+    async throws
+  {
     let lexicon = try await Lexicon.load()
 
     #expect(lexicon.headword(matching: "好") == "好")
@@ -143,8 +145,9 @@ struct DictionarySearchTests {
   /// A word written in traditional script resolves to its simplified headword — the form the HSK
   /// syllabus, the frequency list, favorites, and misses are all keyed by. Resolving it to the
   /// traditional spelling would find dictionary entries but silently lose all four.
-  @Test("Headword resolution normalizes traditional script to the simplified headword")
-  func resolvesTraditionalToSimplified() async throws {
+  @Test
+  func `headword resolution normalizes traditional script to the simplified headword`() async throws
+  {
     let lexicon = try await Lexicon.load()
 
     #expect(lexicon.headword(matching: "學習") == "学习")

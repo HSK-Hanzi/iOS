@@ -15,8 +15,8 @@ struct QuizSessionTests {
     QuizCard(word: "c", hanzi: "三", reading: "sān", definition: "three")
   ]
 
-  @Test("Marking a card records its outcome and advances, with peek looking one card ahead")
-  func marksAndAdvances() {
+  @Test
+  func `marking a card records its outcome and advances, with peek looking one card ahead`() {
     let session = QuizSession(deck: Self.deck)
     #expect(session.current?.word == "a")
     #expect(session.peek?.word == "b")
@@ -32,8 +32,8 @@ struct QuizSessionTests {
     #expect(session.peek == nil)
   }
 
-  @Test("Judging every card finishes the deck and tallies each outcome")
-  func talliesOutcomes() {
+  @Test
+  func `judging every card finishes the deck and tallies each outcome`() {
     let session = QuizSession(deck: Self.deck)
     session.mark(.correct)
     session.mark(.needsReview)
@@ -45,8 +45,8 @@ struct QuizSessionTests {
     #expect(session.skippedCount == 1)
   }
 
-  @Test("The re-drill pile is the reviewed and skipped words, in deck order")
-  func reDrillPileIsMissedWords() {
+  @Test
+  func `the re-drill pile is the reviewed and skipped words, in deck order`() {
     let session = QuizSession(deck: Self.deck)
     session.mark(.needsReview)
     session.mark(.correct)
@@ -55,8 +55,8 @@ struct QuizSessionTests {
     #expect(session.wordsToReDrill == ["a", "c"])
   }
 
-  @Test("Re-drilling restarts with only the missed cards")
-  func reDrillKeepsOnlyMisses() {
+  @Test
+  func `re-drilling restarts with only the missed cards`() {
     let session = QuizSession(deck: Self.deck)
     session.mark(.needsReview)
     session.mark(.correct)
@@ -70,8 +70,8 @@ struct QuizSessionTests {
     #expect(!session.isFinished)
   }
 
-  @Test("A wrong answer reports its word as missed; a correct or skipped one doesn't")
-  func reportsOnlyWrongAnswersAsMisses() {
+  @Test
+  func `a wrong answer reports its word as missed; a correct or skipped one doesn't`() {
     var missed: [String] = []
     let session = QuizSession(deck: Self.deck) { missed.append($0) }
 

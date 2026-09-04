@@ -31,8 +31,10 @@ struct SentenceQuizDeckBuilderTests {
     return SentenceLibrary(corpora: [corpus])
   }
 
-  @Test("A levels source draws the chosen bands in ascending level order, whatever order asked")
-  func levelsSourceIsAscendingByLevel() throws {
+  @Test
+  func `a levels source draws the chosen bands in ascending level order, whatever order asked`()
+    throws
+  {
     let library = Self.library()
     let corpusID = try #require(library.defaultCorpus).id
     let source = SentenceQuizSource.levels(corpusID: corpusID, levels: [3, 1])
@@ -42,8 +44,8 @@ struct SentenceQuizDeckBuilderTests {
     #expect(ids == ["b", "d", "c"])
   }
 
-  @Test("An unknown corpus id falls back to the default corpus")
-  func unknownCorpusFallsBackToDefault() {
+  @Test
+  func `an unknown corpus id falls back to the default corpus`() {
     let library = Self.library()
     let source = SentenceQuizSource.levels(corpusID: "not-a-corpus", levels: [1])
     let ids =
@@ -52,8 +54,8 @@ struct SentenceQuizDeckBuilderTests {
     #expect(ids == ["b", "d"])
   }
 
-  @Test("Favorites resolves the favorite ids to sentences, skipping ids not in the library")
-  func favoritesResolveSkippingMissing() {
+  @Test
+  func `Favorites resolves the favorite ids to sentences, skipping ids not in the library`() {
     let library = Self.library()
     let deck = SentenceQuizDeckBuilder.sentences(
       for: .favorites,
@@ -63,8 +65,8 @@ struct SentenceQuizDeckBuilderTests {
     #expect(deck.map(\.id) == ["c", "a"])
   }
 
-  @Test("Missed resolves its snapshot of ids, skipping ids not in the library")
-  func missedResolvesSkippingMissing() {
+  @Test
+  func `Missed resolves its snapshot of ids, skipping ids not in the library`() {
     let library = Self.library()
     let deck = SentenceQuizDeckBuilder.sentences(
       for: .missed(["d", "gone", "a"]),
@@ -74,8 +76,8 @@ struct SentenceQuizDeckBuilderTests {
     #expect(deck.map(\.id) == ["d", "a"])
   }
 
-  @Test("Most Recent draws the newest favorites, Oldest the ones that have waited longest")
-  func favoriteSortsDrawFromEitherEnd() {
+  @Test
+  func `Most Recent draws the newest favorites, Oldest the ones that have waited longest`() {
     let library = Self.library()
     let favoriteIDs = ["d", "c", "b", "a"]
 
@@ -94,11 +96,10 @@ struct SentenceQuizDeckBuilderTests {
     #expect(deck(.oldest) == ["b", "a"])
   }
 
-  @Test(
-    "Build caps the pool at limit and draws only from it, returning all when limit is nil",
-    arguments: [nil, 0, 2, 10] as [Int?]
-  )
-  func buildCapsWithinPool(limit: Int?) throws {
+  @Test(arguments: [nil, 0, 2, 10] as [Int?])
+  func `build caps the pool at limit and draws only from it, returning all when limit is nil`(
+    limit: Int?
+  ) throws {
     let library = Self.library()
     let corpusID = try #require(library.defaultCorpus).id
     let source = SentenceQuizSource.levels(corpusID: corpusID, levels: [1, 2, 3])

@@ -21,7 +21,7 @@ struct PinyinFormatterTests {
     (input: "ma5", expected: "ma"),  // neutral tone — no mark
     (input: "hǎo", expected: "hǎo")  // already tone-marked — passthrough
   ])
-  func rendersToneMarks(_ pair: (input: String, expected: String)) {
+  func `renders tone marks`(_ pair: (input: String, expected: String)) {
     #expect(PinyinFormatter.display(pair.input) == pair.expected)
   }
 }

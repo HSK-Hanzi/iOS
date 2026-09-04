@@ -12,8 +12,8 @@ import Testing
 struct LexiconStoreTests {
   /// Several readers arriving at once — a window and an App Intent, say — cost one load, not one
   /// each, and a later reader gets the value already in hand.
-  @Test("The lexicon store loads once for concurrent and later readers")
-  func loadsOnceForEveryReader() async throws {
+  @Test
+  func `the lexicon store loads once for concurrent and later readers`() async throws {
     let lexicon = try await Lexicon.load()
     let attempts = LoadAttempts()
     let store = LexiconStore {
@@ -32,8 +32,8 @@ struct LexiconStoreTests {
 
   /// A failure is not memoized, so the load-failure screen's retry — and the next intent — each
   /// get a fresh attempt rather than the first error forever.
-  @Test("A failed load is retried rather than memoized")
-  func retriesAfterFailure() async throws {
+  @Test
+  func `a failed load is retried rather than memoized`() async throws {
     let lexicon = try await Lexicon.load()
     let attempts = LoadAttempts()
     let store = LexiconStore {

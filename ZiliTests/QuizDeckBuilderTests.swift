@@ -8,8 +8,8 @@ import Testing
 @testable import Zili
 
 struct QuizDeckBuilderTests {
-  @Test("A built deck respects its size limit and resolves each card's content")
-  func honorsLimitAndResolvesContent() async throws {
+  @Test
+  func `a built deck respects its size limit and resolves each card's content`() async throws {
     let lexicon = try await Lexicon.load()
     let level = try #require(lexicon.availableLevels.first)
 
@@ -28,8 +28,10 @@ struct QuizDeckBuilderTests {
     #expect(!card.definition.isEmpty)
   }
 
-  @Test("A frequency deck is drawn from the most common words, whatever order it asks them in")
-  func frequencyDrawsTheMostCommonWords() async throws {
+  @Test
+  func `a frequency deck is drawn from the most common words, whatever order it asks them in`()
+    async throws
+  {
     let lexicon = try await Lexicon.load()
     let level = try #require(lexicon.availableLevels.first)
 
@@ -47,8 +49,10 @@ struct QuizDeckBuilderTests {
     #expect(Set(deck.map(\.word)) == Set(mostCommon))
   }
 
-  @Test("Most Recent draws the newest favorites, Oldest the ones that have waited longest")
-  func favoriteSortsDrawFromEitherEnd() async throws {
+  @Test
+  func `Most Recent draws the newest favorites, Oldest the ones that have waited longest`()
+    async throws
+  {
     let lexicon = try await Lexicon.load()
     let level = try #require(lexicon.availableLevels.first)
     let starred = Array(lexicon.words(in: level).prefix(6))
@@ -69,8 +73,8 @@ struct QuizDeckBuilderTests {
     #expect(deck(.oldest) == Set(starred.suffix(3)))
   }
 
-  @Test("The card reading is rendered in the chosen romanization")
-  func readingReflectsRomanization() async throws {
+  @Test
+  func `the card reading is rendered in the chosen romanization`() async throws {
     let lexicon = try await Lexicon.load()
     let level = try #require(lexicon.availableLevels.first)
 
@@ -89,8 +93,8 @@ struct QuizDeckBuilderTests {
     #expect(pinyin != firstReading(.bopomofo))
   }
 
-  @Test("Selecting several levels unions their words without duplicates")
-  func combinesLevelsWithoutDuplicates() async throws {
+  @Test
+  func `selecting several levels unions their words without duplicates`() async throws {
     let lexicon = try await Lexicon.load()
     let levels = Array(lexicon.availableLevels.prefix(2))
     try #require(levels.count == 2)
@@ -103,8 +107,8 @@ struct QuizDeckBuilderTests {
     }
   }
 
-  @Test("A character deck holds distinct drawable characters, covering its limit")
-  func characterDeckIsDistinctAndDrawable() async throws {
+  @Test
+  func `a character deck holds distinct drawable characters, covering its limit`() async throws {
     let lexicon = try await Lexicon.load()
     let level = try #require(lexicon.availableLevels.first)
 
@@ -124,8 +128,10 @@ struct QuizDeckBuilderTests {
     }
   }
 
-  @Test("A character deck finishes the word that reaches its limit, keeping the word together")
-  func characterDeckQuizzesWholeWords() async throws {
+  @Test
+  func `a character deck finishes the word that reaches its limit, keeping the word together`()
+    async throws
+  {
     let lexicon = try await Lexicon.load()
     for character in "谢你好" {
       try #require(lexicon.strokeGraphic(for: character) != nil)
@@ -144,8 +150,8 @@ struct QuizDeckBuilderTests {
     #expect(characters.firstIndex(of: "好") == characters.firstIndex(of: "你").map { $0 + 1 })
   }
 
-  @Test("A level set's name groups by standard and collapses consecutive bands into ranges")
-  func displayNameCollapsesConsecutiveBands() {
+  @Test
+  func `a level set's name groups by standard and collapses consecutive bands into ranges`() {
     let range = QuizDeckSource.hskLevels([
       HSKLevel(standard: .new, band: 3),
       HSKLevel(standard: .new, band: 4),

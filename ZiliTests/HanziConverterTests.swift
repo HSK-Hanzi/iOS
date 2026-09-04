@@ -16,22 +16,22 @@ struct HanziConverterTests {
   )
 
   @Test
-  func prefersTheLongestMatch() {
+  func `prefers the longest match`() {
     #expect(converter.traditionalize("头发") == "頭髮")
   }
 
   @Test
-  func convertsSingleCharacters() {
+  func `converts single characters`() {
     #expect(converter.traditionalize("头") == "頭")
   }
 
   @Test
-  func leavesUncoveredCharactersUntouched() {
+  func `leaves uncovered characters untouched`() {
     #expect(converter.traditionalize("发x好") == "發x好")
   }
 
   @Test
-  func anEmptyTableIsIdentity() {
+  func `an empty table is identity`() {
     let identity = HanziConverter(table: [:], maxKeyLength: 0)
     #expect(identity.traditionalize("头发") == "头发")
   }

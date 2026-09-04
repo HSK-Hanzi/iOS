@@ -23,17 +23,14 @@ struct WordSegmenterTests {
 
   /// Greedy matching answers these five wrongly: it takes the longest headword starting at the
   /// tapped character (着火, 对眼, 和牛, 新手, 说明) even though the sentence does not contain it.
-  @Test(
-    "Context, not length, decides a boundary a greedy match gets wrong",
-    arguments: [
-      ("她坐着火车回家了。", "着", "火车"),
-      ("别看电视太长时间，对眼睛不好。", "对", "眼睛"),
-      ("我给朋友买了茶、水果，还有面包和牛奶。", "和", "牛奶"),
-      ("我想送她一个新手表。", "新", "手表"),
-      ("我姐姐打的，她说明天不能来上班了。", "说", "明天")
-    ]
-  )
-  func splitsWhereGreedyMatchingOverMerges(
+  @Test(arguments: [
+    ("她坐着火车回家了。", "着", "火车"),
+    ("别看电视太长时间，对眼睛不好。", "对", "眼睛"),
+    ("我给朋友买了茶、水果，还有面包和牛奶。", "和", "牛奶"),
+    ("我想送她一个新手表。", "新", "手表"),
+    ("我姐姐打的，她说明天不能来上班了。", "说", "明天")
+  ])
+  func `context, not length, decides a boundary a greedy match gets wrong`(
     sentence: String,
     first: String,
     second: String
@@ -45,8 +42,8 @@ struct WordSegmenterTests {
 
   /// The textbook ambiguities: both readings are real headwords, and only the context rules one
   /// out. 研究生 ("graduate student") and 北京大学 ("Peking University") are the greedy answers.
-  @Test("Textbook ambiguities resolve the way a reader resolves them")
-  func resolvesTextbookAmbiguities() async throws {
+  @Test
+  func `textbook ambiguities resolve the way a reader resolves them`() async throws {
     #expect(try await words(in: "研究生命起源") == ["研究", "生命", "起源"])
 
     let campus = try await words(in: "北京大学生活动中心")
@@ -55,26 +52,24 @@ struct WordSegmenterTests {
 
   /// The tokenizer splits these into halves that are themselves headwords, so the merge pass has
   /// to put them back together — otherwise the fix would trade one wrong answer for another.
-  @Test(
-    "Adjacent tokens that spell one headword are merged back together",
-    arguments: ["公共汽车", "有点儿"]
-  )
-  func mergesTokensThatSpellOneWord(word: String) async throws {
+  @Test(arguments: ["公共汽车", "有点儿"])
+  func `adjacent tokens that spell one headword are merged back together`(word: String) async throws
+  {
     #expect(try await words(in: word) == [word])
   }
 
   /// A merge may only join tokens that touch. 好 and 好 spell the headword 好好, but a comma
   /// stands between them, so joining would produce a word the writer never wrote.
-  @Test("A merge never joins across punctuation")
-  func doesNotMergeAcrossPunctuation() async throws {
+  @Test
+  func `a merge never joins across punctuation`() async throws {
     #expect(try await words(in: "好，好") == ["好", "好"])
   }
 
   /// A merge overrules the tokenizer, so only the syllabus may authorize one. The dictionaries
   /// know 在家里 as "belong to a secret society", and a dictionary-wide probe merged 在 + 家里 into
   /// it — answering a tap on 在 in 我在家里看书 with an idiom the sentence does not contain.
-  @Test("Only a syllabus word may overrule the tokenizer's split")
-  func mergesOnlySyllabusWords() {
+  @Test
+  func `only a syllabus word may overrule the tokenizer's split`() {
     let text = "我在家里看书"
     let known: Set<String> = ["我", "在", "家里", "看", "书", "在家里"]
 
@@ -112,8 +107,8 @@ struct WordSegmenterTests {
 
   /// Every character of a word belongs to that word, so a tap that lands on a second or third
   /// character resolves the whole word rather than the bare character under the finger.
-  @Test("A word covers all of its characters, not just its first")
-  func coversEveryCharacterOfAWord() async throws {
+  @Test
+  func `a word covers all of its characters, not just its first`() async throws {
     let text = "眼睛不好"
     let lexicon = try await Lexicon.load()
     let segmented = WordSegmenter().words(in: text, using: WordResolver(lexicon: lexicon))

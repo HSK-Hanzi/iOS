@@ -22,7 +22,8 @@ struct PinyinSearchKeyTests {
     (raw: "ɡàn", column: .marked, text: "gàn"),
     (raw: "GÀN", column: .marked, text: "gàn")
   ])
-  func classifiesQueries(_ example: (raw: String, column: PinyinSearchKey.Column, text: String)) {
+  func `classifies queries`(_ example: (raw: String, column: PinyinSearchKey.Column, text: String))
+  {
     let query = PinyinSearchKey.query(example.raw)
     #expect(query?.column == example.column)
     #expect(query?.text == example.text)
@@ -30,13 +31,13 @@ struct PinyinSearchKeyTests {
 
   /// The diaeresis of `ü` is not a tone mark: `lü` is a bare-letter query, not a marked one.
   @Test
-  func umlautIsNotATone() {
+  func `an umlaut is not a tone`() {
     #expect(PinyinSearchKey.query("lü") == PinyinSearchKey.Query(column: .toneless, text: "lu"))
   }
 
   /// Digits win over marks, so a half-typed mixture still narrows by the tones it does carry.
   @Test
-  func digitsWinOverMarks() {
+  func `digits win over marks`() {
     #expect(
       PinyinSearchKey.query("ni3hǎo") == PinyinSearchKey.Query(column: .numbered, text: "ni3hao")
     )
@@ -44,12 +45,12 @@ struct PinyinSearchKeyTests {
 
   /// A marked query keeps `ü`, since the marked column stores it.
   @Test
-  func markedQueriesKeepTheUmlaut() {
+  func `marked queries keep the umlaut`() {
     #expect(PinyinSearchKey.query("lǚ") == PinyinSearchKey.Query(column: .marked, text: "lǚ"))
   }
 
   @Test(arguments: ["", "   ", "!?", "、。"])
-  func rejectsUnsearchableQueries(_ raw: String) {
+  func `rejects unsearchable queries`(_ raw: String) {
     #expect(PinyinSearchKey.query(raw) == nil)
   }
 }
