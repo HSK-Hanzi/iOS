@@ -71,6 +71,22 @@ Resolve the next build number and write it where CI can read it
 
 Archive one platform and upload it to App Store Connect (CI)
 
+### ios ci_attach_build
+
+```sh
+[bundle exec] fastlane ios ci_attach_build
+```
+
+Attach each platform's newest build to its version once Apple has processed it (CI)
+
+### ios ci_release_notes
+
+```sh
+[bundle exec] fastlane ios ci_release_notes
+```
+
+Publish the release notes onto every platform's version (CI)
+
 ----
 
 This README.md is auto-generated and will be re-generated every time [_fastlane_](https://fastlane.tools) is run.

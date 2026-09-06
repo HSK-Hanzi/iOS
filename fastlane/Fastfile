@@ -43,15 +43,21 @@ OUTPUT_DIRECTORY = "build"
 # name App Store Connect knows the platform by; `match` is the platform whose stored App Store
 # profile the export signs with — a profile is platform-specific, and exportArchive rejects one built
 # for another.
+# `connect` is the platform as the App Store Connect API reports it on a build, which is how a
+# build is matched to the version it belongs to; `deliver` is the same platform under the name
+# deliver takes.
 PLATFORMS = {
-  "iOS"      => { destination: "generic/platform=iOS",      deliver: "ios",  match: "ios" },
+  "iOS"      => { destination: "generic/platform=iOS",      deliver: "ios",  match: "ios",
+                  connect: "IOS" },
   # A Mac App Store submission ships as a .pkg, which the Apple Distribution certificate cannot
   # sign — that takes the separate Mac Installer Distribution certificate.
   "macOS"    => { destination: "generic/platform=macOS",    deliver: "osx",  match: "macos",
-                  sdk: "macosx", additional_cert_types: ["mac_installer_distribution"] },
+                  sdk: "macosx", additional_cert_types: ["mac_installer_distribution"],
+                  connect: "MAC_OS" },
   # _match_ knows nothing of visionOS and cannot sync a profile for it, but it does not need to: the
   # iOS App Store profile it stores carries visionOS among its platforms, and the export accepts it.
-  "visionOS" => { destination: "generic/platform=visionOS", deliver: "xros", match: "ios" }
+  "visionOS" => { destination: "generic/platform=visionOS", deliver: "xros", match: "ios",
+                  connect: "VISION_OS" }
 }.freeze
 
 # The Sentry project the release lanes upload dSYMs and sources to. `sentry-cli` reads
@@ -115,6 +121,73 @@ def verify_screenshots_present
 
   UI.user_error!("No screenshots under #{directory} — run the screenshots lane first. Uploading an " \
                  "empty set would clear the screenshots already on the App Store.")
+end
+
+# Where the "What's New" text for a release lives — one file, uploaded to every platform's version.
+RELEASE_NOTES_PATH = File.expand_path("metadata/en-US/release_notes.txt", __dir__)
+
+# App Store Connect's ceiling on a "What's New" entry. Deliver reports a rejected upload only after
+# it has already written the other platforms, so the length is checked before anything is sent.
+RELEASE_NOTES_LIMIT = 4000
+
+# Refuses to publish notes that say nothing. `upload_to_app_store` writes whatever the file holds,
+# so an empty or forgotten file would replace a release's notes with blankness rather than leave
+# the previous version's in place.
+def verify_release_notes_present
+  unless File.exist?(RELEASE_NOTES_PATH)
+    UI.user_error!("No release notes at #{RELEASE_NOTES_PATH}. Write the version's \"What's New\" " \
+                   "there before tagging it.")
+  end
+
+  notes = File.read(RELEASE_NOTES_PATH).strip
+  UI.user_error!("#{RELEASE_NOTES_PATH} is empty.") if notes.empty?
+
+  return if notes.length <= RELEASE_NOTES_LIMIT
+
+  UI.user_error!("The release notes are #{notes.length} characters; App Store Connect takes at " \
+                 "most #{RELEASE_NOTES_LIMIT}.")
+end
+
+# How long to wait for App Store Connect to finish processing an upload, and how often to ask.
+# Processing usually takes a few minutes and occasionally far longer; the wait is capped so a stuck
+# build fails the job rather than holding a runner indefinitely.
+BUILD_PROCESSING_TIMEOUT = 45 * 60
+BUILD_POLL_INTERVAL = 60
+
+# The highest-numbered build App Store Connect holds for this version of this platform. Compared as
+# integers: build numbers are strings on the API, where "10" sorts below "9".
+def newest_build(app:, version:, platform:)
+  Spaceship::ConnectAPI::Build.all(app_id: app.id, limit: 200)
+                              .select do |build|
+                                build.pre_release_version&.version == version &&
+                                  build.pre_release_version&.platform == platform
+                              end
+                              .max_by { |build| build.version.to_i }
+end
+
+# Waits for Apple to finish processing an upload. A version cannot hold a build that is still
+# processing, which is why attaching is the one step of a release that cannot run when the upload
+# does — the archive job is long finished before Apple is.
+def await_processing(build, name:)
+  deadline = Time.now + BUILD_PROCESSING_TIMEOUT
+  loop do
+    case build.processing_state
+      when "VALID" then return build
+      when "PROCESSING"
+        if Time.now >= deadline
+          UI.user_error!("#{name} build #{build.version} was still processing after " \
+                         "#{BUILD_PROCESSING_TIMEOUT / 60} minutes. It may yet succeed — re-run " \
+                         "this job once App Store Connect shows the build as valid.")
+        end
+        UI.message("#{name} build #{build.version} is still processing; asking again in " \
+                   "#{BUILD_POLL_INTERVAL}s.")
+        sleep(BUILD_POLL_INTERVAL)
+      else
+        UI.user_error!("#{name} build #{build.version} is #{build.processing_state}, so there is " \
+                       "nothing to attach. Apple reports why by email.")
+    end
+    build = Spaceship::ConnectAPI::Build.get(build_id: build.id)
+  end
 end
 
 # Every screenshot set on the version currently open for editing.
@@ -268,6 +341,60 @@ platform :ios do
     )
 
     upload_debug_symbols
+  end
+
+  desc "Attach each platform's newest build to its version once Apple has processed it (CI)"
+  lane :ci_attach_build do |options|
+    version = options.fetch(:version)
+    ensure_api_key
+    app = Spaceship::ConnectAPI::App.find(APP_IDENTIFIER)
+
+    PLATFORMS.each do |name, platform|
+      build = newest_build(app: app, version: version, platform: platform.fetch(:connect))
+      UI.user_error!("App Store Connect has no #{name} build for #{version}.") if build.nil?
+
+      build = await_processing(build, name: name)
+      store_version = app.get_edit_app_store_version(platform: platform.fetch(:connect))
+      UI.user_error!("No editable #{name} version to attach a build to.") if store_version.nil?
+
+      store_version.select_build(build_id: build.id)
+      UI.success("#{name} #{version} now ships build #{build.version}.")
+    end
+  end
+
+  desc "Publish the release notes onto every platform's version (CI)"
+  lane :ci_release_notes do |options|
+    version = options.fetch(:version)
+    verify_release_notes_present
+    ensure_api_key
+
+    # One call per platform: a version is per-platform, and so are the notes attached to it.
+    # `app_version` makes deliver create the version if the tag is reaching App Store Connect ahead
+    # of anyone opening one by hand, and select it rather than the live one either way.
+    #
+    # Only `release_notes.txt` exists under `metadata/`, and deliver uploads the keys it finds
+    # files for — so the description, keywords, and URLs already on the product page are left alone
+    # rather than blanked. The binary and screenshots are skipped: the archive jobs have already
+    # uploaded the builds, and screenshots are published from the `upload_screenshots` lane, whose
+    # sync would otherwise run against an empty directory on a CI checkout.
+    PLATFORMS.each do |name, platform|
+      UI.message("Setting the #{name} release notes for #{version}.")
+      upload_to_app_store(
+        app_identifier:                       APP_IDENTIFIER,
+        platform:                             platform.fetch(:deliver),
+        app_version:                          version,
+        metadata_path:                        File.expand_path("metadata", __dir__),
+        skip_binary_upload:                   true,
+        skip_screenshots:                     true,
+        submit_for_review:                    false,
+        run_precheck_before_submit:           false,
+        # Deliver otherwise writes an HTML preview and waits for someone to confirm it, which on CI
+        # is a job that hangs until it times out.
+        force:                                true,
+        languages:                            %w[en-US],
+        ignore_language_directory_validation: true
+      )
+    end
   end
 
   # Loads the App Store Connect API key. Kept out of `before_all` so `screenshots`, which runs
