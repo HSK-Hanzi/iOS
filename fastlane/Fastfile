@@ -110,17 +110,88 @@ def provisioning_authentication_args
     "-authenticationKeyIssuerID #{key[:issuer_id].shellescape}"
 end
 
+# The devices the Snapfile asks snapshot to photograph. Read from it rather than repeated here, so
+# the two can never disagree about what a complete set looks like.
+def expected_screenshot_devices
+  snapfile = File.expand_path("Snapfile", __dir__)
+  # Comments go first: the entries are annotated with the display sizes they stand for, and an
+  # inch mark is a double quote, which would otherwise be read as the start of another device.
+  block = File.read(snapfile)[/devices\(\[(.*?)\]\)/m, 1].to_s
+  devices = block.lines.map { |line| line.sub(/#.*/, "") }.join.scan(/"([^"]+)"/).flatten
+  return devices if devices.any?
+
+  UI.user_error!("Could not read a device list out of #{snapfile}. This check builds the set of " \
+                 "screenshots to expect from it, so it cannot run until it parses again.")
+end
+
+# Groups the captured screenshots under the device each one belongs to. A file is claimed by the
+# device whose name it is prefixed with — device names carry their own hyphens and parentheses, so
+# splitting the filename apart would not survive "iPad Pro 13-inch (M4)". Whatever no expected
+# device claims is returned alongside, being either a stale device or a file from somewhere else
+# entirely.
+def group_screenshots_by_device(files)
+  devices = expected_screenshot_devices
+  claimed = {}
+  captured = devices.to_h do |device|
+    names = files.filter_map do |file|
+      name = File.basename(file, ".png")
+      next unless name.start_with?("#{device}-")
+
+      claimed[file] = true
+      name.delete_prefix("#{device}-")
+    end
+    [device, names.sort]
+  end
+  [captured, files.reject { |file| claimed[file] }]
+end
+
 # `upload_to_app_store` clears every slot it uploads into, so an empty directory would strip the
 # screenshots from the product page rather than leave the ones already there alone. A screenshots run
 # that was interrupted, or that captured nothing, has to stop before publishing its silence.
 #
+# Presence is not enough, though, because a run can fail and still leave files behind. `snapshot`
+# collects from a cache under the user's Library that every project on the machine shares, and it
+# reports a leg that never launched by exiting zero and telling you where the incomplete
+# screenshots are. Two concurrent runs therefore end with one project's screenshots in another's
+# folder and a whole device missing — a set that passes any check that only counts files, and that
+# would publish someone else's app to this one's product page.
+#
+# So the shape is checked instead: every device the Snapfile names has to have photographed the same
+# screens as every other, nothing may be missing, and no file may belong to a device that was never
+# asked for. What the screens are called is deliberately not spelled out here — the UI test owns
+# that, and adding a screen should not mean editing this file.
+#
 # The path is anchored to this file so it names the same folder however the lane was invoked.
 def verify_screenshots_present
   directory = File.expand_path("screenshots", __dir__)
-  return if Dir.glob(File.join(directory, "**", "*.png")).any?
+  files = Dir.glob(File.join(directory, "**", "*.png"))
+  if files.empty?
+    UI.user_error!("No screenshots under #{directory} — run the screenshots lane first. Uploading " \
+                   "an empty set would clear the screenshots already on the App Store.")
+  end
 
-  UI.user_error!("No screenshots under #{directory} — run the screenshots lane first. Uploading an " \
-                 "empty set would clear the screenshots already on the App Store.")
+  captured, unclaimed = group_screenshots_by_device(files)
+
+  unless unclaimed.empty?
+    UI.user_error!("#{unclaimed.count} screenshot(s) under #{directory} belong to no device the " \
+                   "Snapfile names, so this set is not only this app's: " \
+                   "#{unclaimed.map { |file| File.basename(file) }.sort.join(', ')}. Clear the " \
+                   "directory and re-run the screenshots lane on its own.")
+  end
+
+  empty = captured.select { |_, names| names.empty? }.keys
+  unless empty.empty?
+    UI.user_error!("No screenshots were captured for #{empty.join(', ')}. The lane reports success " \
+                   "for a device whose tests never launched, so an upload now would leave that " \
+                   "device's slots empty on the App Store.")
+  end
+
+  disagreeing = captured.values.uniq
+  return if disagreeing.count == 1
+
+  UI.user_error!("The devices did not photograph the same screens, so at least one run captured " \
+                 "something this app did not ask for:\n" +
+                 captured.map { |device, names| "  #{device}: #{names.join(', ')}" }.join("\n"))
 end
 
 # Where the "What's New" text for a release lives — one file, uploaded to every platform's version.
