@@ -9,8 +9,9 @@
 #
 # `--plain` renders the section as App Store Connect wants it: no Markdown, since that field shows
 # the text verbatim, and no hard wrapping, since it reflows to whatever width the reader's App Store
-# is. Headings become plain lines, bullets become "•", and inline code loses its backticks. Zili 1.1
-# went out without this and its listing still reads "# SORT YOUR FAVORITES", hash included.
+# is. Headings become plain lines, bullets become "•", and inline code loses its backticks. Skip
+# this rendering and the Markdown ships as-is: a listing reading "# WHAT'S NEW", hash included, is
+# what an unrendered heading looks like on the store, and it cannot be fixed without a new version.
 #
 # LOCALES. A translated app gives a locale its own heading at the same level as the version —
 # `## 1.2 de-DE` beside `## 1.2` — and asking for that locale selects it. Locales sit at the version
