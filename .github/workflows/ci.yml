@@ -1,4 +1,4 @@
-name: Tests
+name: CI
 
 on:
   push:
@@ -74,7 +74,7 @@ jobs:
         run: echo "xcode=$(xcodebuild -version | tr '\n' '-')" >> "$GITHUB_OUTPUT"
 
       - name: Cache SwiftPM dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/Library/Caches/org.swift.swiftpm
           key: spm-${{ runner.os }}-${{ hashFiles('**/Package.resolved') }}
@@ -86,7 +86,7 @@ jobs:
       # dependency graph or toolchain must never be reused. Only Build and SourcePackages are kept:
       # the index store is regenerated each run rather than restored stale.
       - name: Cache Xcode build products
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ${{ runner.temp }}/dd-test/Build
@@ -99,12 +99,16 @@ jobs:
         if: matrix.platform.simulator
         run: xcrun simctl boot "${{ matrix.platform.simulator }}" || true
 
-      # XCUITEST_TIMEOUT_MULTIPLIER stretches XCUITestKit's waits so the slower CI hardware doesn't
-      # trip element lookups that pass locally. The Test action runs the Debug configuration; with
-      # only the open data present the licensed dictionaries are skipped and the suite runs open-only.
+      # TEST_RUNNER_XCUITEST_TIMEOUT_MULTIPLIER stretches XCUITestKit's waits so the slower CI
+      # hardware doesn't trip element lookups that pass locally. The waits are read by the test
+      # code, which runs in the runner process rather than in xcodebuild's, and only the
+      # TEST_RUNNER_ prefix reaches it — xcodebuild forwards those with the prefix stripped.
+      #
+      # The Test action runs the Debug configuration; with only the open data present the licensed
+      # dictionaries are skipped and the suite runs open-only.
       - name: Run tests
         env:
-          XCUITEST_TIMEOUT_MULTIPLIER: "3"
+          TEST_RUNNER_XCUITEST_TIMEOUT_MULTIPLIER: "3"
           PLAN: ${{ matrix.plan }}
           DESTINATION: ${{ matrix.platform.destination }}
           NAME: ${{ matrix.platform.name }}
@@ -121,7 +125,7 @@ jobs:
 
       - name: Upload test results
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: test-results-${{ matrix.plan }}-${{ matrix.platform.name }}
           path: TestResults-${{ matrix.plan }}-${{ matrix.platform.name }}.xcresult
@@ -165,7 +169,7 @@ jobs:
         run: echo "xcode=$(xcodebuild -version | tr '\n' '-')" >> "$GITHUB_OUTPUT"
 
       - name: Cache SwiftPM dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/Library/Caches/org.swift.swiftpm
           key: spm-${{ runner.os }}-${{ hashFiles('**/Package.resolved') }}
@@ -177,7 +181,7 @@ jobs:
       # dependency graph or toolchain must never be reused. Only Build and SourcePackages are kept:
       # the index store is regenerated each run rather than restored stale.
       - name: Cache Xcode build products
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ${{ runner.temp }}/docs-dd/Build

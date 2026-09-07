@@ -71,21 +71,21 @@ Resolve the next build number and write it where CI can read it
 
 Archive one platform and upload it to App Store Connect (CI)
 
-### ios ci_attach_build
+### ios ci_verify_release_notes
 
 ```sh
-[bundle exec] fastlane ios ci_attach_build
+[bundle exec] fastlane ios ci_verify_release_notes
 ```
 
-Attach each platform's newest build to its version once Apple has processed it (CI)
+Refuse to start a release whose notes are missing, empty, or too long (CI)
 
-### ios ci_release_notes
+### ios ci_finish_release
 
 ```sh
-[bundle exec] fastlane ios ci_release_notes
+[bundle exec] fastlane ios ci_finish_release
 ```
 
-Publish the release notes onto every platform's version (CI)
+Write the release notes and attach the build to its version (CI)
 
 ----
 

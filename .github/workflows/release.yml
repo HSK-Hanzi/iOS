@@ -1,12 +1,13 @@
 name: Release
 
-# Pushing a version tag archives the app, uploads it to App Store Connect, writes the version's
-# release notes, and attaches the build to the version once Apple has processed it. Submitting for
-# review is the only step left by hand.
+# Pushing a version tag builds the release and finishes it: the app is archived for every platform
+# and uploaded to App Store Connect, the version's release notes are written from CHANGELOG.md, and
+# the build is attached to the version once Apple has processed it. Submitting for review is the
+# only step left by hand.
 #
-# Re-tagging a version is how you replace its build: the tag push runs all of this again, and the
-# version ends up pointing at the newer build. The older one stays on App Store Connect, since a
-# build can be expired but never deleted.
+# Re-tagging a version is how its build is replaced. The tag push runs all of this again and the
+# version ends up pointing at the newer build; the older one stays on App Store Connect, since a
+# build can be expired but never deleted. A tag push is a deploy, not bookkeeping.
 #
 # Nothing here re-runs the tests: tag a commit CI has already passed.
 on:
@@ -15,7 +16,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: Marketing version to build and upload.
+        description: Marketing version to build and release.
         required: true
         type: string
 
@@ -30,6 +31,8 @@ jobs:
       platforms: '["iOS","macOS","visionOS"]'
       version: ${{ inputs.version || github.ref_name }}
       certificates-repo: RISCfuture/certificates
+      verify-lane: ci_verify_release_notes
+      finish-lane: ci_finish_release
       # A Release build reads only the open-licensed data — INCLUDE_LICENSED_DICTIONARIES is set in
       # the Debug configuration alone — so Data/Proprietary stays absent and needs no key. Data/Open
       # is public, so rewrite its SSH submodule URL to anonymous HTTPS before initialising it.
@@ -41,69 +44,3 @@ jobs:
       certificates-token: ${{ secrets.CERTIFICATES_TOKEN }}
       match-password: ${{ secrets.MATCH_PASSWORD }}
       sentry-auth-token: ${{ secrets.SENTRY_AUTH_TOKEN }}
-
-  # Apple takes minutes to hours to process an upload, and a version cannot hold a build that is
-  # still processing — so this waits the archives out rather than running with them. It attaches
-  # whichever build is newest for the version, which on a re-tag is the one this run just uploaded.
-  attach-build:
-    name: Attach build
-    needs: release
-    runs-on: macos-26
-    timeout-minutes: 60
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v6
-
-      # Only for `bin/api-key`: attaching a build signs nothing.
-      - name: Check out signing credentials
-        uses: actions/checkout@v6
-        with:
-          repository: RISCfuture/certificates
-          token: ${{ secrets.CERTIFICATES_TOKEN }}
-          path: .certificates
-
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: "4.0.6"
-          bundler-cache: true
-
-      - name: Attach the build to its version
-        env:
-          CERTIFICATES_REPO: ${{ github.workspace }}/.certificates
-          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
-          VERSION: ${{ inputs.version || github.ref_name }}
-        run: bundle exec fastlane ci_attach_build version:"$VERSION"
-
-  # Runs after the builds so the notes land on a version that already has something to release. The
-  # lane creates the version if the tag got there first, so this is also what opens 1.x for editing
-  # when nobody has by hand.
-  release-notes:
-    name: Release notes
-    needs: release
-    runs-on: macos-26
-    timeout-minutes: 20
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v6
-
-      # Only for `bin/api-key`: the notes are metadata, so nothing here is signed.
-      - name: Check out signing credentials
-        uses: actions/checkout@v6
-        with:
-          repository: RISCfuture/certificates
-          token: ${{ secrets.CERTIFICATES_TOKEN }}
-          path: .certificates
-
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: "4.0.6"
-          bundler-cache: true
-
-      - name: Publish release notes
-        env:
-          CERTIFICATES_REPO: ${{ github.workspace }}/.certificates
-          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
-          VERSION: ${{ inputs.version || github.ref_name }}
-        run: bundle exec fastlane ci_release_notes version:"$VERSION"
