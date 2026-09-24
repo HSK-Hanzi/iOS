@@ -13,7 +13,7 @@ concurrency:
 jobs:
   test:
     name: ${{ matrix.plan }} on ${{ matrix.platform.name }}
-    runs-on: macos-26
+    runs-on: xcode-27
     strategy:
       fail-fast: false
       matrix:
@@ -47,7 +47,7 @@ jobs:
       # the same toolchain the lint and Periphery workflows use.
       - uses: SwiftyLab/setup-swift@latest
         with:
-          swift-version: "6.3"
+          swift-version: "6.4"
 
       - name: Check out repository
         uses: actions/checkout@v6
@@ -92,7 +92,7 @@ jobs:
             ${{ runner.temp }}/dd-test/Build
             ${{ runner.temp }}/dd-test/SourcePackages
           key: >-
-            derived-test-${{ matrix.plan }}-${{ matrix.platform.name }}-macos-26-${{
+            derived-test-${{ matrix.plan }}-${{ matrix.platform.name }}-xcode-27-${{
             steps.toolchain.outputs.xcode }}-${{ hashFiles('**/Package.resolved') }}
 
       - name: Boot the simulator
@@ -133,7 +133,7 @@ jobs:
 
   documentation:
     name: Build documentation
-    runs-on: macos-26
+    runs-on: xcode-27
     steps:
       - uses: maxim-lobanov/setup-xcode@v1
         with:
@@ -142,7 +142,7 @@ jobs:
       # the same toolchain the lint and Periphery workflows use.
       - uses: SwiftyLab/setup-swift@latest
         with:
-          swift-version: "6.3"
+          swift-version: "6.4"
 
       - name: Check out repository
         uses: actions/checkout@v6
@@ -186,7 +186,7 @@ jobs:
           path: |
             ${{ runner.temp }}/docs-dd/Build
             ${{ runner.temp }}/docs-dd/SourcePackages
-          key: derived-docs-macos-26-${{ steps.toolchain.outputs.xcode }}-${{ hashFiles('**/Package.resolved') }}
+          key: derived-docs-xcode-27-${{ steps.toolchain.outputs.xcode }}-${{ hashFiles('**/Package.resolved') }}
 
       # Zili is the only scheme, and its app target carries every documented symbol. macOS is the
       # cheapest destination — no simulator to boot — and the product is only compiled, never
