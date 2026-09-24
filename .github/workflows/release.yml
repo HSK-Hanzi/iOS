@@ -26,11 +26,14 @@ concurrency:
 
 jobs:
   release:
-    uses: RISCfuture/XCUITestKit/.github/workflows/ios-release.yml@main
+    uses: RISCfuture/XCUITestKit/.github/workflows/ios-release.yml@1.0.0
     with:
       platforms: '["iOS","macOS","visionOS"]'
       version: ${{ inputs.version || github.ref_name }}
       certificates-repo: RISCfuture/certificates
+      # The shared release workflow names no default image, leaving each app to say which one it
+      # ships from.
+      runner: macos-26
       verify-lane: ci_verify_release_notes
       finish-lane: ci_finish_release
       # A Release build reads only the open-licensed data — INCLUDE_LICENSED_DICTIONARIES is set in
