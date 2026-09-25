@@ -33,7 +33,7 @@ jobs:
       certificates-repo: RISCfuture/certificates
       # The shared release workflow names no default image, leaving each app to say which one it
       # ships from.
-      runner: macos-26
+      runner: xcode-27
       verify-lane: ci_verify_release_notes
       finish-lane: ci_finish_release
       # A Release build reads only the open-licensed data — INCLUDE_LICENSED_DICTIONARIES is set in

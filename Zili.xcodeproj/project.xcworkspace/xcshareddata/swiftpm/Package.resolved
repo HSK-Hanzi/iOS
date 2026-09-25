@@ -24,8 +24,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/RISCfuture/XCUITestKit",
       "state" : {
-        "revision" : "b76d0fc269f04019767530b0180671738128fe7e",
-        "version" : "1.0.0"
+        "branch" : "main",
+        "revision" : "27463736641428e54ca47a2338d9d3e3ac507513"
       }
     }
   ],
