@@ -38,13 +38,16 @@ final class AppData {
   /// The test-only launch options; ``UITestConfiguration/disabled`` for a shipped launch.
   private let uiTest: UITestConfiguration
 
+  /// Whether the seed has been planted. It belongs to the process rather than to a load attempt,
+  /// so retrying a failed load doesn't tally the same misses a second time.
+  private var hasSeeded = false
+
   init(container: ModelContainer, uiTest: UITestConfiguration = .disabled) {
     self.uiTest = uiTest
     favorites = FavoritesStore(context: container.mainContext)
     sentenceFavorites = SentenceFavoritesStore(context: container.mainContext)
     wordMisses = WordMissStore(context: container.mainContext)
     sentenceMisses = SentenceMissStore(context: container.mainContext)
-    seedForUITestingIfNeeded()
   }
 
   /// Loads the language database, and loads it again when a learner retries after a failure.
@@ -54,6 +57,7 @@ final class AppData {
     isLoading = true
     defer { isLoading = false }
 
+    seedForUITestingIfNeeded()
     state = .loading
     guard !uiTest.failsLexiconLoad else {
       state = .failed(DictionaryLoadingError.unreadable(name: "CEDICT"))
@@ -83,8 +87,13 @@ final class AppData {
   /// Pre-populates the learner's stores with a fixed set of favorites and misses when a UI test
   /// asked for them, so the Favorites and Missed screens and "Reset All Missed" have deterministic
   /// content. Inert on a shipped launch.
+  ///
+  /// Seeding waits for the app to be running: SwiftData has no store connection to write through
+  /// while `App.init` is still on the stack, and a save there raises "No eligible connection
+  /// available".
   private func seedForUITestingIfNeeded() {
-    guard uiTest.isEnabled else { return }
+    guard uiTest.isEnabled, !hasSeeded else { return }
+    hasSeeded = true
     if uiTest.seedsFavorites {
       favorites.addAll(["我", "你", "好"])
     }
