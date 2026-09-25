@@ -53,7 +53,11 @@ private enum FlashcardFaceRole {
 /// One face of a flashcard: a gradient tile with a soft top sheen and a colored glow,
 /// presenting the elements the face asks for in white.
 private struct FlashcardFaceView: View {
-  private static let cornerRadius: CGFloat = 32
+  /// The card's outline. A flashcard fills the window, so its corners are concentric with whatever
+  /// rounds the window — on an iPhone or iPad, the display's own corners, which differ by device.
+  private static var shape: ConcentricRectangle {
+    ConcentricRectangle(corners: .concentric)
+  }
 
   let card: QuizCard
   let face: FlashcardFace
@@ -65,12 +69,12 @@ private struct FlashcardFaceView: View {
 
   var body: some View {
     let palette = HSKPalette.palette(forBand: card.hskBand).resolved(in: environment)
-    return RoundedRectangle(cornerRadius: Self.cornerRadius, style: .continuous)
+    return Self.shape
       .fill(role.gradient(palette))
       .overlay { sheen }
       .overlay {
-        RoundedRectangle(cornerRadius: Self.cornerRadius, style: .continuous)
-          .strokeBorder(.white.opacity(0.18), lineWidth: 1)
+        Self.shape
+          .stroke(.white.opacity(0.18), lineWidth: 1)
       }
       .overlay {
         FlashcardFaceContent(card: card, face: face, insets: contentInsets)
@@ -80,7 +84,7 @@ private struct FlashcardFaceView: View {
 
   /// A diagonal highlight that reads as light catching a lacquered surface.
   private var sheen: some View {
-    RoundedRectangle(cornerRadius: Self.cornerRadius, style: .continuous)
+    Self.shape
       .fill(
         LinearGradient(
           colors: [.white.opacity(0.28), .clear],
