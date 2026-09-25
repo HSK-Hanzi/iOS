@@ -103,11 +103,8 @@ struct `Review scheduling` {
 
   @Test
   func `two devices' schedules for one word collapse onto the later review`() throws {
-    let container = try ModelContainer(
-      for: WordReviewSchedule.self,
-      configurations: ModelConfiguration(isStoredInMemoryOnly: true)
-    )
-    let context = ModelContext(container)
+    let container = RecordStore<WordReviewSchedule, String>.inMemoryContainer()
+    let context = container.mainContext
     // Two records CloudKit produced for the same word, each with its own account of it.
     context.insert(
       WordReviewSchedule(
@@ -122,7 +119,8 @@ struct `Review scheduling` {
     try context.save()
 
     // Opening a store over them is what reconciles what CloudKit left behind.
-    let store = ReviewScheduleStore(context: context)
+    let store = ReviewScheduleStore(container: container)
+    store.start()
 
     let survivors = try context.fetch(FetchDescriptor<WordReviewSchedule>())
     #expect(survivors.count == 1)

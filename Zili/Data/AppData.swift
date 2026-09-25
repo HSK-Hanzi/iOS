@@ -52,11 +52,11 @@ final class AppData {
 
   init(container: ModelContainer, uiTest: UITestConfiguration = .disabled) {
     self.uiTest = uiTest
-    favorites = FavoritesStore(context: container.mainContext)
-    sentenceFavorites = SentenceFavoritesStore(context: container.mainContext)
-    wordMisses = WordMissStore(context: container.mainContext)
-    sentenceMisses = SentenceMissStore(context: container.mainContext)
-    reviews = ReviewScheduleStore(context: container.mainContext)
+    favorites = FavoritesStore(container: container)
+    sentenceFavorites = SentenceFavoritesStore(container: container)
+    wordMisses = WordMissStore(container: container)
+    sentenceMisses = SentenceMissStore(container: container)
+    reviews = ReviewScheduleStore(container: container)
   }
 
   /// Loads the language database, and loads it again when a learner retries after a failure.
@@ -66,6 +66,7 @@ final class AppData {
     isLoading = true
     defer { isLoading = false }
 
+    startStores()
     seedForUITestingIfNeeded()
     state = .loading
     guard !uiTest.failsLexiconLoad else {
@@ -92,6 +93,16 @@ final class AppData {
       }
       state = .failed(error)
     }
+  }
+
+  /// Opens the learner's four stores onto the database. SwiftData cannot serve a store request
+  /// while `App.init` is still on the stack, so the stores are built there and opened here.
+  private func startStores() {
+    favorites.start()
+    sentenceFavorites.start()
+    wordMisses.start()
+    sentenceMisses.start()
+    reviews.start()
   }
 
   /// Pre-populates the learner's stores with a fixed set of favorites and misses when a UI test
