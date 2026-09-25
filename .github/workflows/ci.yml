@@ -13,24 +13,22 @@ concurrency:
 jobs:
   test:
     name: ${{ matrix.plan }} on ${{ matrix.platform.name }}
-    runs-on: macos-26
+    runs-on: xcode-27
     strategy:
       fail-fast: false
       matrix:
         plan: ["Unit Tests", "UI Tests"]
         platform:
           - name: iPhone
-            destination: platform=iOS Simulator,name=iPhone 17 Pro
-            simulator: iPhone 17 Pro
+            destination: platform=iOS Simulator,name=iPhone 17
+            simulator: iPhone 17
           - name: iPad
             destination: platform=iOS Simulator,name=iPad Pro 13-inch (M5)
             simulator: iPad Pro 13-inch (M5)
           - name: macOS
             destination: platform=macOS
-            # macOS enforces code signing to build and launch; the runner has no cert or profile.
-            # Ad-hoc sign instead, and drop the entitlements file (CODE_SIGN_ENTITLEMENTS=) — its
-            # CloudKit/APS entitlements would otherwise demand a provisioning profile. The tests don't
-            # need them: -uiTesting disables CloudKit. This only affects the throwaway CI build.
+            # macOS enforces code signing to build and launch, and the runner has no cert or
+            # profile, so the build is ad-hoc signed. This only affects the throwaway CI build.
             signing: >-
               CODE_SIGN_IDENTITY=-
               CODE_SIGNING_REQUIRED=NO
@@ -38,16 +36,14 @@ jobs:
               CODE_SIGN_STYLE=Manual
               DEVELOPMENT_TEAM=
               PROVISIONING_PROFILE_SPECIFIER=
-              CODE_SIGN_ENTITLEMENTS=
     steps:
+      # Xcode 27 ships Swift 6.4, so the image already carries the toolchain this project builds
+      # with. Nothing installs a standalone Swift on top of it: pointing TOOLCHAINS at one leaves
+      # that toolchain's clang unable to reach the linker, and SwiftPM then fails to resolve the
+      # package dependencies at all — before a line of the app is compiled.
       - uses: maxim-lobanov/setup-xcode@v1
         with:
           xcode-version: latest-stable
-      # setup-swift xcode-selects the Xcode that can open the project's file format; keep it pinned to
-      # the same toolchain the lint and Periphery workflows use.
-      - uses: SwiftyLab/setup-swift@latest
-        with:
-          swift-version: "6.3"
 
       - name: Check out repository
         uses: actions/checkout@v6
@@ -92,7 +88,7 @@ jobs:
             ${{ runner.temp }}/dd-test/Build
             ${{ runner.temp }}/dd-test/SourcePackages
           key: >-
-            derived-test-${{ matrix.plan }}-${{ matrix.platform.name }}-macos-26-${{
+            derived-test-${{ matrix.plan }}-${{ matrix.platform.name }}-xcode-27-${{
             steps.toolchain.outputs.xcode }}-${{ hashFiles('**/Package.resolved') }}
 
       - name: Boot the simulator
@@ -106,6 +102,11 @@ jobs:
       #
       # The Test action runs the Debug configuration; with only the open data present the licensed
       # dictionaries are skipped and the suite runs open-only.
+      # Every platform builds without the entitlements file. No runner is signed into iCloud, and
+      # an app carrying the CloudKit entitlement opens a mirroring container the account cannot
+      # back: setup fails, and the next save raises "No eligible connection available" — an
+      # Objective-C exception, so it terminates the test host and takes every test in the process
+      # with it. Nothing under test uses CloudKit, and a UI test run disables it outright.
       - name: Run tests
         env:
           TEST_RUNNER_XCUITEST_TIMEOUT_MULTIPLIER: "3"
@@ -121,6 +122,7 @@ jobs:
             -destination "$DESTINATION" \
             -derivedDataPath "$RUNNER_TEMP/dd-test" \
             -resultBundlePath "TestResults-$PLAN-$NAME.xcresult" \
+            CODE_SIGN_ENTITLEMENTS= \
             ${{ matrix.platform.signing }}
 
       - name: Upload test results
@@ -133,16 +135,15 @@ jobs:
 
   documentation:
     name: Build documentation
-    runs-on: macos-26
+    runs-on: xcode-27
     steps:
+      # Xcode 27 ships Swift 6.4, so the image already carries the toolchain this project builds
+      # with. Nothing installs a standalone Swift on top of it: pointing TOOLCHAINS at one leaves
+      # that toolchain's clang unable to reach the linker, and SwiftPM then fails to resolve the
+      # package dependencies at all — before a line of the app is compiled.
       - uses: maxim-lobanov/setup-xcode@v1
         with:
           xcode-version: latest-stable
-      # setup-swift xcode-selects the Xcode that can open the project's file format; keep it pinned to
-      # the same toolchain the lint and Periphery workflows use.
-      - uses: SwiftyLab/setup-swift@latest
-        with:
-          swift-version: "6.3"
 
       - name: Check out repository
         uses: actions/checkout@v6
@@ -186,14 +187,17 @@ jobs:
           path: |
             ${{ runner.temp }}/docs-dd/Build
             ${{ runner.temp }}/docs-dd/SourcePackages
-          key: derived-docs-macos-26-${{ steps.toolchain.outputs.xcode }}-${{ hashFiles('**/Package.resolved') }}
+          key: derived-docs-xcode-27-${{ steps.toolchain.outputs.xcode }}-${{ hashFiles('**/Package.resolved') }}
 
       # Zili is the only scheme, and its app target carries every documented symbol. macOS is the
       # cheapest destination — no simulator to boot — and the product is only compiled, never
-      # launched, so signing is off entirely. DocC has no build setting for strictness, so
-      # --warnings-as-errors reaches it through OTHER_DOCC_FLAGS: an unresolved symbol link or an
-      # undocumented parameter then fails the job. Nothing consumes the .doccarchive here, so it
-      # builds into the runner's scratch directory rather than the checkout.
+      # launched, so signing is off entirely. Nothing consumes the .doccarchive here, so it builds
+      # into the runner's scratch directory rather than the checkout.
+      #
+      # OTHER_DOCC_FLAGS carries --warnings-as-errors, and it belongs to the Zili target rather than
+      # to this command: a setting passed here reaches every target in the scheme, which means the
+      # package dependencies, and a broken symbol link in one of their doc bundles would fail the
+      # job over documentation this project neither writes nor ships.
       - name: Build documentation
         run: |
           xcodebuild docbuild \
@@ -201,5 +205,4 @@ jobs:
             -scheme Zili \
             -destination "platform=macOS" \
             -derivedDataPath "$RUNNER_TEMP/docs-dd" \
-            CODE_SIGNING_ALLOWED=NO \
-            OTHER_DOCC_FLAGS="--warnings-as-errors"
+            CODE_SIGNING_ALLOWED=NO

@@ -1,0 +1,7 @@
+# GitHub keys its macOS images to a major Xcode version rather than to the OS, so the image this
+# repository builds on is labelled xcode-27. actionlint ships a fixed list of hosted labels and
+# that one isn't on it yet, which makes every workflow's runs-on look like a typo. Declaring it
+# here is actionlint's own remedy for a label it doesn't know.
+self-hosted-runner:
+  labels:
+    - xcode-27
