@@ -9,7 +9,7 @@ import SwiftUI
 ///
 /// The user draws each stroke over a light 米字格 practice grid with a finger or an Apple Pencil,
 /// or with the Pencil alone where they have asked the system for that — see
-/// ``GestureInputKinds/drawing``. Strokes are scored live by ``StrokeTestEvaluator`` and colored by
+/// `GestureInputKinds.drawing`. Strokes are scored live by ``StrokeTestEvaluator`` and colored by
 /// verdict the moment they are drawn — green (correct), red (wrong direction, shape, or length), or
 /// purple (right stroke, drawn too early). A stroke's color never changes once it has one.
 ///
