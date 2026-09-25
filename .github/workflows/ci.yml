@@ -188,10 +188,13 @@ jobs:
 
       # Zili is the only scheme, and its app target carries every documented symbol. macOS is the
       # cheapest destination — no simulator to boot — and the product is only compiled, never
-      # launched, so signing is off entirely. DocC has no build setting for strictness, so
-      # --warnings-as-errors reaches it through OTHER_DOCC_FLAGS: an unresolved symbol link or an
-      # undocumented parameter then fails the job. Nothing consumes the .doccarchive here, so it
-      # builds into the runner's scratch directory rather than the checkout.
+      # launched, so signing is off entirely. Nothing consumes the .doccarchive here, so it builds
+      # into the runner's scratch directory rather than the checkout.
+      #
+      # OTHER_DOCC_FLAGS carries --warnings-as-errors, and it belongs to the Zili target rather than
+      # to this command: a setting passed here reaches every target in the scheme, which means the
+      # package dependencies, and a broken symbol link in one of their doc bundles would fail the
+      # job over documentation this project neither writes nor ships.
       - name: Build documentation
         run: |
           xcodebuild docbuild \
@@ -199,5 +202,4 @@ jobs:
             -scheme Zili \
             -destination "platform=macOS" \
             -derivedDataPath "$RUNNER_TEMP/docs-dd" \
-            CODE_SIGNING_ALLOWED=NO \
-            OTHER_DOCC_FLAGS="--warnings-as-errors"
+            CODE_SIGNING_ALLOWED=NO

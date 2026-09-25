@@ -462,6 +462,7 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 27.0;
 				MARKETING_VERSION = 1.2;
+				OTHER_DOCC_FLAGS = "--warnings-as-errors";
 				PRODUCT_BUNDLE_IDENTIFIER = codes.tim.Zili;
 				PRODUCT_NAME = Zili;
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -510,6 +511,7 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 27.0;
 				MARKETING_VERSION = 1.2;
+				OTHER_DOCC_FLAGS = "--warnings-as-errors";
 				PRODUCT_BUNDLE_IDENTIFIER = codes.tim.Zili;
 				PRODUCT_NAME = Zili;
 				PROVISIONING_PROFILE_SPECIFIER = "";
