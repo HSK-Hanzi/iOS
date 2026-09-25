@@ -13,6 +13,8 @@ one of the two places.
 
 ### NEW
 
+- Drop a word or a sentence from your favorites by swiping it away, without
+  opening it first. Favorites is the only set a swipe removes anything from.
 - The practice pad now follows the system's "Only Draw with Apple Pencil"
   setting. With it on, the Pencil writes and a finger swipes between a word's
   characters, rather than the pad taking every stroke that lands on it.

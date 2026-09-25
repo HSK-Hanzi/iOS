@@ -54,10 +54,15 @@ final class SentenceFavoritesStore {
   /// Stars `id` if it isn't already, or unstars it if it is.
   func toggle(_ id: String) {
     if isFavorite(id) {
-      store.delete { $0.sentenceID == id }
+      remove(id)
     } else {
       store.insert(FavoriteSentence(sentenceID: id))
     }
+  }
+
+  /// Unstars `id`, leaving the rest of the favorites alone.
+  func remove(_ id: String) {
+    store.delete { $0.sentenceID == id }
   }
 
   /// Unstars every favorited sentence.

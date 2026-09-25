@@ -224,6 +224,21 @@ class ZiliUITestCase: XCTestCase {
     #endif
   }
 
+  /// Drags `element` from its trailing edge toward its leading one, to reveal a trailing swipe
+  /// action. By coordinate rather than `swipeLeft()`, which asks the app for a hit point a grid
+  /// cell does not report.
+  ///
+  /// There is no macOS counterpart. macOS reveals a swipe action for a two-finger trackpad swipe,
+  /// which XCUITest cannot synthesize — a coordinate drag is a click-drag and
+  /// `scroll(byDeltaX:deltaY:)` is a scroll-wheel event, and neither moves the cell.
+  #if !os(macOS)
+    func swipeToReveal(_ element: XCUIElement) {
+      let start = element.coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: 0.5))
+      let end = element.coordinate(withNormalizedOffset: CGVector(dx: 0.05, dy: 0.5))
+      start.press(forDuration: 0.05, thenDragTo: end)
+    }
+  #endif
+
   // MARK: - Navigation
 
   #if os(macOS)
