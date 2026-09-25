@@ -17,6 +17,15 @@ one of the two places.
   setting. With it on, the Pencil writes and a finger swipes between a word's
   characters, rather than the pad taking every stroke that lands on it.
 
+### ACCESSIBILITY
+
+- Choosing which HSK standard or which sentences to browse no longer means
+  opening a menu. In Practice, the choices sit in a row, on screen and one tap
+  away.
+- Flashcards honor "Prefer Cross-Fade Transitions". With Reduce Motion on, a
+  card used to cut straight to its other side; it can now dissolve to it
+  instead, for anyone who has asked for cross-fades in place of movement.
+
 ## 1.2
 
 Tapping a word now selects the whole word. Zili segments Chinese the way a
