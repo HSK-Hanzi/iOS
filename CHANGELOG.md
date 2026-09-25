@@ -30,6 +30,15 @@ one of the two places.
   sets when it comes back — tomorrow if you didn't know it, further out each
   time you do. The setup screen counts how many are due.
 
+### ACCESSIBILITY
+
+- Choosing which HSK standard or which sentences to browse no longer means
+  opening a menu. In Practice, the choices sit in a row, on screen and one tap
+  away.
+- Flashcards honor "Prefer Cross-Fade Transitions". With Reduce Motion on, a
+  card used to cut straight to its other side; it can now dissolve to it
+  instead, for anyone who has asked for cross-fades in place of movement.
+
 ## 1.2
 
 Tapping a word now selects the whole word. Zili segments Chinese the way a

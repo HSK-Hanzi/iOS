@@ -17,6 +17,10 @@ import SwiftUI
 /// endpoints, giving the card momentum. Turning to the back winds the rotation forward a half turn
 /// and turning to the front unwinds it back, so the two directions mirror each other and each face
 /// always lands upright.
+///
+/// Reduced motion takes the turn away and leaves the change of face. Which of the two ways that
+/// reads is the learner's to choose: cut to the other face, or dissolve to it where they have asked
+/// for cross-fades in place of motion.
 struct FlipCard<Front: View, Back: View>: View {
   @Binding var isFlipped: Bool
   @ViewBuilder var front: () -> Front
@@ -28,24 +32,37 @@ struct FlipCard<Front: View, Back: View>: View {
 
   @Environment(\.accessibilityReduceMotion)
   private var reduceMotion
+  @Environment(\.accessibilityPrefersCrossFadeTransitions)
+  private var prefersCrossFade
+
+  /// Whether the change of face should be dissolved rather than cut. The cross-fade preference
+  /// answers what to do *instead of* motion, so it applies only where motion is already reduced.
+  private var crossFades: Bool { reduceMotion && prefersCrossFade }
 
   var body: some View {
-    FlipFaces(angle: angle, front: front, back: back)
-      .contentShape(.rect)
-      .onTapGesture { isFlipped.toggle() }
-      .accessibilityAddTraits(.isButton)
-      .accessibilityHint(Text("Flips the card to the other side."))
-      .onChange(of: isFlipped) { _, flipped in
-        // Reduced motion swaps the faces without turning the card.
-        let delta: Double = flipped ? 180 : -180
-        if reduceMotion {
+    Group {
+      if crossFades {
+        CrossFadedFaces(isBack: isFlipped, front: front, back: back)
+      } else {
+        FlipFaces(angle: angle, front: front, back: back)
+      }
+    }
+    .contentShape(.rect)
+    .onTapGesture { isFlipped.toggle() }
+    .accessibilityAddTraits(.isButton)
+    .accessibilityHint(Text("Flips the card to the other side."))
+    .onChange(of: isFlipped) { _, flipped in
+      // Reduced motion changes the face without turning the card, leaving the angle to say which
+      // face is toward the viewer rather than to animate the way there.
+      let delta: Double = flipped ? 180 : -180
+      if reduceMotion {
+        angle += delta
+      } else {
+        withAnimation(.spring(response: 0.55, dampingFraction: 0.72)) {
           angle += delta
-        } else {
-          withAnimation(.spring(response: 0.55, dampingFraction: 0.72)) {
-            angle += delta
-          }
         }
       }
+    }
   }
 
   /// Whether the back face is the one toward the viewer at the given continuous angle: true when
@@ -54,6 +71,29 @@ struct FlipCard<Front: View, Back: View>: View {
     let turn = angle.truncatingRemainder(dividingBy: 360)
     let normalized = turn < 0 ? turn + 360 : turn
     return normalized >= 90 && normalized < 270
+  }
+}
+
+/// The two faces, dissolved into one another rather than turned, for a learner who has asked for
+/// cross-fade transitions where motion would otherwise be. Both faces stay flat and face the
+/// viewer: there is no turn here to hide the one behind.
+///
+/// The front face fades over a back face held at full opacity, so the card never drops below
+/// opaque while the two exchange. The card is not alone on screen — the next card of the deck sits
+/// behind it, smaller — and anything translucent shows it through.
+private struct CrossFadedFaces<Front: View, Back: View>: View {
+  private static var duration: TimeInterval { 0.25 }
+
+  var isBack: Bool
+  @ViewBuilder var front: () -> Front
+  @ViewBuilder var back: () -> Back
+
+  var body: some View {
+    ZStack {
+      back()
+      front().opacity(isBack ? 0 : 1)
+    }
+    .animation(.easeInOut(duration: Self.duration), value: isBack)
   }
 }
 
