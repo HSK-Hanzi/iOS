@@ -80,7 +80,7 @@ extension View {
   /// view lays out after that run — in a dictionary entry, under the glosses, cross-reference
   /// chips, and senses stacked below the example it came from.
   ///
-  /// Apply it once per scene, alongside ``SwiftUICore/View/presentsErrors()``.
+  /// Apply it once per scene.
   func wordPeekOverlay() -> some View {
     modifier(WordPeekOverlay())
   }

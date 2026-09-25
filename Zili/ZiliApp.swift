@@ -29,8 +29,6 @@ struct ZiliApp: App {
 
   @State private var appData: AppData
 
-  @State private var errorStore = ErrorStore()
-
   @State private var router: AppRouter
 
   var body: some Scene {
@@ -46,7 +44,6 @@ struct ZiliApp: App {
       Settings {
         SettingsView()
           .environment(appData)
-          .environment(\.errorStore, errorStore)
           .modelContainer(modelContainer)
       }
     #endif
@@ -56,7 +53,6 @@ struct ZiliApp: App {
     #if os(macOS)
       Window("Dictionary", id: WindowID.dictionary) {
         DictionaryWindow()
-          .presentsErrors()
           .wordPeekOverlay()
       }
       .keyboardShortcut("1")
@@ -69,7 +65,6 @@ struct ZiliApp: App {
       .modelContainer(modelContainer)
       .environment(appData)
       .environment(router)
-      .environment(\.errorStore, errorStore)
       .commands {
         CommandGroup(replacing: .appInfo) {
           AboutMenuButton()
@@ -81,7 +76,6 @@ struct ZiliApp: App {
 
       Window("Practice Characters", id: WindowID.practiceCharacters) {
         PracticeCharactersWindow()
-          .presentsErrors()
           .wordPeekOverlay()
       }
       .keyboardShortcut("2")
@@ -89,11 +83,9 @@ struct ZiliApp: App {
       .defaultLaunchBehavior(.presented)
       .modelContainer(modelContainer)
       .environment(appData)
-      .environment(\.errorStore, errorStore)
 
       Window("Practice Sentences", id: WindowID.practiceSentences) {
         PracticeSentencesWindow()
-          .presentsErrors()
           .wordPeekOverlay()
       }
       .keyboardShortcut("3")
@@ -101,7 +93,6 @@ struct ZiliApp: App {
       .defaultLaunchBehavior(.presented)
       .modelContainer(modelContainer)
       .environment(appData)
-      .environment(\.errorStore, errorStore)
 
       WindowGroup(
         "Recognition Quiz",
@@ -114,7 +105,6 @@ struct ZiliApp: App {
       .restorationBehavior(.disabled)
       .modelContainer(modelContainer)
       .environment(appData)
-      .environment(\.errorStore, errorStore)
 
       WindowGroup("Drawing Quiz", id: WindowID.drawingQuiz, for: UUID.self) { _ in
         DrawingQuizWindow()
@@ -123,7 +113,6 @@ struct ZiliApp: App {
       .restorationBehavior(.disabled)
       .modelContainer(modelContainer)
       .environment(appData)
-      .environment(\.errorStore, errorStore)
 
       WindowGroup("Listening Quiz", id: WindowID.listeningQuiz, for: UUID.self) { _ in
         ListeningQuizWindow()
@@ -132,17 +121,14 @@ struct ZiliApp: App {
       .restorationBehavior(.disabled)
       .modelContainer(modelContainer)
       .environment(appData)
-      .environment(\.errorStore, errorStore)
     #else
       WindowGroup {
         ContentView()
-          .presentsErrors()
           .wordPeekOverlay()
       }
       .modelContainer(modelContainer)
       .environment(appData)
       .environment(router)
-      .environment(\.errorStore, errorStore)
       #if os(visionOS)
         // A landscape default suits the primary tab's wide master–detail dictionary while still
         // seating the portrait-ish quiz screens; `.contentMinSize` gives a content-driven floor
