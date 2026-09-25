@@ -3,6 +3,7 @@
 //  Zili
 //
 
+import Accessibility
 import Foundation
 
 /// Tags Hanzi so VoiceOver speaks it in a Chinese voice rather than the interface voice, which
@@ -53,6 +54,39 @@ extension AttributedString {
     var spoken = AttributedString(hanzi)
     spoken.languageIdentifier = script.languageIdentifier
     return spoken
+  }
+
+  /// `hanzi` carrying an SSML fragment that names the language to speak it in.
+  ///
+  /// Unlike ``spokenHanzi(_:in:)`` this is meant for an explicit `.accessibilityLabel`, where a
+  /// `languageIdentifier` does not survive. SSML is read from the attribute rather than rebuilt
+  /// from the environment, so the language travels with the label instead of being taken from the
+  /// element around it — which is what lets the element keep an English hint and an English trait.
+  ///
+  /// The fragment is scoped to the attribute's range and carries no `<speak>` wrapper. Malformed
+  /// SSML is dropped in silence, and the underlying characters are spoken instead.
+  static func spokenSSML(_ hanzi: String, in script: ChineseScript) -> AttributedString {
+    var spoken = AttributedString(hanzi)
+    spoken.accessibilitySpeechSSML =
+      "<lang xml:lang=\"\(script.languageIdentifier)\">\(hanzi.xmlEscaped)</lang>"
+    return spoken
+  }
+}
+
+extension String {
+  /// This string with the five XML predefined entities escaped, so it can sit inside an SSML
+  /// element without breaking the fragment — and an unparseable fragment is ignored in silence.
+  fileprivate var xmlEscaped: String {
+    reduce(into: "") { escaped, character in
+      switch character {
+        case "&": escaped += "&amp;"
+        case "<": escaped += "&lt;"
+        case ">": escaped += "&gt;"
+        case "\"": escaped += "&quot;"
+        case "'": escaped += "&apos;"
+        default: escaped.append(character)
+      }
+    }
   }
 }
 
