@@ -42,6 +42,17 @@ extension ChineseScript {
   /// the only way the language reaches VoiceOver in that case.
   var locale: Locale { Locale(identifier: languageIdentifier) }
 
+  /// The tag that picks a *voice*, which is not the tag that identifies written text.
+  /// ``languageIdentifier`` names a writing system, and a script subtag does not choose a
+  /// speaker; a voice is chosen by region, the way ``WordPronouncer`` picks its
+  /// `AVSpeechSynthesisVoice`.
+  var speechLanguageIdentifier: String {
+    switch self {
+      case .simplified: "zh-CN"
+      case .traditional: "zh-TW"
+    }
+  }
+
   /// `hanzi` rendered in this script and tagged to be spoken in it.
   func spoken(_ hanzi: String) -> AttributedString {
     .spokenHanzi(render(hanzi), in: self)
@@ -68,7 +79,7 @@ extension AttributedString {
   static func spokenSSML(_ hanzi: String, in script: ChineseScript) -> AttributedString {
     var spoken = AttributedString(hanzi)
     spoken.accessibilitySpeechSSML =
-      "<lang xml:lang=\"\(script.languageIdentifier)\">\(hanzi.xmlEscaped)</lang>"
+      "<lang xml:lang=\"\(script.speechLanguageIdentifier)\">\(hanzi.xmlEscaped)</lang>"
     return spoken
   }
 }
