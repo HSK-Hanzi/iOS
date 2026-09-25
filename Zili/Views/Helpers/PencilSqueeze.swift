@@ -21,9 +21,8 @@ extension View {
   /// A view disabled while a squeeze is held sees that squeeze abandoned rather than released, so
   /// whatever the hold was showing is dropped without also firing what a release fires.
   ///
-  /// Wrapped here rather than applied inline for the same reason ``pencilCursor()`` is: the
-  /// underlying modifier reaches visionOS only in 26.2, above this app's deployment target, and
-  /// there is no Pencil there to squeeze anyway.
+  /// Wrapped here rather than applied inline for the same reason ``pencilCursor()`` is: only iOS
+  /// has the hardware, a Pencil to squeeze.
   func pencilSqueeze(perform action: @escaping (PencilSqueeze) -> Void) -> some View {
     #if os(iOS)
       modifier(PencilSqueezeModifier(action: action))
