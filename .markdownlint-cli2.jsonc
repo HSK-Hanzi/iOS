@@ -1,0 +1,8 @@
+{
+  // Each release in CHANGELOG.md heads its own sections — "NEW", "ACCESSIBILITY",
+  // "UNDER THE HOOD" — so the same heading recurs once per version. A repeat only
+  // reads as a mistake within a single version, which is what siblings_only checks.
+  "config": {
+    "MD024": { "siblings_only": true }
+  }
+}

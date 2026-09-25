@@ -7,10 +7,11 @@ import SwiftUI
 
 /// A writing surface that tests whether the user can hand-write a Hanzi character.
 ///
-/// The user draws each stroke with a finger or Apple Pencil over a light 米字格 practice
-/// grid; strokes are scored live by ``StrokeTestEvaluator`` and colored by verdict the moment
-/// they are drawn — green (correct), red (wrong direction, shape, or length), or purple (right
-/// stroke, drawn too early). A stroke's color never changes once it has one.
+/// The user draws each stroke over a light 米字格 practice grid with a finger or an Apple Pencil,
+/// or with the Pencil alone where they have asked the system for that — see
+/// `GestureInputKinds.drawing`. Strokes are scored live by ``StrokeTestEvaluator`` and colored by
+/// verdict the moment they are drawn — green (correct), red (wrong direction, shape, or length), or
+/// purple (right stroke, drawn too early). A stroke's color never changes once it has one.
 ///
 /// A floating Liquid Glass control cluster owns the pad's chrome: a **Hint** toggle underlays
 /// the finished glyph in a faint shade to trace over, a **Play** button demonstrates the
@@ -30,6 +31,8 @@ struct StrokeTestView: View {
 
   @Environment(\.accessibilityDifferentiateWithoutColor)
   private var differentiateWithoutColor
+  @Environment(\.scenePhase)
+  private var scenePhase
   @AppStorage(PencilSqueezeAction.storageKey)
   private var squeezeAction = PencilSqueezeAction.hint
 
@@ -42,9 +45,15 @@ struct StrokeTestView: View {
   /// ``respondToSqueeze(_:)``.
   @State private var isSqueezeHinting = false
 
+  /// The inputs the pad currently draws from. Held rather than read inline because the preference
+  /// behind it can change while the pad is on screen — see ``readDrawingInputKinds()``.
+  @State private var drawingInputKinds = GestureInputKinds.all
+
   var body: some View {
     canvas
       .overlay(alignment: .bottomTrailing) { controls }
+      .onAppear { readDrawingInputKinds() }
+      .onChange(of: scenePhase) { readDrawingInputKinds() }
       .onChange(of: graphic) {
         model.reset(graphic: graphic)
         currentStroke = []
@@ -145,7 +154,7 @@ struct StrokeTestView: View {
   }
 
   private var drawGesture: some Gesture {
-    DragGesture(minimumDistance: 0)
+    DragGesture(minimumDistance: 0, inputKinds: drawingInputKinds)
       .onChanged { currentStroke.append($0.location) }
       .onEnded { _ in
         if currentStroke.count > 1 {
@@ -178,6 +187,14 @@ struct StrokeTestView: View {
     self.onComplete = onComplete
     _showsHint = State(initialValue: hint)
     _model = State(initialValue: StrokeTestModel(graphic: graphic, onComplete: onComplete))
+  }
+
+  /// Takes the Pencil-only preference as it stands now. The preference is changed outside the app
+  /// and announces nothing when it does, so the pad asks again whenever it appears or the app comes
+  /// back to the front — the two moments a trip to Settings can end.
+  private func readDrawingInputKinds() {
+    guard scenePhase == .active else { return }
+    drawingInputKinds = .drawing
   }
 
   /// Answers a squeeze of the Pencil with whatever the learner asked it to do. The controls sit at

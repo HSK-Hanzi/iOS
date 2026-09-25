@@ -9,6 +9,14 @@ here and as plain text on the store, where the field shows whatever it is given
 verbatim: a line that only makes sense with its formatting will read badly in
 one of the two places.
 
+## 1.3
+
+### NEW
+
+- The practice pad now follows the system's "Only Draw with Apple Pencil"
+  setting. With it on, the Pencil writes and a finger swipes between a word's
+  characters, rather than the pad taking every stroke that lands on it.
+
 ## 1.2
 
 Tapping a word now selects the whole word. Zili segments Chinese the way a
