@@ -305,7 +305,7 @@ private struct QuizCardStack: View {
       // visionOS omits it: with no swipe it is purely decorative, and the flipping card turning
       // edge-on would expose it, making the next card show through the flip.
       #if !os(visionOS)
-        if let peek {
+        if let peek, showsPeek {
           CharacterFlashcardView(
             card: peek,
             front: front,
@@ -358,6 +358,13 @@ private struct QuizCardStack: View {
         .onEnded(onDragEnded)
     }
   #endif
+
+  /// Whether the next card stands behind this one. It reads as a deck only while the top card is
+  /// on its way off: at rest the top card covers it, and a card turning edge-on swings clear of it
+  /// and puts a second, smaller card in plain view — the deck illusion inside out.
+  private var showsPeek: Bool {
+    isThrowing || drag != .zero
+  }
 
   /// How far the card has been dragged toward a full throw, from 0 at rest to 1, driving the peek's
   /// rise so it appears to surface from the deck.

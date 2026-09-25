@@ -57,7 +57,8 @@ struct SentenceSetGrid: View {
               Text(corpus.title).tag(corpus.id)
             }
           }
-          .pickerStyle(.menu)
+          .pickerStyle(.tabs)
+          .labelsHidden()
         }
         grid
       }

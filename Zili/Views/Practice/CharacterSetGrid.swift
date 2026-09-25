@@ -53,7 +53,8 @@ struct CharacterSetGrid: View {
               Text(standard.displayName).tag(standard)
             }
           }
-          .pickerStyle(.menu)
+          .pickerStyle(.tabs)
+          .labelsHidden()
         }
         grid
       }

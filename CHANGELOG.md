@@ -28,6 +28,14 @@ one of the two places.
   forgetting them. Choose "Due for Review" under Sort: a word you miss comes back
   tomorrow, and one you know comes back later each time.
 
+### ACCESSIBILITY
+
+- Choosing which HSK standard or which sentences to browse no longer means
+  opening a menu. In Practice, the choices sit in a row, on screen and one tap
+  away.
+- Flashcards honor "Prefer Cross-Fade Transitions", dissolving to their other
+  side instead of cutting to it when Reduce Motion is on.
+
 ## 1.3
 
 ### NEW
