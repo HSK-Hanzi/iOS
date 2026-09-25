@@ -27,10 +27,8 @@ jobs:
             simulator: iPad Pro 13-inch (M5)
           - name: macOS
             destination: platform=macOS
-            # macOS enforces code signing to build and launch; the runner has no cert or profile.
-            # Ad-hoc sign instead, and drop the entitlements file (CODE_SIGN_ENTITLEMENTS=) — its
-            # CloudKit/APS entitlements would otherwise demand a provisioning profile. The tests don't
-            # need them: -uiTesting disables CloudKit. This only affects the throwaway CI build.
+            # macOS enforces code signing to build and launch, and the runner has no cert or
+            # profile, so the build is ad-hoc signed. This only affects the throwaway CI build.
             signing: >-
               CODE_SIGN_IDENTITY=-
               CODE_SIGNING_REQUIRED=NO
@@ -38,7 +36,6 @@ jobs:
               CODE_SIGN_STYLE=Manual
               DEVELOPMENT_TEAM=
               PROVISIONING_PROFILE_SPECIFIER=
-              CODE_SIGN_ENTITLEMENTS=
     steps:
       # Xcode 27 ships Swift 6.4, so the image already carries the toolchain this project builds
       # with. Nothing installs a standalone Swift on top of it: pointing TOOLCHAINS at one leaves
@@ -105,6 +102,11 @@ jobs:
       #
       # The Test action runs the Debug configuration; with only the open data present the licensed
       # dictionaries are skipped and the suite runs open-only.
+      # Every platform builds without the entitlements file. No runner is signed into iCloud, and
+      # an app carrying the CloudKit entitlement opens a mirroring container the account cannot
+      # back: setup fails, and the next save raises "No eligible connection available" — an
+      # Objective-C exception, so it terminates the test host and takes every test in the process
+      # with it. Nothing under test uses CloudKit, and a UI test run disables it outright.
       - name: Run tests
         env:
           TEST_RUNNER_XCUITEST_TIMEOUT_MULTIPLIER: "3"
@@ -120,6 +122,7 @@ jobs:
             -destination "$DESTINATION" \
             -derivedDataPath "$RUNNER_TEMP/dd-test" \
             -resultBundlePath "TestResults-$PLAN-$NAME.xcresult" \
+            CODE_SIGN_ENTITLEMENTS= \
             ${{ matrix.platform.signing }}
 
       - name: Upload test results
