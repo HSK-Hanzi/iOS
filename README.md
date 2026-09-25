@@ -1,12 +1,12 @@
 # Zili 字里
 
-[![Tests](https://github.com/HSK-Hanzi/iOS/actions/workflows/test.yml/badge.svg)](https://github.com/HSK-Hanzi/iOS/actions/workflows/test.yml)
+[![CI](https://github.com/HSK-Hanzi/iOS/actions/workflows/ci.yml/badge.svg)](https://github.com/HSK-Hanzi/iOS/actions/workflows/ci.yml)
 [![Linters](https://github.com/HSK-Hanzi/iOS/actions/workflows/lint.yml/badge.svg)](https://github.com/HSK-Hanzi/iOS/actions/workflows/lint.yml)
-[![Platform](https://img.shields.io/badge/platform-iOS%20%7C%20macOS-lightgrey.svg)](https://developer.apple.com/)
+[![Platform](https://img.shields.io/badge/platform-iOS%20%7C%20macOS%20%7C%20visionOS-lightgrey.svg)](https://developer.apple.com/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-Zili is an iOS and macOS SwiftUI app for learning to read and write Chinese,
-organized around the HSK vocabulary levels.
+Zili is an iOS, macOS, and visionOS SwiftUI app for learning to read and write
+Chinese, organized around the HSK vocabulary levels.
 
 ## What It Is
 
@@ -34,13 +34,13 @@ you want to study, then work through interlocking modes:
 
 ## Requirements
 
-Zili is written in Swift 6 and targets iOS 26 and macOS 26.
+Zili is written in Swift 6 and targets iOS 27, macOS 27, and visionOS 27.
 
 ## Development
 
 The Xcode project defines three targets:
 
-- **Zili** — the application, buildable and runnable on iOS and macOS.
+- **Zili** — the application, buildable and runnable on iOS, macOS, and visionOS.
 - **ZiliTests** — the unit test suite.
 - **ZiliUITests** — the end-to-end UI test suite, built on
   [XCUITestKit](https://github.com/RISCfuture/XCUITestKit).
