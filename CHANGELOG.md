@@ -22,6 +22,9 @@ one of the two places.
 - Tapping the Due for Review widget opens straight into a review of your
   favorites, the ones you're closest to forgetting first. A Start Review control
   does the same from Control Center, the Lock Screen, or the Action button.
+- The practice pad now follows the system's "Only Draw with Apple Pencil"
+  setting. With it on, the Pencil writes and a finger swipes between a word's
+  characters, rather than the pad taking every stroke that lands on it.
 - Recognition quizzes can deal your favorites in the order you are closest to
   forgetting them. Choose "Due for Review" under Sort, and every word you judge
   sets when it comes back — tomorrow if you didn't know it, further out each
