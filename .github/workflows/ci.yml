@@ -20,8 +20,8 @@ jobs:
         plan: ["Unit Tests", "UI Tests"]
         platform:
           - name: iPhone
-            destination: platform=iOS Simulator,name=iPhone 17 Pro
-            simulator: iPhone 17 Pro
+            destination: platform=iOS Simulator,name=iPhone 17
+            simulator: iPhone 17
           - name: iPad
             destination: platform=iOS Simulator,name=iPad Pro 13-inch (M5)
             simulator: iPad Pro 13-inch (M5)
