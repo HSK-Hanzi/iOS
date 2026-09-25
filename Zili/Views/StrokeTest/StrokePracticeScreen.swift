@@ -6,8 +6,9 @@
 import SwiftUI
 
 /// A pushed screen for practicing a word's characters by hand, one per page. Each page is a
-/// blank ``StrokeTestView`` that scores the strokes as they're drawn; navigate between
-/// characters with the page dots (the pad itself owns horizontal drags for drawing).
+/// blank ``StrokeTestView`` that scores the strokes as they're drawn. The page dots always
+/// navigate between characters; a swipe does too, but only on a pad that isn't taking finger
+/// strokes — see ``GestureInputKinds/drawing``.
 struct StrokePracticeScreen: View {
   let graphics: [(character: Character, graphic: HanziGraphic)]
 
