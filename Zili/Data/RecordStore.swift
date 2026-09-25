@@ -12,9 +12,9 @@ import SwiftData
 /// The four stores the app puts in the environment — starred words, starred sentences, and the two
 /// miss tallies — differ only in the model they hold, the key that identifies one record, and what
 /// to do when CloudKit has left two records under that key. Everything else is here: a
-/// ``SwiftData/ResultsObserver`` keeping the records in hand and in order, a
-/// ``SwiftData/HistoryObserver`` reporting an import landing, and the de-duplication that follows
-/// one. A preview's or a test's in-memory store keeps no history, so it gets no history observer.
+/// `ResultsObserver` keeping the records in hand and in order, a `HistoryObserver` reporting an
+/// import landing, and the de-duplication that follows one. A preview's or a test's in-memory store
+/// keeps no history, so it gets no history observer.
 ///
 /// It is observable in its own right, not merely a holder of observable things: a store reads as
 /// empty until ``start()`` opens its query, and a view that read it while it was empty has to be
@@ -45,7 +45,7 @@ final class RecordStore<Model: DeduplicableRecord, Key: Hashable> {
   ///
   /// - Parameters:
   ///   - container: The container whose main context holds the records.
-  ///   - sortBy: The order ``records`` reports them in.
+  ///   - sortBy: The order ``all`` reports them in.
   ///   - key: What identifies one record, and so what a duplicate duplicates.
   ///   - consolidate: Folds a losing duplicate into the survivor before it is deleted. Records that
   ///     carry no count have nothing to fold and can leave this out.
