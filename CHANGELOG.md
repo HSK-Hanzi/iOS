@@ -21,6 +21,10 @@ one of the two places.
 
 ### ACCESSIBILITY
 
+- With VoiceOver, a Chinese word of more than one character now says what it is
+  in your own language. The word itself is still read in Chinese, but the word
+  "button" after it is not, and the hint that was left off to avoid that is
+  back.
 - Choosing which HSK standard or which sentences to browse no longer means
   opening a menu. In Practice, the choices sit in a row, on screen and one tap
   away.
