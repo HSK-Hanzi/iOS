@@ -319,12 +319,11 @@ private struct CharacterCell: View {
 
 /// Announces a ``CharacterCell``.
 ///
-/// A character that begins a multi-character word announces that whole word, which the language on
-/// its own rendered glyph cannot express: only the locale of the content the element wraps reaches
-/// VoiceOver as the speech language. That locale governs the whole element, hint included, so a
-/// cell carrying it leaves the hint off rather than have an English sentence read out in a Chinese
-/// voice. Every other character announces its glyph, whose language rides on the rendered text and
-/// leaves the hint in the reader’s own voice.
+/// A character that begins a multi-character word announces that whole word, which its own rendered
+/// glyph cannot express. An explicit label drops a `languageIdentifier`, so the word carries an SSML
+/// fragment instead: the language rides on the label itself rather than on the element's locale, and
+/// the element is free to keep an English hint. Every other character announces its glyph, whose
+/// language rides on the rendered text.
 private struct CellAnnouncement: ViewModifier {
   let speech: CellSpeech
   let script: ChineseScript
@@ -341,8 +340,8 @@ private struct CellAnnouncement: ViewModifier {
         // The rest of the word's characters ride along on this element, so VoiceOver moves by
         // words.
         content
-          .environment(\.locale, script.locale)
-          .accessibilityLabel(Text(word))
+          .accessibilityLabel(Text(.spokenSSML(word, in: script)))
+          .accessibilityHint(Text("Shows the word’s pinyin and meaning."))
       case .foldedIntoWord:
         content.accessibilityHidden(true)
     }
