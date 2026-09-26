@@ -8,7 +8,8 @@ import SwiftUI
 /// A scrollable list of the sentences in a set — a corpus's HSK band or the learner's favorites.
 /// Each row shows the sentence above a one-line reading and links to its detail; the enclosing
 /// stack resolves a ``PracticeSentence`` into a ``SentenceDetailView``. When ``onClearAll`` is
-/// supplied a destructive toolbar button empties the set.
+/// supplied a destructive toolbar button empties the set, and when ``onUnstar`` is supplied a row
+/// can be swiped to drop that one sentence.
 struct SentenceListView: View {
   let sentences: [PracticeSentence]
   /// The screen's title, kept concise (e.g. “Level 1”) so the back button carries its context.
@@ -17,6 +18,8 @@ struct SentenceListView: View {
   var emptyTitle: LocalizedStringKey = "No Sentences"
   /// Empties the set, or `nil` for a fixed set that can't be cleared.
   var onClearAll: (() -> Void)?
+  /// Drops one sentence from the set, or `nil` for a fixed set nothing can be removed from.
+  var onUnstar: ((PracticeSentence) -> Void)?
 
   @State private var isConfirmingClear = false
 
@@ -31,6 +34,14 @@ struct SentenceListView: View {
             SentenceRow(sentence: sentence)
           }
           .accessibilityIdentifier(AccessibilityID.sentenceRow)
+          .swipeActions(edge: .trailing) {
+            if let onUnstar {
+              Button("Unfavorite", systemImage: "star.slash", role: .destructive) {
+                onUnstar(sentence)
+              }
+              .accessibilityIdentifier(AccessibilityID.sentenceUnstar)
+            }
+          }
         }
         .listStyle(.plain)
       }
