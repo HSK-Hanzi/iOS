@@ -99,6 +99,7 @@ private struct StudySetView: View {
           emptyTitle: "No Favorites",
           preservesSourceOrder: true,
           onClearAll: favorites.clearAll,
+          onUnstar: favorites.remove,
           selection: $selection
         )
       case .missed:

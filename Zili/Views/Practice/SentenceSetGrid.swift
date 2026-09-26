@@ -127,7 +127,8 @@ struct SentenceSetContent: View {
           sentences: favorites.favoritedIDs.compactMap { library.sentence(id: $0) },
           title: String(localized: "Favorites"),
           emptyTitle: "No Favorites",
-          onClearAll: favorites.clearAll
+          onClearAll: favorites.clearAll,
+          onUnstar: { favorites.remove($0.id) }
         )
       case .missed:
         SentenceListView(
