@@ -8,7 +8,8 @@ import SwiftUI
 /// A scrollable grid of the words in a character set — an HSK syllabus band or the learner's
 /// favorites. Each cell shows a word above its reading and is a navigation link carrying the
 /// word; the enclosing stack decides what a word opens. When ``onClearAll`` is supplied a
-/// destructive toolbar button empties the set.
+/// destructive toolbar button empties the set, and when ``onUnstar`` is supplied a cell can be
+/// swiped to drop that one word.
 struct CharacterSetView: View {
   let lexicon: Lexicon
   let source: QuizDeckSource
@@ -19,6 +20,8 @@ struct CharacterSetView: View {
   let emptyTitle: LocalizedStringKey
   /// Empties the set, or `nil` for a fixed set that can't be cleared.
   let onClearAll: (() -> Void)?
+  /// Drops one word from the set, or `nil` for a fixed set nothing can be removed from.
+  let onUnstar: ((String) -> Void)?
   @Binding var selection: String?
 
   private let words: [String]
@@ -73,6 +76,7 @@ struct CharacterSetView: View {
           }
           .buttonStyle(.plain)
           .accessibilityIdentifier(AccessibilityID.characterWordCell)
+          .modifier(UnstarOnSwipe(word: word, onUnstar: onUnstar))
         }
       }
       .padding()
@@ -87,6 +91,7 @@ struct CharacterSetView: View {
   ///   - preservesSourceOrder: Keeps the source's own order (favorites, newest first) instead
   ///     of collating by character — collation is the default for syllabus bands.
   ///   - onClearAll: Supplied for clearable sets (favorites); adds the Clear All toolbar button.
+  ///   - onUnstar: Supplied for clearable sets (favorites); lets a cell be swiped away.
   ///   - selection: The word whose entry is showing, bound so the grid and the detail column
   ///     stay in step.
   init(
@@ -96,6 +101,7 @@ struct CharacterSetView: View {
     emptyTitle: LocalizedStringKey = "No Words",
     preservesSourceOrder: Bool = false,
     onClearAll: (() -> Void)? = nil,
+    onUnstar: ((String) -> Void)? = nil,
     selection: Binding<String?>
   ) {
     self.lexicon = lexicon
@@ -103,9 +109,34 @@ struct CharacterSetView: View {
     self.title = title
     self.emptyTitle = emptyTitle
     self.onClearAll = onClearAll
+    self.onUnstar = onUnstar
     _selection = selection
     let headwords = source.headwords(in: lexicon)
     words = preservesSourceOrder ? headwords : headwords.sortedByChineseCollation()
+  }
+}
+
+/// Lets a grid cell be swiped away, for the one set a word can be removed from. A `LazyVGrid`
+/// cell is not a list row, so it has to declare itself a swipe container before it can carry
+/// swipe actions; a cell in a set nothing can be removed from declares nothing and stays inert.
+private struct UnstarOnSwipe: ViewModifier {
+  let word: String
+  let onUnstar: ((String) -> Void)?
+
+  @ViewBuilder
+  func body(content: Content) -> some View {
+    if let onUnstar {
+      content
+        .swipeActionsContainer()
+        .swipeActions(edge: .trailing) {
+          Button("Unfavorite", systemImage: "star.slash", role: .destructive) {
+            onUnstar(word)
+          }
+          .accessibilityIdentifier(AccessibilityID.characterWordUnstar)
+        }
+    } else {
+      content
+    }
   }
 }
 
