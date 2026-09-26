@@ -38,6 +38,7 @@ struct SentenceDetailView: View {
           }
         }
         Text(romanization.spoken(sentence.reading(romanization)))
+          .spokenByItsHanzi()
           .font(.title3)
           .foregroundStyle(.secondary)
         Divider()

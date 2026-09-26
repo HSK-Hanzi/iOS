@@ -5,6 +5,7 @@
 
 import Accessibility
 import Foundation
+import SwiftUI
 
 /// Tags Hanzi so VoiceOver speaks it in a Chinese voice rather than the interface voice, which
 /// otherwise spells out or mangles every character.
@@ -117,5 +118,18 @@ extension Romanization {
     var spoken = AttributedString(reading)
     spoken.languageIdentifier = languageIdentifier
     return spoken
+  }
+}
+
+extension View {
+  /// Takes a reading out of VoiceOver's path, for a reading shown beside the Hanzi it transcribes.
+  ///
+  /// The Hanzi has already been announced, in a Chinese voice, so the reading that follows it is a
+  /// second reading of the same word — and pinyin is neither English nor Chinese, so the reader's
+  /// own voice makes a poor job of it and races through the syllables. Where a reading stands
+  /// *without* its Hanzi — a flashcard face that withholds the characters — it is the only thing
+  /// naming the word, and `isHanziShown` keeps its voice.
+  func spokenByItsHanzi(_ isHanziShown: Bool = true) -> some View {
+    accessibilityHidden(isHanziShown)
   }
 }

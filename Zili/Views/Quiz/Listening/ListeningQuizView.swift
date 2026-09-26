@@ -263,6 +263,7 @@ private struct RevealView: View {
           .foregroundStyle(QuizStyle.chromeLabel)
           .multilineTextAlignment(.center)
         Text(romanization.spoken(sentence.reading(romanization)))
+          .spokenByItsHanzi()
           .font(.title3)
           .foregroundStyle(QuizStyle.chromeLabel.opacity(0.9))
           .multilineTextAlignment(.center)

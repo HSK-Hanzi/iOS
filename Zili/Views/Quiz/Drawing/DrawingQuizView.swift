@@ -140,6 +140,7 @@ private struct CharacterPrompt: View {
         .foregroundStyle(QuizStyle.chromeLabel)
       if !card.reading.isEmpty {
         Text(card.reading)
+          .spokenByItsHanzi()
           .font(.system(.title, design: .rounded).weight(.medium))
           .foregroundStyle(QuizStyle.chromeLabel.opacity(0.9))
       }
@@ -164,6 +165,7 @@ private struct CharacterHeader: View {
         .font(.system(size: hanziSize, weight: .medium))
       if !card.reading.isEmpty {
         Text(card.reading)
+          .spokenByItsHanzi()
           .font(.system(.title3, design: .rounded).weight(.medium))
           .foregroundStyle(QuizStyle.chromeLabel.opacity(0.85))
       }

@@ -131,6 +131,7 @@ private struct FlashcardFaceContent: View {
       }
       if face.showsReading, !card.reading.isEmpty {
         Text(romanization.spoken(card.reading))
+          .spokenByItsHanzi(face.showsHanzi)
           .font(.system(.title, design: .rounded).weight(.medium))
           .foregroundStyle(.white.opacity(0.9))
       }
