@@ -59,6 +59,7 @@ struct WordPeekContent: View {
           .font(.title2)
         if let reading = peek.reading {
           Text(reading)
+            .spokenByItsHanzi()
             .font(.headline)
             .foregroundStyle(.secondary)
         }

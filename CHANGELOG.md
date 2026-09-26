@@ -32,6 +32,12 @@ one of the two places.
 
 ### ACCESSIBILITY
 
+- Chinese is spoken with the best voice on the device rather than the basic one
+  installed by default. If you have downloaded a premium or enhanced Mandarin
+  voice, Zili now uses it, and the difference is considerable.
+- VoiceOver no longer reads a word's pinyin straight after its Hanzi, which
+  have already been read aloud in Chinese. A reading that stands alone is still
+  spoken.
 - With VoiceOver, a Chinese word of more than one character now says what it is
   in your own language. The word itself is still read in Chinese, but the word
   "button" after it is not, and the hint that was left off to avoid that is

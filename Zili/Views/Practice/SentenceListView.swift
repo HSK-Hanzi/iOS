@@ -81,6 +81,7 @@ private struct SentenceRow: View {
       Text(script.spoken(sentence.hanzi))
         .font(.title3)
       Text(romanization.spoken(sentence.reading(romanization)))
+        .spokenByItsHanzi()
         .font(.caption)
         .foregroundStyle(.secondary)
     }

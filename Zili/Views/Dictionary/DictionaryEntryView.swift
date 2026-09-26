@@ -107,6 +107,7 @@ private struct WordHeaderView: View {
       }
       if let reading = lookup.romanization(romanization) {
         Text(romanization.spoken(reading))
+          .spokenByItsHanzi()
           .font(.title2)
           .foregroundStyle(.secondary)
       }

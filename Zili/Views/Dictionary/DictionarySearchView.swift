@@ -110,6 +110,7 @@ private struct SearchResultRow: View {
           .font(.title3)
         if let reading = lookup.romanization(romanization) {
           Text(romanization.spoken(reading))
+            .spokenByItsHanzi()
             .font(.subheadline)
             .foregroundStyle(.secondary)
         }
