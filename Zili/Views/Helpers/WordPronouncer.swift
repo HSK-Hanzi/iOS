@@ -13,6 +13,20 @@ import AVFoundation
 final class WordPronouncer {
   private static let language = "zh-CN"
 
+  /// The best Mandarin voice installed.
+  ///
+  /// Not what `AVSpeechSynthesisVoice(language:)` returns: that hands back the language's
+  /// *default*, which is a super-compact voice, and goes on handing it back after a premium voice
+  /// for the very same language has been downloaded. Compact CJK synthesis clips syllables to the
+  /// point of being hard to recognise as speech, so the quality is worth choosing rather than
+  /// inheriting. Read fresh each time, since a voice can arrive while the app is running.
+  private static var bestVoice: AVSpeechSynthesisVoice? {
+    AVSpeechSynthesisVoice.speechVoices()
+      .filter { $0.language == language }
+      .max { $0.quality.rawValue < $1.quality.rawValue }
+      ?? AVSpeechSynthesisVoice(language: language)
+  }
+
   private let synthesizer = AVSpeechSynthesizer()
 
   /// Pronounces `text` in Mandarin at `pace`, interrupting any utterance still being spoken.
@@ -20,7 +34,7 @@ final class WordPronouncer {
     activatePlaybackSession()
     synthesizer.stopSpeaking(at: .immediate)
     let utterance = AVSpeechUtterance(string: text)
-    utterance.voice = AVSpeechSynthesisVoice(language: Self.language)
+    utterance.voice = Self.bestVoice
     utterance.rate = pace.rate
     synthesizer.speak(utterance)
   }
