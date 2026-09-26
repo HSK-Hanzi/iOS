@@ -42,6 +42,12 @@ struct PracticeSentencesPage: Page {
     test.expect(AccessibilityID.sentenceRow, "The level's sentence list.")
   }
 
+  /// Switches VoiceOver on for the rest of the test and walks it forward `stops` times from
+  /// wherever it lands, returning what it says at each stop.
+  func utterancesWalkingForward(stops: Int) throws -> [String] {
+    try VoiceOverSession(test).walk(stops: stops)
+  }
+
   /// Asserts the set's empty state.
   @discardableResult
   func expectEmptyState() -> XCUIElement {
