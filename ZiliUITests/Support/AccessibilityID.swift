@@ -24,11 +24,13 @@ enum AccessibilityID {
   static let characterSetClearAll = "characterSet.clearAll"
   static let characterSetEmptyState = "characterSet.emptyState"
   static let characterWordCell = "characterSet.wordCell"
+  static let characterWordUnstar = "characterSet.wordUnstar"
 
   // Practice sentences
   static let sentenceSetFavorites = "sentenceSet.favorites"
   static let sentenceSetMissed = "sentenceSet.missed"
   static let sentenceRow = "sentence.row"
+  static let sentenceUnstar = "sentence.unstar"
   static let sentenceListEmptyState = "sentence.emptyState"
   static let sentenceDetail = "sentence.detail"
   static let sentenceFavoriteToggle = "sentence.favoriteToggle"
@@ -85,9 +87,11 @@ enum AccessibilityID {
     characterSetClearAll,
     characterSetEmptyState,
     characterWordCell,
+    characterWordUnstar,
     sentenceSetFavorites,
     sentenceSetMissed,
     sentenceRow,
+    sentenceUnstar,
     sentenceListEmptyState,
     sentenceDetail,
     sentenceFavoriteToggle,
