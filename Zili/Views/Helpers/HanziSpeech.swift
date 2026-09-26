@@ -18,9 +18,9 @@ import Foundation
 /// Combining is what assembles a whole row: `.accessibilityElement(children: .combine)` keeps each
 /// child's language, so a tagged headword beside a plain English gloss is announced with only the
 /// Hanzi in a Chinese voice. Where a view must announce something it does not render — a word
-/// spanning several character cells — set ``ChineseScript/locale`` on the content instead. That
-/// locale governs the whole accessibility element, hint included, so an element carrying it should
-/// not also carry an English hint.
+/// spanning several character cells — ``AttributedString/spokenSSML(_:in:)`` puts the language in
+/// an SSML fragment, which is read from the label rather than rebuilt from the environment and so
+/// leaves the element free to keep an English hint.
 ///
 /// `HanziSpeechTests` covers the tagging itself, but no test covers a view carrying it: the speech
 /// language exists only once UIKit has built an accessibility tree, which needs a foreground-active
@@ -38,14 +38,13 @@ extension ChineseScript {
     }
   }
 
-  /// The locale to place on Hanzi whose announcement is spelled out in a separate label, which is
-  /// the only way the language reaches VoiceOver in that case.
-  var locale: Locale { Locale(identifier: languageIdentifier) }
-
-  /// The tag that picks a *voice*, which is not the tag that identifies written text.
-  /// ``languageIdentifier`` names a writing system, and a script subtag does not choose a
-  /// speaker; a voice is chosen by region, the way ``WordPronouncer`` picks its
-  /// `AVSpeechSynthesisVoice`.
+  /// The tag an SSML fragment names the language with, where a region is the conventional form
+  /// and what ``WordPronouncer`` asks `AVSpeechSynthesisVoice` for.
+  ///
+  /// Whether it has to be a region is unknown. Probing an iPad showed `zh-Hans` and `zh-CN`
+  /// resolving to the same voice, so the script subtag is no obstacle to *that* API; whether the
+  /// engine parsing an SSML fragment is as forgiving has not been established, and a fragment it
+  /// cannot resolve is discarded without a sound.
   var speechLanguageIdentifier: String {
     switch self {
       case .simplified: "zh-CN"
