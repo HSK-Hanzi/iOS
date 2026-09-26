@@ -10,8 +10,9 @@
 import XCTest
 import XCUITestKit
 
-/// The favorites set in Practice Characters: seeded favorites show as word cells, Clear All empties
-/// the set through its confirm-first dialog, and an unseeded run lands straight on the empty state.
+/// The favorites set in Practice Characters: seeded favorites show as word cells, a cell can be
+/// swiped away one at a time, Clear All empties the set through its confirm-first dialog, and an
+/// unseeded run lands straight on the empty state.
 final class FavoritesUITests: ZiliUITestCase {
   func testSeededFavoritesAppearThenClear() async throws {
     launch(seed: [.favorites])
@@ -25,6 +26,37 @@ final class FavoritesUITests: ZiliUITestCase {
 
     expect(AccessibilityID.characterSetEmptyState, "Clearing empties the favorites set.")
   }
+
+  /// A word cell is not a list row, so its swipe action hangs off `swipeActionsContainer()`. That
+  /// the revealed button is reachable at all is the thing worth asserting.
+  ///
+  /// iOS only. macOS reveals a swipe action for a two-finger trackpad swipe, and XCUITest has no
+  /// way to synthesize one: a coordinate drag is a click-drag, and `scroll(byDeltaX:deltaY:)` is a
+  /// scroll-wheel event. Both leave the cell unmoved with no action in the accessibility tree, so
+  /// the macOS side of this is a manual check rather than a silently passing test.
+  #if !os(macOS)
+    func testSwipingAWordCellUnstarsIt() async throws {
+      launch(seed: [.favorites])
+      await goToPracticeCharacters()
+
+      await tap(AccessibilityID.characterSetFavorites, "The Favorites set.")
+      let cells = app.descendants(matching: .any)
+        .matching(identifier: AccessibilityID.characterWordCell)
+      XCTAssertTrue(cells.firstMatch.wait(), "The seeded favorites show as word cells.")
+      let seededCount = cells.count
+
+      swipeToReveal(cells.firstMatch)
+      let unstar = el(AccessibilityID.characterWordUnstar)
+      XCTAssertTrue(unstar.wait(), "Swiping a word cell reveals Unfavorite.")
+      unstar.forceTap()
+
+      XCTAssertTrue(
+        cells.firstMatch.wait(),
+        "The rest of the favorites stay — this unstars one word, not the set."
+      )
+      XCTAssertEqual(cells.count, seededCount - 1, "The swiped word is gone.")
+    }
+  #endif
 
   func testFavoritesAreEmptyWithoutSeed() async throws {
     launch()

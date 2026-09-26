@@ -54,10 +54,15 @@ final class FavoritesStore {
   /// Stars `word` if it isn't already, or unstars it if it is.
   func toggle(_ word: String) {
     if isFavorite(word) {
-      store.delete { $0.word == word }
+      remove(word)
     } else {
       store.insert(FavoriteWord(word: word))
     }
+  }
+
+  /// Unstars `word`, leaving the rest of the favorites alone.
+  func remove(_ word: String) {
+    store.delete { $0.word == word }
   }
 
   /// Stars every word in `words` that isn't already a favorite, ignoring the rest.
