@@ -165,6 +165,7 @@ private struct WordCell: View {
           .foregroundStyle(.white)
         if let reading = lookup.romanization(romanization) {
           Text(romanization.spoken(reading))
+            .spokenByItsHanzi()
             .font(.caption)
             .foregroundStyle(.white.opacity(0.85))
             .lineLimit(1)
