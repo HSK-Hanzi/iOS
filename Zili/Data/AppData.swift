@@ -56,7 +56,7 @@ final class AppData {
     sentenceFavorites = SentenceFavoritesStore(container: container)
     wordMisses = WordMissStore(container: container)
     sentenceMisses = SentenceMissStore(container: container)
-    reviews = ReviewScheduleStore(context: container.mainContext)
+    reviews = ReviewScheduleStore(container: container)
   }
 
   /// Loads the language database, and loads it again when a learner retries after a failure.
@@ -102,6 +102,7 @@ final class AppData {
     sentenceFavorites.start()
     wordMisses.start()
     sentenceMisses.start()
+    reviews.start()
   }
 
   /// Pre-populates the learner's stores with a fixed set of favorites and misses when a UI test
