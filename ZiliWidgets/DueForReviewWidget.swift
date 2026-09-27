@@ -67,16 +67,18 @@ struct DueForReviewProvider: TimelineProvider {
 }
 
 struct DueForReviewWidget: Widget {
-  /// Every family the platform offers that suits a count and a word. The accessory families are
-  /// the Lock Screen.
+  /// Every family the platform offers that suits a count and a word.
+  ///
+  /// `systemExtraLargePortrait` is new in 27 and is the tall half of an iPad's extra-large slot;
+  /// the accessory families are the Lock Screen and, on visionOS, a mounted widget.
   private static var families: [WidgetFamily] {
-    #if os(iOS)
-      [
-        .systemSmall, .systemMedium, .systemLarge, .systemExtraLarge, .accessoryCircular,
-        .accessoryRectangular
-      ]
+    #if os(macOS)
+      [.systemSmall, .systemMedium, .systemLarge, .systemExtraLarge, .systemExtraLargePortrait]
     #else
-      [.systemSmall, .systemMedium, .systemLarge, .systemExtraLarge]
+      [
+        .systemSmall, .systemMedium, .systemLarge, .systemExtraLarge, .systemExtraLargePortrait,
+        .accessoryCircular, .accessoryRectangular
+      ]
     #endif
   }
 
