@@ -13,6 +13,10 @@ one of the two places.
 
 ### NEW
 
+- Zili has a widget. It shows how many of your favorites are ready to review and
+  the one that has waited longest, on the Home Screen, the Lock Screen, and the
+  Mac's desktop. It counts for itself, so a word that comes due tomorrow appears
+  there whether or not you have opened the app.
 - Recognition quizzes can deal your favorites in the order you are closest to
   forgetting them. Choose "Due for Review" under Sort, and every word you judge
   sets when it comes back — tomorrow if you didn't know it, further out each
