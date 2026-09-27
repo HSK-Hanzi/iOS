@@ -9,7 +9,7 @@ import Testing
 
 /// Pins the conclusions of the weight tuning. A future change to the weights that undoes one of
 /// these should fail here rather than quietly degrade search results.
-struct SearchRelevanceTests {
+struct `Search relevance weights` {
   /// Attested words occupy 0.5…1; a word the corpus omits drops to 0 outright.
   @Test
   func `frequency falls off logarithmically to a floor and off a cliff`() {
@@ -86,7 +86,7 @@ struct SearchRelevanceTests {
 }
 
 /// Exercises the merge against the real bundled databases.
-struct LexiconScoringTests {
+struct `Lexicon merging` {
   /// A query carrying tone digits is not English. Without that gate the FTS tokenizer strips the
   /// digit and `ni3` matches the English term "ni", surfacing 倪嗣冲.
   @Test

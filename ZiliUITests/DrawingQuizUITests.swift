@@ -9,7 +9,7 @@ import XCUITestKit
 /// Driving the drawing quiz's chrome from configuration to results. The stroke canvas is a
 /// gesture surface XCUITest cannot draw on, so this exercises only the quiz frame around it:
 /// configure the deck, start it, and skip past every card to the results screen. The drawing
-/// gesture and its grading are covered by unit tests (`StrokeTestEvaluatorTests`), because
+/// gesture and its grading are covered by unit tests (`Stroke evaluation`), because
 /// XCUITest cannot synthesize median-matching strokes for the evaluator to score.
 final class DrawingQuizUITests: ZiliUITestCase {
   /// A round opens on its prompt, whose only control is "Draw it!"; the skip control appears once

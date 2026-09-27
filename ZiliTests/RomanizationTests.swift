@@ -7,7 +7,7 @@ import Testing
 
 @testable import Zili
 
-struct RomanizationTests {
+struct `Romanization choices` {
   private static let transcriptions = HSKWord.Transcriptions(
     pinyin: "nǐ",
     numeric: "ni3",

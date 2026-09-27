@@ -8,7 +8,7 @@ import Testing
 @testable import Zili
 
 @MainActor
-struct ListeningQuizSessionTests {
+struct `Listening quiz sessions` {
   private static let deck = [
     PracticeSentence(
       id: "a",

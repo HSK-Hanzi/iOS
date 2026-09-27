@@ -9,7 +9,7 @@ import Testing
 @testable import Zili
 
 @MainActor
-struct StrokeTestModelTests {
+struct `Stroke test progress` {
   @Test
   func `onComplete fires once the character is finished`() {
     var completions = 0

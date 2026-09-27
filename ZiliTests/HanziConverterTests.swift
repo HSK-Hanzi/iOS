@@ -7,7 +7,7 @@ import Testing
 
 @testable import Zili
 
-struct HanziConverterTests {
+struct `Script conversion` {
   /// A small table exercising the matcher: a single-character mapping, plus a two-character phrase
   /// whose traditional form differs from converting its characters one by one.
   private let converter = HanziConverter(

@@ -7,7 +7,7 @@ import Testing
 
 @testable import Zili
 
-struct HSKPaletteTests {
+struct `HSK band colors` {
   /// Scoped to a standard the word belongs to, the color comes from its band *within that
   /// standard* — not its lowest band across the syllabus.
   @Test

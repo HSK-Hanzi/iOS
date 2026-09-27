@@ -12,7 +12,7 @@ import Testing
 /// Exercises the CloudKit convergence logic in ``deduplicate(_:by:in:consolidate:)``: which
 /// colliding record survives, how losers fold into it, and that a unique store is left untouched.
 @MainActor
-struct DeduplicationTests {
+struct `CloudKit de-duplication` {
   private func inMemoryContext() throws -> ModelContext {
     let container = try ModelContainer(
       for: WordMissCount.self,

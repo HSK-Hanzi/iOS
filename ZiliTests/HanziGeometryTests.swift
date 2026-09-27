@@ -9,7 +9,7 @@ import Testing
 
 @testable import Zili
 
-struct SVGPathTests {
+struct `SVG path parsing` {
   @Test
   func `a closed polygon parses to a path spanning its points`() {
     let path = SVGPath.path(from: "M0 0 L10 0 L10 10 L0 10 Z")
@@ -57,7 +57,7 @@ struct SVGPathTests {
   }
 }
 
-struct HanziGeometryTests {
+struct `Glyph geometry` {
   /// The glyph fits the rect's smaller side, so wide or tall rects scale by their short dimension.
   @Test(arguments: [
     (rect: CGRect(x: 0, y: 0, width: 512, height: 512), scale: CGFloat(0.5)),

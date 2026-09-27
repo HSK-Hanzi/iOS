@@ -8,7 +8,7 @@ import SwiftUI
 
 @testable import Zili
 
-struct FlipCardTests {
+struct `Card flipping` {
   @Test
   func `the front shows for the first quarter of a turn, the back past it, wrapping each turn`() {
     #expect(FlipCard<Text, Text>.showingBack(at: 0) == false)  // resting on the front

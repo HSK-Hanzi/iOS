@@ -11,7 +11,7 @@ import Testing
 /// Exercises the persistent miss tallies: per-mode counting and reset in the stores, and the
 /// CloudKit de-duplication that sums the records two devices can produce for the same key.
 @MainActor
-struct MissTrackingTests {
+struct `Miss tracking` {
   @Test
   func `a word's misses are counted per mode, surfaced for drilling, and cleared by reset`() {
     let store = WordMissStore.inMemory()

@@ -9,7 +9,7 @@ import Testing
 
 /// Exercises the sharing and retry behavior of the process-wide lexicon load with a stub loader
 /// that counts the loads it is asked for and can fail the first of them.
-struct LexiconStoreTests {
+struct `Lexicon loading` {
   /// Several readers arriving at once — a window and an App Intent, say — cost one load, not one
   /// each, and a later reader gets the value already in hand.
   @Test

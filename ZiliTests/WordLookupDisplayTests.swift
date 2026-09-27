@@ -7,7 +7,7 @@ import Testing
 
 @testable import Zili
 
-struct WordLookupDisplayTests {
+struct `Word lookup display` {
   // MARK: definitionSenses
 
   /// A word in the HSK core shows its curated meanings, even when a dictionary also defines it.

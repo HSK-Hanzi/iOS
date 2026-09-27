@@ -7,7 +7,7 @@ import Testing
 
 @testable import Zili
 
-struct PinyinSearchKeyTests {
+struct `Pinyin search keys` {
   /// Bare letters address the toneless column, a tone digit the numbered column, and a tone mark
   /// the marked column — so plain letters stay broad while either tone spelling narrows.
   @Test(arguments: [
