@@ -7,7 +7,7 @@ import Testing
 
 @testable import Zili
 
-struct SentenceAnswerTests {
+struct `Sentence answers` {
   @Test
   func `an exact answer matches`() {
     #expect(SentenceAnswer.matches("我想喝茶", expected: "我想喝茶"))

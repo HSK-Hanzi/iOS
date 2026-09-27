@@ -8,7 +8,7 @@ import Testing
 
 @testable import Zili
 
-struct HanziSpeechTests {
+struct `Spoken Hanzi` {
   // MARK: spoken
 
   /// The reading form of `render(_:)`: it converts the script and tags the result in one step.

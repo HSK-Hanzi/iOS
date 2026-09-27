@@ -7,7 +7,7 @@ import Testing
 
 @testable import Zili
 
-struct HSKLevelTests {
+struct `HSK level tags` {
   /// A tag is `"<standard>-<band>"`, so a known standard paired with an integer band parses.
   @Test(arguments: [
     (raw: "new-4", standard: HSKLevel.Standard.new, band: 4),

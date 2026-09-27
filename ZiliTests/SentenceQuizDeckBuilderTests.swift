@@ -7,7 +7,7 @@ import Testing
 
 @testable import Zili
 
-struct SentenceQuizDeckBuilderTests {
+struct `Sentence quiz deck building` {
   private static func sentence(_ id: String, level: Int) -> PracticeSentence {
     PracticeSentence(
       id: id,

@@ -7,7 +7,7 @@ import Testing
 
 @testable import Zili
 
-struct PinyinFormatterTests {
+struct `Pinyin formatting` {
   @Test(arguments: [
     (input: "ni3 hao3", expected: "nǐ hǎo"),  // basic, caron on the medial vowel
     (input: "xue2 xi2", expected: "xué xí"),  // e takes the mark ahead of u

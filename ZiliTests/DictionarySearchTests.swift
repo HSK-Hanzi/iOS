@@ -11,7 +11,7 @@ import Testing
 /// input mode: Chinese script, tone-marked pinyin, numbered pinyin, bare pinyin, English, and a
 /// query that is simultaneously English and pinyin. Opening the databases is cheap and querying is
 /// lazy, so each test loads its own lexicon.
-struct DictionarySearchTests {
+struct `Dictionary search` {
   /// Han script: an exact headword outranks its compounds.
   @Test
   func `Chinese script prefixes match directly, exact headword first`() async throws {

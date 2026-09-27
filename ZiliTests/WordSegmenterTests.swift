@@ -12,7 +12,7 @@ import Testing
 /// the dictionary does not know are sub-split. Each test loads its own lexicon, as the other
 /// dictionary suites do.
 @MainActor
-struct WordSegmenterTests {
+struct `Word segmentation` {
   /// Segments `text` and reads the words back out, so a test can assert on the text it wrote.
   private func words(in text: String) async throws -> [String] {
     let lexicon = try await Lexicon.load()

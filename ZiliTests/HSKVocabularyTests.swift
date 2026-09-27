@@ -7,7 +7,7 @@ import Testing
 
 @testable import Zili
 
-struct HSKVocabularyTests {
+struct `HSK word counts` {
   /// The syllabus lists a word in every band it belongs to, so a standard's vocabulary is the
   /// union of its bands — not their sum. 的 sits in both HSK 3.0 bands below, and counts once.
   @Test

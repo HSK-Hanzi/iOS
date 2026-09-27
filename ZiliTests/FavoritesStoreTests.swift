@@ -11,7 +11,7 @@ import Testing
 /// clearing, and the most-recently-added-first ordering the Practice grid relies on. A compact
 /// parallel check covers the sentence store's equivalent API.
 @MainActor
-struct FavoritesStoreTests {
+struct `Starred words` {
   @Test
   func `toggling a word stars it, then unstars it`() {
     let store = FavoritesStore.inMemory()

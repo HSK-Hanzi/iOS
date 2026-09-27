@@ -7,7 +7,7 @@ import Testing
 
 @testable import Zili
 
-struct SentenceLibraryTests {
+struct `Sentence corpora` {
   private static func sentence(_ id: String, level: Int) -> PracticeSentence {
     PracticeSentence(
       id: id,

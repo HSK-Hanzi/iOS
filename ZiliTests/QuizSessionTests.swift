@@ -8,7 +8,7 @@ import Testing
 @testable import Zili
 
 @MainActor
-struct QuizSessionTests {
+struct `Quiz sessions` {
   private static let deck = [
     QuizCard(word: "a", hanzi: "一", reading: "yī", definition: "one"),
     QuizCard(word: "b", hanzi: "二", reading: "èr", definition: "two"),

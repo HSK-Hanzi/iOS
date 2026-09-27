@@ -7,7 +7,7 @@ import Testing
 
 @testable import Zili
 
-struct BopomofoTests {
+struct `Bopomofo transcription` {
   @Test(arguments: [
     (pinyin: "nǐ hǎo", zhuyin: "ㄋㄧˇ ㄏㄠˇ"),  // basic two-syllable word
     (pinyin: "zhōng", zhuyin: "ㄓㄨㄥ"),  // -ong medial, tone 1 unmarked

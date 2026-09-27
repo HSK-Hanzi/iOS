@@ -8,7 +8,7 @@ import Testing
 @testable import Zili
 
 @MainActor
-struct DrawingVerdictTests {
+struct `Drawing verdicts` {
   @Test
   func `a character written entirely in correct strokes is marked correct`() {
     #expect(DrawingVerdict.outcome(for: result(of: [.correct, .correct, .correct])) == .correct)

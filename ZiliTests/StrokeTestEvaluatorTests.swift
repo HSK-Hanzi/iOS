@@ -8,7 +8,7 @@ import Testing
 
 @testable import Zili
 
-struct StrokeTestEvaluatorTests {
+struct `Stroke evaluation` {
   // MARK: Fixtures
 
   /// 十-like target: a horizontal stroke (left → right) then a vertical (top → bottom),

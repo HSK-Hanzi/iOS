@@ -7,7 +7,7 @@ import Testing
 
 @testable import Zili
 
-struct QuizDeckBuilderTests {
+struct `Quiz deck building` {
   @Test
   func `a built deck respects its size limit and resolves each card's content`() async throws {
     let lexicon = try await Lexicon.load()

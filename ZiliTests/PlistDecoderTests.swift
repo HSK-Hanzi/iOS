@@ -7,7 +7,7 @@ import Testing
 
 @testable import Zili
 
-struct PracticeSentencePlistTests {
+struct `Practice sentence plists` {
   private static var complete: [String: Any] {
     [
       "id": "s1",
@@ -48,7 +48,7 @@ struct PracticeSentencePlistTests {
   }
 }
 
-struct DictionarySensePlistTests {
+struct `Dictionary sense plists` {
   @Test
   func `a bare gloss string decodes with empty structure`() throws {
     let sense = try #require(DictionarySense(propertyList: "to drink"))
@@ -86,7 +86,7 @@ struct DictionarySensePlistTests {
   }
 }
 
-struct DictionaryEntryPlistTests {
+struct `Dictionary entry plists` {
   @Test
   func `a reading decodes into an entry, keeping the simplified key and its senses`() throws {
     let reading: [String: Any] = [

@@ -21,7 +21,7 @@ import Foundation
 /// locale governs the whole accessibility element, hint included, so an element carrying it should
 /// not also carry an English hint.
 ///
-/// `HanziSpeechTests` covers the tagging itself, but no test covers a view carrying it: the speech
+/// `Spoken Hanzi` covers the tagging itself, but no test covers a view carrying it: the speech
 /// language exists only once UIKit has built an accessibility tree, which needs a foreground-active
 /// scene, and unit tests run headless. Verify a change to a view by hosting it in a foregrounded
 /// Simulator and reading `UIAccessibilitySpeechAttributeLanguage` back off its
