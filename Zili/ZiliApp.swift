@@ -20,7 +20,8 @@ struct ZiliApp: App {
     FavoriteWord.self,
     FavoriteSentence.self,
     WordMissCount.self,
-    SentenceMissCount.self
+    SentenceMissCount.self,
+    WordReviewSchedule.self
   ]
 
   private let modelContainer: ModelContainer

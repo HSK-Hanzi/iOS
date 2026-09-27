@@ -24,6 +24,9 @@ struct FlashcardQuizConfigurationForm: View {
   @Environment(WordMissStore.self)
   private var wordMisses
 
+  @Environment(ReviewScheduleStore.self)
+  private var reviews
+
   @AppStorage(Romanization.storageKey)
   private var romanization = Romanization.pinyin
 
@@ -35,7 +38,9 @@ struct FlashcardQuizConfigurationForm: View {
         savedLevels: $savedLevels,
         sort: $configuration.sort,
         missedWords: wordMisses.wordsMissed(in: configuration.missMode),
-        countLabel: Text("\(wordCount) words selected.")
+        countLabel: Text("\(wordCount) words selected."),
+        sortOptions: QuizDeckSort.reviewOptions,
+        dueLabel: dueLabel
       )
       studyModeSection
       Section("Deck") {
@@ -73,6 +78,17 @@ struct FlashcardQuizConfigurationForm: View {
     configuration.source.isFavorites ? configuration.sort : .random
   }
 
+  /// How many of the chosen favorites are ready to be reviewed — the number this quiz is there to
+  /// bring down. Shown only while the deck is drawn in review order.
+  private var dueLabel: Text? {
+    guard deckSort == .dueForReview else { return nil }
+    let due = reviews.dueCount(
+      among: configuration.source.headwords(in: lexicon),
+      cue: configuration.recognitionCue
+    )
+    return Text("\(due) are due now.")
+  }
+
   init(
     lexicon: Lexicon,
     configuration: FlashcardQuizConfiguration,
@@ -87,15 +103,22 @@ struct FlashcardQuizConfigurationForm: View {
   }
 
   private func dealDeck() {
+    let (cue, missMode) = (configuration.recognitionCue, configuration.missMode)
     let deck = QuizDeckBuilder.build(
       from: lexicon,
       source: configuration.source,
       sort: deckSort,
       limit: configuration.deckSize,
-      romanization: romanization
+      romanization: romanization,
+      dueDates: reviews.dueDates(for: cue)
     )
-    let missMode = configuration.missMode
-    start(QuizSession(deck: deck, onMiss: { wordMisses.recordMiss($0, mode: missMode) }))
+    start(
+      QuizSession(
+        deck: deck,
+        onMiss: { wordMisses.recordMiss($0, mode: missMode) },
+        onJudge: { reviews.record($1, for: $0, cue: cue) }
+      )
+    )
   }
 }
 
@@ -124,6 +147,7 @@ private struct FlashcardConfigurationFormPreview: View {
       }
     }
     .environment(WordMissStore.inMemory())
+    .environment(ReviewScheduleStore.inMemory())
     .task { lexicon = try? await Lexicon.load() }
   }
 }

@@ -17,13 +17,15 @@ extension FavoriteWord: DeduplicableRecord {}
 extension FavoriteSentence: DeduplicableRecord {}
 extension WordMissCount: DeduplicableRecord {}
 extension SentenceMissCount: DeduplicableRecord {}
+extension WordReviewSchedule: DeduplicableRecord {}
 
 /// Keeps one record per key and deletes the rest, returning whether anything was deleted.
 ///
 /// The survivor is the record with the smallest ``DeduplicableRecord/identifier`` — a choice every
 /// device makes identically, so their stores converge on the same winner. `consolidate` folds each
 /// loser into the survivor before it is deleted: miss stores add the loser's counts so an offline
-/// device's tally isn't lost, while favorites, which carry no value to merge, pass nothing.
+/// device's tally isn't lost, the review schedule takes the loser's review when it is the later one,
+/// and favorites, which carry no value to merge, pass nothing.
 ///
 /// The caller saves the context afterward, as part of its own reload.
 @discardableResult
