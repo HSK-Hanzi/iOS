@@ -1,0 +1,38 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "%lld words due" : {
+      "comment" : "How many of the learner's favorites are ready to review. Also the label VoiceOver reads for the Lock Screen ring, which shows the number alone.",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld word due"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld words due"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "Due for Review" : {
+      "comment" : "The widget's name, as the widget gallery lists it."
+    },
+    "How many of your favorites are ready to review, and which one has waited longest." : {
+      "comment" : "The widget's description in the widget gallery."
+    },
+    "Nothing to review" : {
+      "comment" : "Shown on the widget when no starred word is due — and when nothing is starred at all, which the widget cannot tell apart."
+    }
+  },
+  "version" : "1.1"
+}

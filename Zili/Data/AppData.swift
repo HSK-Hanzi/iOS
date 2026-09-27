@@ -6,6 +6,7 @@
 import Sentry
 import SwiftData
 import SwiftUI
+import WidgetKit
 
 /// The app's one load of its language database, shared by every window. Windows read ``state``
 /// through ``LexiconGate`` rather than loading a ``Lexicon`` of their own, so a second dictionary
@@ -65,6 +66,7 @@ final class AppData {
     }
     do {
       state = .loaded(try await LexiconStore.shared.lexicon())
+      startSharingWithWidget()
     } catch {
       SentrySDK.capture(error: error) { scope in
         scope.setTag(value: "lexicon", key: "component")
@@ -95,6 +97,57 @@ final class AppData {
     if uiTest.seedsMisses {
       wordMisses.recordMiss("是", mode: .recognizing)
       wordMisses.recordMiss("他", mode: .writing)
+    }
+  }
+
+  /// Starts handing the widget what's due, and keeps it level from here on.
+  ///
+  /// A UI test launch shares nothing. It runs against an in-memory store holding the test's own
+  /// fixture, and the App Group container is not in-memory — writing there would leave one run's
+  /// seed sitting in the widget's file for the next run, and for the learner's real widget.
+  private func startSharingWithWidget() {
+    guard !uiTest.isEnabled else { return }
+    refreshReviewSnapshot()
+    observeReviewChanges()
+  }
+
+  /// Hands the widget a fresh copy of what the learner has starred and when each word falls due.
+  ///
+  /// The widget cannot open the app's store, so this is the whole of what it knows. Rendering is
+  /// done here rather than there for the same reason: the characters and the reading depend on the
+  /// learner's script and romanization, and on the dictionary, none of which the extension has.
+  ///
+  /// A word with no schedule carries ``Date/distantPast`` — never having been quizzed on it is the
+  /// earliest it can be due, which is the same reading the review sort takes.
+  private func refreshReviewSnapshot() {
+    guard case .loaded(let lexicon) = state else { return }
+    let script = ChineseScript.preferred
+    let romanization = Romanization.preferred
+    let dueDates = reviews.dueDates
+    let words = favorites.favoritedWords.map { word in
+      ReviewSnapshot.Word(
+        headword: word,
+        display: script.render(word),
+        reading: lexicon.lookup(word).romanization(romanization) ?? "",
+        dueDate: dueDates[word] ?? .distantPast
+      )
+    }
+    ReviewSnapshotFile.write(ReviewSnapshot(words: words))
+    WidgetCenter.shared.reloadTimelines(ofKind: ReviewSnapshotFile.widgetKind)
+  }
+
+  /// Rewrites the widget's copy whenever a star or a judgement moves. Re-arms itself, since a
+  /// tracking closure fires once.
+  private func observeReviewChanges() {
+    withObservationTracking {
+      _ = favorites.favoritedWords
+      _ = reviews.dueDates
+    } onChange: { [weak self] in
+      Task { @MainActor in
+        guard let self else { return }
+        self.refreshReviewSnapshot()
+        self.observeReviewChanges()
+      }
     }
   }
 
