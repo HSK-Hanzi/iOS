@@ -40,3 +40,39 @@ final class FlashcardQuizConfiguration {
     self.deckSize = deckSize
   }
 }
+
+extension FlashcardQuizConfiguration {
+  /// The sort to deal by: the learner's choice while their favorites are the source, and a random
+  /// sample otherwise — a set with no starring dates has no newest or oldest to draw.
+  var deckSort: QuizDeckSort {
+    source.isFavorites ? sort : .random
+  }
+
+  /// Points the quiz at `favorites`, drawn in the order they fall due — what a review is.
+  func prepareReview(of favorites: [String]) {
+    source = .favorites(favorites)
+    sort = .dueForReview
+  }
+
+  /// Deals a deck from these settings into a session that records each miss and judgement.
+  func deal(
+    from lexicon: Lexicon,
+    romanization: Romanization,
+    wordMisses: WordMissStore,
+    reviews: ReviewScheduleStore
+  ) -> QuizSession {
+    let deck = QuizDeckBuilder.build(
+      from: lexicon,
+      source: source,
+      sort: deckSort,
+      limit: deckSize,
+      romanization: romanization,
+      dueDates: reviews.dueDates
+    )
+    return QuizSession(
+      deck: deck,
+      onMiss: { wordMisses.recordMiss($0, mode: .recognizing) },
+      onJudge: { reviews.record($1, for: $0) }
+    )
+  }
+}

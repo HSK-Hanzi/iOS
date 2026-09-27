@@ -13,8 +13,14 @@
   struct QuizHomeView: View {
     let lexicon: Lexicon
 
+    /// Reviews opened from outside the app, each a fresh one so a second link deals a second deck.
+    @State private var path: [ReviewRequest] = []
+
+    @Environment(AppRouter.self)
+    private var router
+
     var body: some View {
-      NavigationStack {
+      NavigationStack(path: $path) {
         VStack(spacing: 20) {
           NavigationLink {
             FlashcardQuizConfigurationView(lexicon: lexicon)
@@ -66,8 +72,19 @@
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .quizAmbientBackground(QuizStyle.ambientGradient)
         .navigationTitle("Quiz")
+        .navigationDestination(for: ReviewRequest.self) { _ in
+          FlashcardQuizConfigurationView(lexicon: lexicon, startsReview: true)
+        }
+      }
+      .onChange(of: router.pending, initial: true) {
+        if router.takeReview() { path = [ReviewRequest()] }
       }
     }
+  }
+
+  /// A review the Quiz tab was asked to open.
+  private struct ReviewRequest: Hashable {
+    let id = UUID()
   }
 
   #Preview("Quiz modes · from bundle") {
@@ -89,6 +106,8 @@
       .environment(FavoritesStore.inMemory())
       .environment(WordMissStore.inMemory())
       .environment(SentenceMissStore.inMemory())
+      .environment(ReviewScheduleStore.inMemory())
+      .environment(AppRouter())
       .task { lexicon = try? await Lexicon.load() }
     }
   }

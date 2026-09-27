@@ -82,6 +82,12 @@ struct QuizPage: Page {
     await test.tap(AccessibilityID.listeningSubmit, "Check the typed answer.")
   }
 
+  /// Waits for the progress pill to read `card` of `deckSize`.
+  @discardableResult
+  func expectProgress(card: Int, of deckSize: Int, _ message: String) -> Bool {
+    test.expectText(of: progress, beginningWith: "\(card) / \(deckSize)", message)
+  }
+
   #if os(macOS)
     /// Turns the card over with the Space key.
     func flipByKeyboard() {

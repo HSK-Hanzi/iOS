@@ -247,6 +247,11 @@ class ZiliUITestCase: XCTestCase {
     }
   #endif
 
+  /// Opens the app at `link`, the way a widget tap or the Start Review control does.
+  func follow(link: String) throws {
+    app.open(try XCTUnwrap(URL(string: link), "A well-formed link."))
+  }
+
   /// Brings the dictionary forward: the Dictionary tab on iOS, the Dictionary window on macOS.
   func goToDictionary() {
     #if os(macOS)
