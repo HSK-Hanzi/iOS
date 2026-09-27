@@ -26,10 +26,18 @@ final class FlashcardQuizConfiguration {
   /// The most cards to draw, or `nil` for the whole source.
   var deckSize: Int?
 
-  /// The tally a miss on these settings counts toward: recognizing the Hanzi when the prompt shows
-  /// them alone, and recognizing the word when it shows the reading too or asks from the meaning.
+  /// What these settings' prompt gives the learner to recognize a word from: the Hanzi when it
+  /// shows them alone, and the whole word when it shows the reading too or asks from the meaning.
+  var recognitionCue: RecognitionCue {
+    direction == .chineseToEnglish && !showsReadingWithHanzi ? .hanzi : .word
+  }
+
+  /// The tally a miss on these settings counts toward, following ``recognitionCue``.
   var missMode: WordQuizMode {
-    direction == .chineseToEnglish && !showsReadingWithHanzi ? .recognizingHanzi : .recognizing
+    switch recognitionCue {
+      case .word: .recognizing
+      case .hanzi: .recognizingHanzi
+    }
   }
 
   init(

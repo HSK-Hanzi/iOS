@@ -9,6 +9,14 @@ here and as plain text on the store, where the field shows whatever it is given
 verbatim: a line that only makes sense with its formatting will read badly in
 one of the two places.
 
+## 1.4
+
+### NEW
+
+- Recognition quizzes can deal your favorites in the order you are closest to
+  forgetting them. Choose "Due for Review" under Sort: a word you miss comes back
+  tomorrow, and one you know comes back later each time.
+
 ## 1.3
 
 ### NEW

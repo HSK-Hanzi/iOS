@@ -3,6 +3,7 @@
 //  ZiliTests
 //
 
+import Foundation
 import Testing
 
 @testable import Zili
@@ -47,6 +48,35 @@ struct `Quiz deck building` {
     let mostCommon = lexicon.words(in: level).sorted { rank($0) < rank($1) }.prefix(30)
 
     #expect(Set(deck.map(\.word)) == Set(mostCommon))
+  }
+
+  @Test
+  func `a review deck draws the words never reviewed first, then the longest overdue`() async throws
+  {
+    let lexicon = try await Lexicon.load()
+    let level = try #require(lexicon.availableLevels.first)
+    let starred = Array(lexicon.words(in: level).prefix(6))
+    try #require(starred.count == 6)
+
+    let now = Date.now
+    let day: TimeInterval = 24 * 60 * 60
+    let dueDates = [
+      starred[0]: now.addingTimeInterval(day),
+      starred[1]: now.addingTimeInterval(-day),
+      starred[2]: now.addingTimeInterval(-7 * day)
+    ]
+
+    let deck = QuizDeckBuilder.build(
+      from: lexicon,
+      source: .favorites(starred),
+      sort: .dueForReview,
+      limit: 4,
+      romanization: .pinyin,
+      dueDates: dueDates
+    )
+
+    // The three the learner has never been quizzed on, then the one a week overdue.
+    #expect(Set(deck.map(\.word)) == Set(starred[3...]).union([starred[2]]))
   }
 
   @Test

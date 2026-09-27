@@ -19,6 +19,11 @@ final class QuizSession {
   /// miss. A skip doesn't fire it — only a needs-review answer counts as a miss.
   private let onMiss: (String) -> Void
 
+  /// Called with every card's word and judgement, so the quiz's owner can keep a review schedule.
+  /// Unlike ``onMiss`` a skip does fire it: what a skip means to a schedule is the schedule's
+  /// business, not the session's.
+  private let onJudge: (String, Outcome) -> Void
+
   /// The card awaiting judgement, or `nil` once the deck is finished.
   var current: QuizCard? {
     deck.indices.contains(currentIndex) ? deck[currentIndex] : nil
@@ -62,21 +67,27 @@ final class QuizSession {
     deck.map(\.word).filter { outcomes[$0] == .needsReview }
   }
 
-  init(deck: [QuizCard], onMiss: @escaping (String) -> Void = { _ in }) {
+  init(
+    deck: [QuizCard],
+    onMiss: @escaping (String) -> Void = { _ in },
+    onJudge: @escaping (String, Outcome) -> Void = { _, _ in }
+  ) {
     self.deck = deck
     self.onMiss = onMiss
+    self.onJudge = onJudge
     currentIndex = 0
     outcomes = [:]
   }
 
-  /// Records `outcome` for the current card, reports it to `onMiss` when it's a miss, and
-  /// advances to the next.
+  /// Records `outcome` for the current card, reports it to `onJudge` and — when it's a miss — to
+  /// `onMiss`, and advances to the next.
   func mark(_ outcome: Outcome) {
     guard let current else { return }
     outcomes[current.word] = outcome
     if outcome == .needsReview {
       onMiss(current.word)
     }
+    onJudge(current.word, outcome)
     currentIndex += 1
   }
 
