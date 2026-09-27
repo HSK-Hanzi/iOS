@@ -18,10 +18,8 @@ struct DueForReviewView: View {
 
   var body: some View {
     switch family {
-      #if !os(visionOS)
-        case .accessoryCircular: CircularFace(dueCount: entry.dueCount)
-        case .accessoryRectangular: RectangularFace(entry: entry)
-      #endif
+      case .accessoryCircular: CircularFace(dueCount: entry.dueCount)
+      case .accessoryRectangular: RectangularFace(entry: entry)
       case .systemSmall: SmallFace(entry: entry)
       default: WideFace(entry: entry)
     }
@@ -152,7 +150,7 @@ private struct NothingDue: View {
   DueForReviewEntry(date: .now, dueCount: 0, next: nil)
 }
 
-#if os(iOS)
+#if !os(macOS)
   #Preview("Circular", as: .accessoryCircular) {
     DueForReviewWidget()
   } timeline: {
