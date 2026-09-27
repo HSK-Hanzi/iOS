@@ -5,6 +5,7 @@
 //  Created by Tim Morgan on 7/6/26.
 //
 
+import AppIntents
 import Sentry
 import SwiftData
 import SwiftUI
@@ -17,6 +18,8 @@ struct ZiliApp: App {
   @State private var appData: AppData
 
   @State private var errorStore = ErrorStore()
+
+  @State private var router: AppRouter
 
   var body: some Scene {
     mainScene
@@ -47,8 +50,13 @@ struct ZiliApp: App {
       .keyboardShortcut("1")
       .defaultSize(width: 1000, height: 700)
       .defaultLaunchBehavior(.presented)
+      // The Dictionary window answers every route: it shows a word itself and opens a quiz
+      // window for a review. Claiming the scheme here keeps a link from spawning a window of
+      // another scene to receive it.
+      .handlesExternalEvents(matching: [AppRoute.scheme])
       .modelContainer(modelContainer)
       .environment(appData)
+      .environment(router)
       .environment(\.errorStore, errorStore)
       .commands {
         CommandGroup(replacing: .appInfo) {
@@ -83,8 +91,12 @@ struct ZiliApp: App {
       .environment(appData)
       .environment(\.errorStore, errorStore)
 
-      WindowGroup("Recognition Quiz", id: WindowID.recognitionQuiz, for: UUID.self) { _ in
-        RecognitionQuizWindow()
+      WindowGroup(
+        "Recognition Quiz",
+        id: WindowID.recognitionQuiz,
+        for: RecognitionQuizRequest.self
+      ) { request in
+        RecognitionQuizWindow(startsReview: request.wrappedValue?.startsReview ?? false)
       }
       .defaultSize(width: 720, height: 780)
       .restorationBehavior(.disabled)
@@ -117,6 +129,7 @@ struct ZiliApp: App {
       }
       .modelContainer(modelContainer)
       .environment(appData)
+      .environment(router)
       .environment(\.errorStore, errorStore)
       #if os(visionOS)
         // A landscape default suits the primary tab's wide master–detail dictionary while still
@@ -134,6 +147,9 @@ struct ZiliApp: App {
     let container = Self.makeModelContainer(uiTest: uiTest)
     modelContainer = container
     _appData = State(initialValue: AppData(container: container, uiTest: uiTest))
+    let router = AppRouter()
+    _router = State(initialValue: router)
+    AppDependencyManager.shared.add(dependency: router)
     Self.prewarmScriptConverterIfNeeded()
     Self.configureTips(uiTest: uiTest)
   }
@@ -259,7 +275,7 @@ struct ZiliApp: App {
     var body: some Commands {
       CommandGroup(replacing: .newItem) {
         Button("New Recognition Quiz") {
-          openWindow(id: WindowID.recognitionQuiz, value: UUID())
+          openWindow(id: WindowID.recognitionQuiz, value: RecognitionQuizRequest())
         }
         .keyboardShortcut("n")
         .disabled(!isEnabled)

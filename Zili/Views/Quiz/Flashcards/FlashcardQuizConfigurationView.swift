@@ -8,9 +8,11 @@
 
   /// Where the learner sets up a recognition quiz, as a screen in the Quiz tab's navigation stack.
   /// It owns the configuration the quiz reads and the session the form deals, and pushes
-  /// ``FlashcardQuizView`` once a deck exists.
+  /// ``FlashcardQuizView`` once a deck exists. Opened to start a review, it deals one straight
+  /// away and the form is where the learner lands when the quiz is done.
   struct FlashcardQuizConfigurationView: View {
     let lexicon: Lexicon
+    let startsReview: Bool
 
     @State private var configuration: FlashcardQuizConfiguration
     @State private var session: QuizSession?
@@ -20,6 +22,12 @@
         session = dealt
       }
       .navigationTitle("Recognizing")
+      .dealsReview(
+        if: startsReview,
+        from: lexicon,
+        configuration: configuration,
+        into: $session
+      )
       .navigationDestination(isPresented: isQuizActive) {
         if let session {
           FlashcardQuizView()
@@ -36,8 +44,9 @@
       )
     }
 
-    init(lexicon: Lexicon) {
+    init(lexicon: Lexicon, startsReview: Bool = false) {
       self.lexicon = lexicon
+      self.startsReview = startsReview
       let level = lexicon.availableLevels.first ?? HSKLevel(standard: .new, band: 1)
       _configuration = State(initialValue: FlashcardQuizConfiguration(source: .hskLevels([level])))
     }
@@ -61,6 +70,7 @@
       }
       .environment(FavoritesStore.inMemory())
       .environment(WordMissStore.inMemory())
+      .environment(ReviewScheduleStore.inMemory())
       .task { lexicon = try? await Lexicon.load() }
     }
   }

@@ -14,6 +14,10 @@ import WidgetKit
 @MainActor
 @Observable
 final class AppData {
+  /// How many days of words the Word of the Day widget is handed at once — enough that a learner
+  /// who stays away for weeks still finds a fresh word each morning.
+  private static let wordOfTheDayHorizon = 30
+
   private(set) var state = LoadState.loading
 
   /// The learner's starred words, over the container's main context.
@@ -100,7 +104,7 @@ final class AppData {
     }
   }
 
-  /// Starts handing the widget what's due, and keeps it level from here on.
+  /// Starts handing the widgets what they show, and keeps the review count level from here on.
   ///
   /// A UI test launch shares nothing. It runs against an in-memory store holding the test's own
   /// fixture, and the App Group container is not in-memory — writing there would leave one run's
@@ -109,6 +113,7 @@ final class AppData {
     guard !uiTest.isEnabled else { return }
     refreshReviewSnapshot()
     observeReviewChanges()
+    refreshWordOfTheDay()
   }
 
   /// Hands the widget a fresh copy of what the learner has starred and when each word falls due.
@@ -132,8 +137,34 @@ final class AppData {
         dueDate: dueDates[word] ?? .distantPast
       )
     }
-    ReviewSnapshotFile.write(ReviewSnapshot(words: words))
-    WidgetCenter.shared.reloadTimelines(ofKind: ReviewSnapshotFile.widgetKind)
+    share(ReviewSnapshot(words: words), through: .review)
+  }
+
+  /// Hands the Word of the Day widget the next stretch of days, each word rendered in the
+  /// learner's script and romanization, since the widget has neither the dictionary nor the pool.
+  private func refreshWordOfTheDay() {
+    guard case .loaded(let lexicon) = state, let picker = WordOfTheDay(lexicon: lexicon) else {
+      return
+    }
+    let script = ChineseScript.preferred
+    let romanization = Romanization.preferred
+    let days = picker.days(from: .now, count: Self.wordOfTheDayHorizon).map { date, word in
+      let lookup = lexicon.lookup(word)
+      return WordOfTheDaySnapshot.Day(
+        date: date,
+        headword: word,
+        display: script.render(word),
+        reading: lookup.romanization(romanization) ?? "",
+        gloss: lookup.primaryGloss
+      )
+    }
+    share(WordOfTheDaySnapshot(days: days), through: .wordOfTheDay)
+  }
+
+  /// Writes `content` where its widget reads it, and tells WidgetKit that widget is stale.
+  private func share<Content>(_ content: Content, through file: AppGroupFile<Content>) {
+    file.write(content)
+    WidgetCenter.shared.reloadTimelines(ofKind: file.widgetKind)
   }
 
   /// Rewrites the widget's copy whenever a star or a judgement moves. Re-arms itself, since a
