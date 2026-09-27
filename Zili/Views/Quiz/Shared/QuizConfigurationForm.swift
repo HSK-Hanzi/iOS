@@ -18,6 +18,12 @@ struct QuizSourceSection: View {
   /// A snapshot of the words missed in the mode this quiz drills — the "Missed" deck's words.
   let missedWords: [String]
   let countLabel: Text
+  /// The sorts the favorites picker offers. Defaults to the three every quiz has; the recognition
+  /// quiz, which keeps the review schedules, passes the set that includes the review order.
+  var sortOptions: [QuizDeckSort] = QuizDeckSort.favoriteOptions
+  /// How many of the chosen favorites are due, shown under the count while the deck is drawn in
+  /// review order. `nil` for every other source and sort.
+  var dueLabel: Text?
 
   @Environment(FavoritesStore.self)
   private var favorites
@@ -40,7 +46,7 @@ struct QuizSourceSection: View {
             Text("Star words to build a favorites deck.")
               .foregroundStyle(.secondary)
           } else {
-            QuizSortPicker(sort: $sort)
+            QuizSortPicker(sort: $sort, options: sortOptions)
           }
         case .missed:
           if missedWords.isEmpty {
@@ -51,7 +57,11 @@ struct QuizSourceSection: View {
     } header: {
       Text("Words")
     } footer: {
-      countLabel
+      VStack(alignment: .leading, spacing: 2) {
+        countLabel
+        dueLabel
+      }
+      .frame(maxWidth: .infinity, alignment: .leading)
     }
     .onChange(of: favorites.favoritedWords, initial: true) { _, _ in resnapshotSource() }
     .onChange(of: missedWords) { _, _ in resnapshotSource() }
@@ -106,14 +116,16 @@ struct QuizSourceSection: View {
   }
 }
 
-/// Picks which of the learner's favorites a deck draws — the newest, the oldest, or a random
-/// sample. The deck is shuffled either way, so this chooses the sample and not the running order.
+/// Picks which of the learner's favorites a deck draws — the newest, the oldest, a random
+/// sample, or the ones closest to being forgotten. The deck is shuffled either way, so this
+/// chooses the sample and not the running order.
 struct QuizSortPicker: View {
   @Binding var sort: QuizDeckSort
+  var options: [QuizDeckSort] = QuizDeckSort.favoriteOptions
 
   var body: some View {
     Picker("Sort", selection: $sort) {
-      ForEach(QuizDeckSort.favoriteOptions, id: \.self) { option in
+      ForEach(options, id: \.self) { option in
         Text(option.displayName).tag(option)
       }
     }

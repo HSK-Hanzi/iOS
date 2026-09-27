@@ -25,6 +25,7 @@ struct LexiconGate<Content: View>: View {
             .environment(appData.sentenceFavorites)
             .environment(appData.wordMisses)
             .environment(appData.sentenceMisses)
+            .environment(appData.reviews)
         case .failed(let error):
           LoadFailureView(error: error) { await appData.load() }
         case .loading:

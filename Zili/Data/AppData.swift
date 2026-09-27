@@ -27,6 +27,9 @@ final class AppData {
   /// The learner's per-sentence quiz miss tallies, over the same context.
   let sentenceMisses: SentenceMissStore
 
+  /// When each word the learner has been quizzed on falls due again, over the same context.
+  let reviews: ReviewScheduleStore
+
   /// Whether the database is in hand — the File menu's new-quiz items stay inert until it is.
   var isLoaded: Bool {
     if case .loaded = state { true } else { false }
@@ -44,6 +47,7 @@ final class AppData {
     sentenceFavorites = SentenceFavoritesStore(context: container.mainContext)
     wordMisses = WordMissStore(context: container.mainContext)
     sentenceMisses = SentenceMissStore(context: container.mainContext)
+    reviews = ReviewScheduleStore(context: container.mainContext)
     seedForUITestingIfNeeded()
   }
 
@@ -112,6 +116,7 @@ extension AppData {
         FavoriteSentence.self,
         WordMissCount.self,
         SentenceMissCount.self,
+        WordReviewSchedule.self,
         configurations: configuration
       )
     else {

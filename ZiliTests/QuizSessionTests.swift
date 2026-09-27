@@ -81,4 +81,22 @@ struct `Quiz sessions` {
 
     #expect(missed == ["a"])
   }
+
+  @Test
+  func `every judgement is reported for scheduling, where only a wrong one is a miss`() {
+    var missed: [String] = []
+    var judged: [String: QuizSession.Outcome] = [:]
+    let session = QuizSession(
+      deck: Self.deck,
+      onMiss: { missed.append($0) },
+      onJudge: { judged[$0] = $1 }
+    )
+
+    session.mark(.needsReview)
+    session.mark(.correct)
+    session.mark(.skipped)
+
+    #expect(missed == ["a"])
+    #expect(judged == ["a": .needsReview, "b": .correct, "c": .skipped])
+  }
 }

@@ -225,7 +225,8 @@ struct ZiliApp: App {
       FavoriteWord.self,
       FavoriteSentence.self,
       WordMissCount.self,
-      SentenceMissCount.self
+      SentenceMissCount.self,
+      WordReviewSchedule.self
     ])
     let modelConfiguration =
       uiTest.isEnabled

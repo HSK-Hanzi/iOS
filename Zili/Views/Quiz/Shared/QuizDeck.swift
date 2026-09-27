@@ -110,9 +110,15 @@ enum QuizDeckSort: Hashable, Sendable {
   case oldest
   /// The most common words first, by corpus frequency rank.
   case frequency
+  /// The words closest to being forgotten first: those never reviewed, then those longest overdue.
+  case dueForReview
 
   /// The sorts a favorites deck offers, in the order the picker lists them.
   static let favoriteOptions: [Self] = [.random, .mostRecent, .oldest]
+
+  /// Those, plus the spaced-repetition order — offered by the one quiz that asks after a whole
+  /// word, and so is the one that keeps the schedules.
+  static let reviewOptions: [Self] = favoriteOptions + [.dueForReview]
 
   var displayName: String {
     switch self {
@@ -120,17 +126,20 @@ enum QuizDeckSort: Hashable, Sendable {
       case .mostRecent: String(localized: "Most Recent")
       case .oldest: String(localized: "Oldest")
       case .frequency: String(localized: "Most Common")
+      case .dueForReview: String(localized: "Due for Review")
     }
   }
 
-  /// `items` in this sort's order, ready to be capped. `.frequency` sorts by `rank`; sources with
-  /// nothing to rank by keep the order they arrived in.
+  /// `items` in this sort's order, ready to be capped. The ranking sorts — `.frequency` and
+  /// `.dueForReview` — order by `rank` ascending; sources with nothing to rank by keep the order
+  /// they arrived in.
   func sorted<T>(_ items: [T], rankedBy rank: ((T) -> Int)? = nil) -> [T] {
     switch self {
       case .random: items.shuffled()
       case .mostRecent: items
       case .oldest: Array(items.reversed())
-      case .frequency: rank.map { rank in items.sorted { rank($0) < rank($1) } } ?? items
+      case .frequency, .dueForReview:
+        rank.map { rank in items.sorted { rank($0) < rank($1) } } ?? items
     }
   }
 }
@@ -143,17 +152,20 @@ enum QuizDeckBuilder {
   private static let missingDefinition = "—"
 
   /// A deck for `source`, read in `romanization`, drawn from the `limit` words `sort` picks out
-  /// (all of them when `limit` is `nil`) and shuffled.
+  /// (all of them when `limit` is `nil`) and shuffled. `dueDates` is what `.dueForReview` draws by,
+  /// and is unread by every other sort.
   static func build(
     from lexicon: Lexicon,
     source: QuizDeckSource,
     sort: QuizDeckSort = .random,
     limit: Int?,
-    romanization: Romanization
+    romanization: Romanization,
+    dueDates: [String: Date] = [:]
   ) -> [QuizCard] {
-    let headwords = sort.sorted(source.headwords(in: lexicon)) {
-      lexicon.lookup($0).frequencyRank ?? .max
-    }
+    let headwords = sort.sorted(
+      source.headwords(in: lexicon),
+      rankedBy: rank(for: sort, in: lexicon, dueDates: dueDates)
+    )
     return capped(headwords, at: limit)
       .shuffled()
       .map {
@@ -211,6 +223,21 @@ enum QuizDeckBuilder {
       covered += group.count
     }
     return groups
+  }
+
+  /// What `sort` orders headwords by: corpus rank for the most common first, and the moment a word
+  /// next falls due for the review order — where a word with no schedule has never been reviewed,
+  /// and so comes ahead of every word that has.
+  private static func rank(
+    for sort: QuizDeckSort,
+    in lexicon: Lexicon,
+    dueDates: [String: Date]
+  ) -> (String) -> Int {
+    switch sort {
+      case .frequency: { lexicon.lookup($0).frequencyRank ?? .max }
+      case .dueForReview: { dueDates[$0].map { Int($0.timeIntervalSinceReferenceDate) } ?? .min }
+      case .random, .mostRecent, .oldest: { _ in 0 }
+    }
   }
 
   /// The first `limit` of `items`, or all of them when there is no limit.
