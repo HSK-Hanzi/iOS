@@ -7,12 +7,22 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		014E4F7A30679ACE0069C2EE /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 014E4F7930679ACE0069C2EE /* WidgetKit.framework */; };
+		014E4F7C30679ACE0069C2EE /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 014E4F7B30679ACE0069C2EE /* SwiftUI.framework */; };
+		014E4F8730679ACF0069C2EE /* ZiliWidgetsExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 014E4F7730679ACE0069C2EE /* ZiliWidgetsExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		01DD76E62FFCB321000CA793 /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = 01DD76E52FFCB321000CA793 /* GRDB */; };
 		5E17A9000000000000000003 /* Sentry in Frameworks */ = {isa = PBXBuildFile; productRef = 5E17A9000000000000000002 /* Sentry */; };
 		A11CE5701000000000000003 /* XCUITestKit in Frameworks */ = {isa = PBXBuildFile; productRef = A11CE5701000000000000002 /* XCUITestKit */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		014E4F8530679ACF0069C2EE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 01DD75D22FFBE56F000CA793 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 014E4F7630679ACE0069C2EE;
+			remoteInfo = ZiliWidgetsExtension;
+		};
 		01DD75EC2FFBE570000CA793 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 01DD75D22FFBE56F000CA793 /* Project object */;
@@ -29,13 +39,36 @@
 		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		014E4F8830679ACF0069C2EE /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			dstPath = "";
+			dstSubfolder = PlugIns;
+			files = (
+				014E4F8730679ACF0069C2EE /* ZiliWidgetsExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		014E4F7730679ACE0069C2EE /* ZiliWidgetsExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ZiliWidgetsExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		014E4F7930679ACE0069C2EE /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = /System/Library/Frameworks/WidgetKit.framework; sourceTree = "<absolute>"; };
+		014E4F7B30679ACE0069C2EE /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = /System/Library/Frameworks/SwiftUI.framework; sourceTree = "<absolute>"; };
+		014E4F8D30679AE30069C2EE /* ZiliWidgetsExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ZiliWidgetsExtension.entitlements; sourceTree = "<group>"; };
 		01DD75DA2FFBE56F000CA793 /* Zili.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Zili.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		01DD75EB2FFBE570000CA793 /* ZiliTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ZiliTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		01DD75F52FFBE570000CA793 /* ZiliUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ZiliUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		014E4F8C30679ACF0069C2EE /* Exceptions for "ZiliWidgets" folder in "ZiliWidgetsExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 014E4F7630679ACE0069C2EE /* ZiliWidgetsExtension */;
+		};
 		01DD75FD2FFBE570000CA793 /* Exceptions for "Zili" folder in "Zili" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -46,6 +79,19 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		014E4F7D30679ACE0069C2EE /* ZiliWidgets */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				014E4F8C30679ACF0069C2EE /* Exceptions for "ZiliWidgets" folder in "ZiliWidgetsExtension" target */,
+			);
+			path = ZiliWidgets;
+			sourceTree = "<group>";
+		};
+		01CAFE0130679ACE0069C2EE /* Shared */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Shared;
+			sourceTree = "<group>";
+		};
 		01DD75DC2FFBE56F000CA793 /* Zili */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
@@ -67,6 +113,13 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		014E4F7430679ACE0069C2EE /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			files = (
+				014E4F7C30679ACE0069C2EE /* SwiftUI.framework in Frameworks */,
+				014E4F7A30679ACE0069C2EE /* WidgetKit.framework in Frameworks */,
+			);
+		};
 		01DD75D72FFBE56F000CA793 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			files = (
@@ -88,12 +141,25 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		014E4F7830679ACE0069C2EE /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				014E4F7930679ACE0069C2EE /* WidgetKit.framework */,
+				014E4F7B30679ACE0069C2EE /* SwiftUI.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		01DD75D12FFBE56F000CA793 = {
 			isa = PBXGroup;
 			children = (
+				014E4F8D30679AE30069C2EE /* ZiliWidgetsExtension.entitlements */,
+				01CAFE0130679ACE0069C2EE /* Shared */,
 				01DD75DC2FFBE56F000CA793 /* Zili */,
 				01DD75EE2FFBE570000CA793 /* ZiliTests */,
 				01DD75F82FFBE570000CA793 /* ZiliUITests */,
+				014E4F7D30679ACE0069C2EE /* ZiliWidgets */,
+				014E4F7830679ACE0069C2EE /* Frameworks */,
 				01DD75DB2FFBE56F000CA793 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -104,6 +170,7 @@
 				01DD75DA2FFBE56F000CA793 /* Zili.app */,
 				01DD75EB2FFBE570000CA793 /* ZiliTests.xctest */,
 				01DD75F52FFBE570000CA793 /* ZiliUITests.xctest */,
+				014E4F7730679ACE0069C2EE /* ZiliWidgetsExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -111,6 +178,25 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		014E4F7630679ACE0069C2EE /* ZiliWidgetsExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 014E4F8B30679ACF0069C2EE /* Build configuration list for PBXNativeTarget "ZiliWidgetsExtension" */;
+			buildPhases = (
+				014E4F7330679ACE0069C2EE /* Sources */,
+				014E4F7430679ACE0069C2EE /* Frameworks */,
+				014E4F7530679ACE0069C2EE /* Resources */,
+			);
+			buildRules = (
+			);
+			fileSystemSynchronizedGroups = (
+				014E4F7D30679ACE0069C2EE /* ZiliWidgets */,
+				01CAFE0130679ACE0069C2EE /* Shared */,
+			);
+			name = ZiliWidgetsExtension;
+			productName = ZiliWidgetsExtension;
+			productReference = 014E4F7730679ACE0069C2EE /* ZiliWidgetsExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		01DD75D92FFBE56F000CA793 /* Zili */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 01DD75FE2FFBE570000CA793 /* Build configuration list for PBXNativeTarget "Zili" */;
@@ -119,11 +205,16 @@
 				01DD75D72FFBE56F000CA793 /* Frameworks */,
 				01DD75D82FFBE56F000CA793 /* Resources */,
 				4077CCF52F6490507C3BCBAF /* Copy Data Resources */,
+				014E4F8830679ACF0069C2EE /* Embed Foundation Extensions */,
 				5E17A9000000000000000004 /* Upload Debug Symbols to Sentry */,
 			);
 			buildRules = (
 			);
+			dependencies = (
+				014E4F8630679ACF0069C2EE /* PBXTargetDependency */,
+			);
 			fileSystemSynchronizedGroups = (
+				01CAFE0130679ACE0069C2EE /* Shared */,
 				01DD75DC2FFBE56F000CA793 /* Zili */,
 			);
 			name = Zili;
@@ -189,6 +280,9 @@
 				LastSwiftUpdateCheck = 2660;
 				LastUpgradeCheck = 2660;
 				TargetAttributes = {
+					014E4F7630679ACE0069C2EE = {
+						CreatedOnToolsVersion = 27.0;
+					};
 					01DD75D92FFBE56F000CA793 = {
 						CreatedOnToolsVersion = 26.6;
 					};
@@ -224,11 +318,17 @@
 				01DD75D92FFBE56F000CA793 /* Zili */,
 				01DD75EA2FFBE570000CA793 /* ZiliTests */,
 				01DD75F42FFBE570000CA793 /* ZiliUITests */,
+				014E4F7630679ACE0069C2EE /* ZiliWidgetsExtension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		014E4F7530679ACE0069C2EE /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			files = (
+			);
+		};
 		01DD75D82FFBE56F000CA793 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			files = (
@@ -397,6 +497,11 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		014E4F7330679ACE0069C2EE /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+			);
+		};
 		01DD75D62FFBE56F000CA793 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			files = (
@@ -415,6 +520,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		014E4F8630679ACF0069C2EE /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 014E4F7630679ACE0069C2EE /* ZiliWidgetsExtension */;
+			targetProxy = 014E4F8530679ACF0069C2EE /* PBXContainerItemProxy */;
+		};
 		01DD75ED2FFBE570000CA793 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 01DD75D92FFBE56F000CA793 /* Zili */;
@@ -428,6 +538,90 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		014E4F8930679ACF0069C2EE /* Debug configuration for PBXNativeTarget "ZiliWidgetsExtension" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = ZiliWidgetsExtension.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 2NFSK2WB24;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = ZiliWidgets/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = ZiliWidgets;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.2;
+				PRODUCT_BUNDLE_IDENTIFIER = codes.tim.Zili.ZiliWidgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				SDKROOT = auto;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				XROS_DEPLOYMENT_TARGET = 26.0;
+			};
+			name = Debug;
+		};
+		014E4F8A30679ACF0069C2EE /* Release configuration for PBXNativeTarget "ZiliWidgetsExtension" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = ZiliWidgetsExtension.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 2NFSK2WB24;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = ZiliWidgets/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = ZiliWidgets;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.2;
+				PRODUCT_BUNDLE_IDENTIFIER = codes.tim.Zili.ZiliWidgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				SDKROOT = auto;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				XROS_DEPLOYMENT_TARGET = 26.0;
+			};
+			name = Release;
+		};
 		01DD75FF2FFBE570000CA793 /* Debug configuration for PBXNativeTarget "Zili" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -752,6 +946,14 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		014E4F8B30679ACF0069C2EE /* Build configuration list for PBXNativeTarget "ZiliWidgetsExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				014E4F8930679ACF0069C2EE /* Debug configuration for PBXNativeTarget "ZiliWidgetsExtension" */,
+				014E4F8A30679ACF0069C2EE /* Release configuration for PBXNativeTarget "ZiliWidgetsExtension" */,
+			);
+			defaultConfigurationName = Release;
+		};
 		01DD75D52FFBE56F000CA793 /* Build configuration list for PBXProject "Zili" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

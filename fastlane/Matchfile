@@ -7,7 +7,9 @@ team_id("2NFSK2WB24")
 # App Store profiles are stored alongside the certificate, because `exportArchive` cannot obtain one
 # on its own — cloud signing is refused for distribution. The archive still signs automatically, so
 # the project stays on automatic signing for local development; only the export consumes these
-# profiles, which build_app wires into its export options from match’s mapping.
+# profiles, which build_app wires into its export options from match’s mapping. Every bundle the
+# app embeds is re-signed by the export, so the widget extension needs a profile of its own.
 app_identifier([
   "codes.tim.Zili",
+  "codes.tim.Zili.ZiliWidgets",
 ])
