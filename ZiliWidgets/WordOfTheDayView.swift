@@ -21,9 +21,7 @@ struct WordOfTheDayView: View {
   var body: some View {
     if let day = entry.day {
       switch family {
-        #if !os(visionOS)
-          case .accessoryRectangular: RectangularFace(day: day)
-        #endif
+        case .accessoryRectangular: RectangularFace(day: day)
         case .systemSmall:
           SystemFace(day: day, headwordSize: Self.smallHeadwordSize, showsGloss: false)
         default: SystemFace(day: day, headwordSize: Self.wideHeadwordSize, showsGloss: true)
@@ -106,7 +104,7 @@ private struct NoWordYet: View {
   WordOfTheDayEntry(date: .now)
 }
 
-#if os(iOS)
+#if !os(macOS)
   #Preview("Rectangular", as: .accessoryRectangular) {
     WordOfTheDayWidget()
   } timeline: {

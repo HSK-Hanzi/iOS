@@ -61,13 +61,13 @@ struct WordOfTheDayProvider: TimelineProvider {
 }
 
 struct WordOfTheDayWidget: Widget {
-  /// A word, its reading and its gloss want width more than height. The Lock Screen's rectangle
-  /// fits all three on a line each.
+  /// A word, its reading and its gloss want width more than height. The accessory rectangle — the
+  /// Lock Screen, and on visionOS a mounted widget — fits all three on a line each.
   private static var families: [WidgetFamily] {
-    #if os(iOS)
-      [.systemSmall, .systemMedium, .accessoryRectangular]
-    #else
+    #if os(macOS)
       [.systemSmall, .systemMedium]
+    #else
+      [.systemSmall, .systemMedium, .accessoryRectangular]
     #endif
   }
 
