@@ -12,6 +12,9 @@ import SwiftUI
 /// tones, and both narrow incrementally as you type (as do `"li"` and `"li2"`). Searching runs
 /// off the main actor against the dictionaries' on-disk SQLite indexes, so it stays responsive on
 /// every keystroke without holding the data in memory.
+///
+/// A word opened from outside the app — a widget, a link — becomes the selection, as if the
+/// learner had picked it from the results.
 struct DictionarySearchView: View {
   let lexicon: Lexicon
 
@@ -24,6 +27,9 @@ struct DictionarySearchView: View {
 
   @AppStorage(Romanization.storageKey)
   private var romanization = Romanization.pinyin
+
+  @Environment(AppRouter.self)
+  private var router
 
   var body: some View {
     NavigationSplitView {
@@ -42,6 +48,13 @@ struct DictionarySearchView: View {
     .environment(\.selectWord, WordSelectionAction { detailPath.append($0) })
     .environment(\.wordResolver, WordResolver(lexicon: lexicon))
     .onChange(of: selection) { detailPath = [] }
+    .onChange(of: router.pending, initial: true, showRoutedWord)
+  }
+
+  private func showRoutedWord() {
+    guard let word = router.takeWord() else { return }
+    selection = word
+    detailPath = []
   }
 
   /// Debounces the query, then searches off the main actor and publishes the ranked results.
@@ -160,6 +173,7 @@ private struct DictionarySearchPreview: View {
     Group {
       if let lexicon {
         DictionarySearchView(lexicon: lexicon)
+          .environment(AppRouter())
       } else {
         ProgressView()
       }

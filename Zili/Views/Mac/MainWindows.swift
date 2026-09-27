@@ -17,13 +17,38 @@
     static let listeningQuiz = "listening-quiz"
   }
 
+  /// What a recognition quiz window opens onto. Each request is a fresh window — a second ⌘N opens
+  /// a second quiz rather than raising the first — and one opened to start a review deals it
+  /// straight away instead of showing the form.
+  struct RecognitionQuizRequest: Codable, Hashable {
+    var id = UUID()
+    var startsReview = false
+  }
+
   /// The Dictionary window's root. It and both Practice windows carry a
   /// `defaultLaunchBehavior(_:)` of `.presented`, so all three open together at launch; thereafter
   /// window restoration decides what comes back.
+  ///
+  /// It is also where links land. A word shows here; a review goes to a quiz window of its own.
   struct DictionaryWindow: View {
+    @Environment(AppRouter.self)
+    private var router
+
+    @Environment(\.openWindow)
+    private var openWindow
+
     var body: some View {
       LexiconGate { lexicon in
         DictionarySearchView(lexicon: lexicon)
+      }
+      .onOpenURL { router.open($0) }
+      .onChange(of: router.pending, initial: true) {
+        if router.takeReview() {
+          openWindow(
+            id: WindowID.recognitionQuiz,
+            value: RecognitionQuizRequest(startsReview: true)
+          )
+        }
       }
     }
   }

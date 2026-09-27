@@ -11,9 +11,11 @@
   /// leaving an empty one behind. Each window owns its ``QuizSession``, so any number of quizzes
   /// can run at once.
   struct RecognitionQuizWindow: View {
+    let startsReview: Bool
+
     var body: some View {
       LexiconGate { lexicon in
-        RecognitionQuizStage(lexicon: lexicon)
+        RecognitionQuizStage(lexicon: lexicon, startsReview: startsReview)
       }
     }
   }
@@ -38,6 +40,7 @@
 
   private struct RecognitionQuizStage: View {
     let lexicon: Lexicon
+    let startsReview: Bool
 
     @State private var configuration: FlashcardQuizConfiguration
     @State private var session: QuizSession?
@@ -60,10 +63,17 @@
           start: { session = $0 }
         )
       }
+      .dealsReview(
+        if: startsReview,
+        from: lexicon,
+        configuration: configuration,
+        into: $session
+      )
     }
 
-    init(lexicon: Lexicon) {
+    init(lexicon: Lexicon, startsReview: Bool) {
       self.lexicon = lexicon
+      self.startsReview = startsReview
       let level = lexicon.availableLevels.first ?? HSKLevel(standard: .new, band: 1)
       _configuration = State(initialValue: FlashcardQuizConfiguration(source: .hskLevels([level])))
     }

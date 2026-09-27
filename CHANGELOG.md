@@ -17,6 +17,11 @@ one of the two places.
   the one that has waited longest, on the Home Screen, the Lock Screen, and the
   Mac's desktop. It counts for itself, so a word that comes due tomorrow appears
   there whether or not you have opened the app.
+- A second widget brings a word a day from the HSK syllabus, with its reading
+  and meaning. Tap it to open the word's full entry.
+- Tapping the Due for Review widget opens straight into a review of your
+  favorites, the ones you're closest to forgetting first. A Start Review control
+  does the same from Control Center, the Lock Screen, or the Action button.
 - Recognition quizzes can deal your favorites in the order you are closest to
   forgetting them. Choose "Due for Review" under Sort, and every word you judge
   sets when it comes back — tomorrow if you didn't know it, further out each
