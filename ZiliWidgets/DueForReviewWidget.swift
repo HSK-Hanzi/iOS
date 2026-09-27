@@ -36,14 +36,14 @@ struct DueForReviewProvider: TimelineProvider {
   }
 
   func getSnapshot(in context: Context, completion: @escaping (DueForReviewEntry) -> Void) {
-    completion(context.isPreview ? .placeholder : entry(at: .now, from: ReviewSnapshotFile.read()))
+    completion(context.isPreview ? .placeholder : entry(at: .now, from: AppGroupFile.review.read()))
   }
 
   func getTimeline(
     in _: Context,
     completion: @escaping (Timeline<DueForReviewEntry>) -> Void
   ) {
-    let snapshot = ReviewSnapshotFile.read()
+    let snapshot = AppGroupFile.review.read()
     let upcoming = upcomingDueDates(of: snapshot)
     let entries = ([Date.now] + upcoming).map { entry(at: $0, from: snapshot) }
     // With words still waiting, the last entry is the last moment this timeline can be right, so
@@ -81,15 +81,17 @@ struct DueForReviewWidget: Widget {
   }
 
   var body: some WidgetConfiguration {
-    StaticConfiguration(kind: ReviewSnapshotFile.widgetKind, provider: DueForReviewProvider()) {
+    StaticConfiguration(kind: AppGroupFile.review.widgetKind, provider: DueForReviewProvider()) {
       entry in
       DueForReviewView(entry: entry)
         .containerBackground(.fill.tertiary, for: .widget)
+        .widgetURL(AppRoute.review.url)
     }
     .configurationDisplayName("Due for Review")
     .description(
       "How many of your favorites are ready to review, and which one has waited longest."
     )
     .supportedFamilies(Self.families)
+    .placedInRoom()
   }
 }

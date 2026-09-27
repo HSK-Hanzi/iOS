@@ -24,6 +24,9 @@
         }
       }
     },
+    "A new word from the HSK syllabus every day." : {
+      "comment" : "The Word of the Day widget’s description in the widget gallery."
+    },
     "Due for Review" : {
       "comment" : "The widget's name, as the widget gallery lists it."
     },
@@ -32,6 +35,24 @@
     },
     "Nothing to review" : {
       "comment" : "Shown on the widget when no starred word is due — and when nothing is starred at all, which the widget cannot tell apart."
+    },
+    "Open Zili for today’s word" : {
+      "comment" : "Shown on the Word of the Day widget before the app has picked any words, or after the learner has stayed away past every day it picked."
+    },
+    "Quiz" : {
+      "comment" : "The Shortcuts category the Start Review action is filed under."
+    },
+    "Quiz yourself on the favorites you’re closest to forgetting." : {
+      "comment" : "The Start Review control’s description in the controls gallery."
+    },
+    "Quizzes you on the favorites you’re closest to forgetting." : {
+      "comment" : "What the Start Review action does, as Shortcuts describes it."
+    },
+    "Start Review" : {
+      "comment" : "The name of the control that opens a review of the learner’s favorites, and of its action."
+    },
+    "Word of the Day" : {
+      "comment" : "The widget’s name in the widget gallery, and the title it shows above the day’s word."
     }
   },
   "version" : "1.1"

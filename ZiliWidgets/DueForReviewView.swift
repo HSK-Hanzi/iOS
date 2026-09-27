@@ -77,7 +77,7 @@ private struct SmallFace: View {
       DueCount(dueCount: entry.dueCount)
       Spacer(minLength: 0)
       if let next = entry.next {
-        Headword(next, size: Self.headwordSize)
+        Headword(next.display, size: Self.headwordSize)
       } else {
         NothingDue()
       }
@@ -87,17 +87,27 @@ private struct SmallFace: View {
 }
 
 /// Every family wider than a square: the same face, with the reading the extra room affords.
+///
+/// Seen from across a room, visionOS draws the widget simplified, and the face keeps only the word.
 private struct WideFace: View {
   private static let headwordSize: CGFloat = 52
 
   let entry: DueForReviewEntry
 
+  @SeenFromAfar private var isSeenFromAfar
+
   var body: some View {
     VStack(alignment: .leading) {
-      DueCount(dueCount: entry.dueCount)
+      if !isSeenFromAfar {
+        DueCount(dueCount: entry.dueCount)
+      }
       Spacer(minLength: 0)
       if let next = entry.next {
-        Headword(next, size: Self.headwordSize, showsReading: true)
+        Headword(
+          next.display,
+          reading: isSeenFromAfar ? nil : next.reading,
+          size: Self.headwordSize
+        )
       } else {
         NothingDue()
       }
@@ -115,39 +125,6 @@ private struct DueCount: View {
     Text("\(dueCount) words due")
       .font(.headline)
       .foregroundStyle(dueCount > 0 ? .primary : .secondary)
-  }
-}
-
-/// The word that has waited longest, at the size its family allows.
-private struct Headword: View {
-  /// How far the characters may shrink before the line truncates instead — a compound has twice
-  /// the glyphs of a single character in the same width.
-  private static let minimumScale = 0.4
-
-  let word: ReviewSnapshot.Word
-  let showsReading: Bool
-
-  /// Set in `init`, so the family picks the base size and Dynamic Type scales from there.
-  @ScaledMetric private var size: CGFloat
-
-  var body: some View {
-    VStack(alignment: .leading) {
-      Text(word.display)
-        .font(.system(size: size, weight: .medium))
-        .lineLimit(1)
-        .minimumScaleFactor(Self.minimumScale)
-      if showsReading, !word.reading.isEmpty {
-        Text(word.reading)
-          .font(.title3)
-          .foregroundStyle(.secondary)
-      }
-    }
-  }
-
-  init(_ word: ReviewSnapshot.Word, size: CGFloat, showsReading: Bool = false) {
-    self.word = word
-    self.showsReading = showsReading
-    _size = ScaledMetric(wrappedValue: size, relativeTo: .largeTitle)
   }
 }
 

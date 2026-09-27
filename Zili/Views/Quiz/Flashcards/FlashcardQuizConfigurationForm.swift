@@ -72,16 +72,10 @@ struct FlashcardQuizConfigurationForm: View {
     configuration.source.headwords(in: lexicon).count
   }
 
-  /// The sort to deal by: the learner's choice while their favorites are the source, and a random
-  /// sample otherwise — a set with no starring dates has no newest or oldest to draw.
-  private var deckSort: QuizDeckSort {
-    configuration.source.isFavorites ? configuration.sort : .random
-  }
-
   /// How many of the chosen favorites are ready to be reviewed — the number this quiz is there to
   /// bring down. Shown only while the deck is drawn in review order.
   private var dueLabel: Text? {
-    guard deckSort == .dueForReview else { return nil }
+    guard configuration.deckSort == .dueForReview else { return nil }
     let due = reviews.dueCount(
       among: configuration.source.headwords(in: lexicon),
       cue: configuration.recognitionCue
@@ -103,20 +97,12 @@ struct FlashcardQuizConfigurationForm: View {
   }
 
   private func dealDeck() {
-    let (cue, missMode) = (configuration.recognitionCue, configuration.missMode)
-    let deck = QuizDeckBuilder.build(
-      from: lexicon,
-      source: configuration.source,
-      sort: deckSort,
-      limit: configuration.deckSize,
-      romanization: romanization,
-      dueDates: reviews.dueDates(for: cue)
-    )
     start(
-      QuizSession(
-        deck: deck,
-        onMiss: { wordMisses.recordMiss($0, mode: missMode) },
-        onJudge: { reviews.record($1, for: $0, cue: cue) }
+      configuration.deal(
+        from: lexicon,
+        romanization: romanization,
+        wordMisses: wordMisses,
+        reviews: reviews
       )
     )
   }

@@ -247,6 +247,20 @@ class ZiliUITestCase: XCTestCase {
     }
   #endif
 
+  /// Opens the app at `link`, the way a widget tap or the Start Review control does.
+  ///
+  /// On macOS the system delivers the link to the running app. `XCUIApplication.open(_:)` would
+  /// attach a second automation session to it, and that stale session can leave later launches in
+  /// the same runner unable to receive synthesized keystrokes.
+  func follow(link: String) throws {
+    let url = try XCTUnwrap(URL(string: link), "A well-formed link.")
+    #if os(macOS)
+      XCUIDevice.shared.system.open(url)
+    #else
+      app.open(url)
+    #endif
+  }
+
   /// Brings the dictionary forward: the Dictionary tab on iOS, the Dictionary window on macOS.
   func goToDictionary() {
     #if os(macOS)
