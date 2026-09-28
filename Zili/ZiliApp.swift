@@ -252,7 +252,7 @@ struct ZiliApp: App {
     let schema = Schema(syncedModels)
     let modelConfiguration =
       uiTest.isEnabled
-      ? ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+      ? .throwaway(schema: schema)
       : ModelConfiguration(
         schema: schema,
         isStoredInMemoryOnly: false,
