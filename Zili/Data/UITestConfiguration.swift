@@ -16,13 +16,16 @@ import Foundation
 ///   without a quiz having to be played first.
 /// - `FAIL_LEXICON_LOAD=1` — forces ``AppData/load()`` down its failure branch, the only way to
 ///   reach the ``LexiconGate`` retry screen on demand.
+/// - `SPEECH` — one of `echo`, `mishear`, or `unavailableUntilRetried`: the speaking quiz hears the learner
+///   through a ``ScriptedSpeechListener`` following that script, since a test has no voice.
 struct UITestConfiguration: Sendable {
   /// The default: nothing test-specific, matching a shipped launch.
   static let disabled = Self(
     isEnabled: false,
     seedsFavorites: false,
     seedsMisses: false,
-    failsLexiconLoad: false
+    failsLexiconLoad: false,
+    speech: nil
   )
 
   /// Reads the configuration from the launched process, returning ``disabled`` unless
@@ -38,6 +41,7 @@ struct UITestConfiguration: Sendable {
   var seedsFavorites: Bool
   var seedsMisses: Bool
   var failsLexiconLoad: Bool
+  var speech: ScriptedSpeechListener.Script?
 
   /// The resolution rule, pulled out from the process so it can be exercised directly.
   static func resolve(arguments: [String], environment: [String: String]) -> Self {
@@ -47,7 +51,8 @@ struct UITestConfiguration: Sendable {
       isEnabled: true,
       seedsFavorites: seed.contains("favorites"),
       seedsMisses: seed.contains("misses"),
-      failsLexiconLoad: environment["FAIL_LEXICON_LOAD"] == "1"
+      failsLexiconLoad: environment["FAIL_LEXICON_LOAD"] == "1",
+      speech: environment["SPEECH"].flatMap(ScriptedSpeechListener.Script.init)
     )
   }
 }

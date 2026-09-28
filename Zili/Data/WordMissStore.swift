@@ -7,8 +7,9 @@ import Foundation
 import SwiftData
 
 /// Which quiz a word was missed in — the drawing quiz tests writing a character, the flashcard quiz
-/// tests recognizing a word — so a word's misses are tallied separately per skill.
-enum WordQuizMode: Sendable {
+/// tests recognizing a word, the speaking quiz tests saying it — so a word's misses are tallied
+/// separately per skill.
+enum WordQuizMode: CaseIterable, Sendable {
   case writing
   /// A flashcard that showed the reading with the Hanzi, or asked for the word from its meaning:
   /// a miss means the learner didn't know the word.
@@ -16,6 +17,7 @@ enum WordQuizMode: Sendable {
   /// A flashcard that showed the Hanzi alone: a miss may mean only that the learner didn't
   /// recognize the characters of a word they know.
   case recognizingHanzi
+  case speaking
 }
 
 /// The learner's per-word miss tallies, the single source of truth the UI reads and mutates.
@@ -46,6 +48,7 @@ final class WordMissStore {
       survivor.writingMisses += loser.writingMisses
       survivor.recognizingMisses += loser.recognizingMisses
       survivor.hanziRecognizingMisses += loser.hanziRecognizingMisses
+      survivor.speakingMisses += loser.speakingMisses
     }
   }
 
@@ -74,7 +77,7 @@ final class WordMissStore {
 
   /// How many times `word` has been missed across every mode — what gates its entry's stat.
   func totalMisses(for word: String) -> Int {
-    records(for: word).reduce(0) { $0 + $1.totalMisses }
+    WordQuizMode.allCases.reduce(0) { $0 + misses(for: word, mode: $1) }
   }
 
   /// The words missed at least once in `mode` — the pool a "drill missed" deck draws from.
@@ -89,6 +92,7 @@ final class WordMissStore {
       case .writing: record.writingMisses += 1
       case .recognizing: record.recognizingMisses += 1
       case .recognizingHanzi: record.hanziRecognizingMisses += 1
+      case .speaking: record.speakingMisses += 1
     }
     store.commit()
   }
@@ -111,7 +115,7 @@ final class WordMissStore {
 extension WordMissCount {
   /// This record's tallies summed across every mode.
   fileprivate var totalMisses: Int {
-    writingMisses + recognizingMisses + hanziRecognizingMisses
+    WordQuizMode.allCases.reduce(0) { $0 + misses(in: $1) }
   }
 
   /// This record's tally for `mode`.
@@ -120,6 +124,7 @@ extension WordMissCount {
       case .writing: writingMisses
       case .recognizing: recognizingMisses
       case .recognizingHanzi: hanziRecognizingMisses
+      case .speaking: speakingMisses
     }
   }
 }

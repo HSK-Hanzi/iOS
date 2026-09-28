@@ -29,6 +29,10 @@ one of the two places.
 - Recognition quizzes can deal your favorites in the order you are closest to
   forgetting them. Choose "Due for Review" under Sort: a word you miss comes back
   tomorrow, and one you know comes back later each time.
+- A fourth quiz, Speaking, shows you a word and listens as you say it. It
+  checks your tones as well as your syllables: a word that sounds like the one
+  you were shown counts, but a word in the wrong tone doesn't. Recognition runs
+  on the device.
 
 ### ACCESSIBILITY
 

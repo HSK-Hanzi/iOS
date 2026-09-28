@@ -22,6 +22,9 @@ enum QuizStyle {
   static let listeningTop = Color("QuizListeningTop")
   static let listeningBottom = Color("QuizListeningBottom")
 
+  static let speakingTop = Color("QuizSpeakingTop")
+  static let speakingBottom = Color("QuizSpeakingBottom")
+
   static let correct = Color("QuizCorrect")
   static let review = Color("QuizReview")
   static let skipped = Color("QuizSkipped")
@@ -70,6 +73,15 @@ enum QuizStyle {
   /// family beside the prompt's indigo and the answer's magenta.
   static let listeningGradient = LinearGradient(
     colors: [listeningTop, listeningBottom],
+    startPoint: .topLeading,
+    endPoint: .bottomTrailing
+  )
+
+  /// The speaking quiz's own color — its mode card, and its stage while recognition gets ready. A
+  /// muted ink slate, apart from the other modes' saturated families. Once a word is up, the stage
+  /// takes that word's HSK band colors instead.
+  static let speakingGradient = LinearGradient(
+    colors: [speakingTop, speakingBottom],
     startPoint: .topLeading,
     endPoint: .bottomTrailing
   )

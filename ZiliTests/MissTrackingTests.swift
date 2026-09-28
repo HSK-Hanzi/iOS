@@ -21,14 +21,19 @@ struct `Miss tracking` {
     store.recordMiss("好", mode: .recognizing)
     store.recordMiss("你", mode: .recognizing)
     store.recordMiss("好", mode: .recognizingHanzi)
+    store.recordMiss("好", mode: .speaking)
+    store.recordMiss("他", mode: .speaking)
 
     #expect(store.misses(for: "好", mode: .writing) == 2)
     #expect(store.misses(for: "好", mode: .recognizing) == 1)
     #expect(store.misses(for: "好", mode: .recognizingHanzi) == 1)
-    #expect(store.totalMisses(for: "好") == 4)
+    #expect(store.misses(for: "好", mode: .speaking) == 1)
+    #expect(store.totalMisses(for: "好") == 5)
     #expect(store.wordsMissed(in: .writing) == ["好"])
     #expect(Set(store.wordsMissed(in: .recognizing)) == ["好", "你"])
     #expect(store.wordsMissed(in: .recognizingHanzi) == ["好"])
+    #expect(Set(store.wordsMissed(in: .speaking)) == ["好", "他"])
+    #expect(Set(store.missedWords) == ["好", "你", "他"])
 
     store.reset("好")
 
@@ -36,6 +41,7 @@ struct `Miss tracking` {
     #expect(store.wordsMissed(in: .writing).isEmpty)
     #expect(store.wordsMissed(in: .recognizing) == ["你"])
     #expect(store.wordsMissed(in: .recognizingHanzi).isEmpty)
+    #expect(store.wordsMissed(in: .speaking) == ["他"])
   }
 
   @Test(arguments: [
