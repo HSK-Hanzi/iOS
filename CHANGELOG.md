@@ -31,6 +31,12 @@ one of the two places.
   forgetting them. Choose "Due for Review" under Sort, and every word you judge
   sets when it comes back — tomorrow if you didn't know it, further out each
   time you do. The setup screen counts how many are due.
+- A fourth quiz, Speaking, shows you a word and listens as you say it. It
+  checks your tones as well as your syllables: a word that sounds like the one
+  you were shown counts, but a word in the wrong tone doesn't. It listens as
+  soon as the word appears and stops when you stop talking, then shows the
+  reading of what it heard. Recognition runs on the device, and Mandarin
+  downloads the first time you start the quiz.
 
 ### ACCESSIBILITY
 
