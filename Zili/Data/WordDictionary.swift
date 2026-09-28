@@ -83,7 +83,7 @@ struct WordDictionary: Sendable {
   /// Rebuilds a ``DictionaryEntry`` from its stored binary-plist blob using the same parser the
   /// source data uses, so the decoded form is identical to loading the original plist.
   private static func decode(payload: Data, simplified: String) -> DictionaryEntry? {
-    guard let object = try? PropertyListSerialization.propertyList(from: payload, format: nil)
+    guard let object = try? PropertyListSerialization.propertyList(from: payload)
     else {
       return nil
     }
