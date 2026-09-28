@@ -16,18 +16,19 @@ import XCUITestKit
 final class RecognitionQuizUITests: ZiliUITestCase {
   func testRunQuizToResults() async throws {
     launch()
-    await openRecognitionQuizConfiguration()
-    await startQuiz()
+    let quiz = await QuizPage.openRecognition(self)
+    await quiz.start()
+    let deckSize = try XCTUnwrap(quiz.deckSize, "The progress pill counts the deck.")
 
-    // The deck size isn't known, so judge each card correct until the results seal appears; stop
-    // early if the button vanishes (the deck ran out) so the loop can't spin.
-    for _ in 0..<60 {
-      if el(AccessibilityID.quizResults).exists { break }
-      let button = el(AccessibilityID.quizCorrectButton)
-      if button.exists { button.forceTap() } else { break }
+    // Each card is judged only once it has been dealt: a judged card is thrown off before the next
+    // takes its place, and a press that lands mid-throw is ignored rather than queued.
+    for card in 1..<deckSize {
+      quiz.judgeCorrect()
+      quiz.expectProgress(card: card + 1, of: deckSize, "Judging a card deals the next.")
     }
+    quiz.judgeCorrect()
 
-    expect(AccessibilityID.quizResults, "The quiz reaches its results.")
+    quiz.expectResults()
   }
 
   #if os(macOS)
