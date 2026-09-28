@@ -88,7 +88,7 @@ class ZiliUITestCase: XCTestCase {
         ? app.descendant(id: AccessibilityID.loadFailureRetry)
         : app.windows[MacWindow.dictionary].searchFields.firstMatch
       // The window is only ready once the lexicon is loaded, which takes far longer than an
-      // ordinary element wait — the same budget `MacQuizWindowUITests` gives it.
+      // ordinary element wait — and the File menu's quiz items stay inert until it is.
       XCTAssertTrue(ready.wait(scaledSeconds: 60), "The app opened its first window.")
     #else
       app.launchAndWaitUntilReady { app in
