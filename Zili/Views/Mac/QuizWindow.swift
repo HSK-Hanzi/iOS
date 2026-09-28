@@ -38,6 +38,15 @@
     }
   }
 
+  /// A speaking quiz in a window of its own, set up and run the way the other quizzes are.
+  struct SpeakingQuizWindow: View {
+    var body: some View {
+      LexiconGate { lexicon in
+        SpeakingQuizStage(lexicon: lexicon)
+      }
+    }
+  }
+
   private struct RecognitionQuizStage: View {
     let lexicon: Lexicon
     let startsReview: Bool
@@ -120,6 +129,30 @@
       } configuration: {
         ListeningQuizConfigurationForm(
           library: lexicon.sentences,
+          cancel: { dismiss() },
+          start: { session = $0 }
+        )
+      }
+    }
+  }
+
+  private struct SpeakingQuizStage: View {
+    let lexicon: Lexicon
+
+    @State private var session: QuizSession?
+
+    @Environment(\.dismiss)
+    private var dismiss
+
+    var body: some View {
+      QuizStage(hasDeck: session != nil) {
+        if let session {
+          SpeakingQuizView(lexicon: lexicon)
+            .environment(session)
+        }
+      } configuration: {
+        SpeakingQuizConfigurationForm(
+          lexicon: lexicon,
           cancel: { dismiss() },
           start: { session = $0 }
         )
