@@ -32,6 +32,7 @@ import Foundation
 /// The similarity weight must apply equally to both languages. Dropping it for Chinese while
 /// keeping bm25 for English hands English a free constant, and `hen` then leads with 母鸡 rather
 /// than 很. That symmetry is what makes the two scales commensurate.
+@diagnose(PerformanceHints, as: warning)
 enum SearchRelevance {
   /// The rank a word absent from the frequency corpus carries. Mirrors `UNRANKED` in `generate_db.py`.
   static let unranked = 2_000_000_000
