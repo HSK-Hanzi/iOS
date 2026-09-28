@@ -211,7 +211,7 @@ private struct WritingPad: View {
       )
       .padding(.horizontal, 20)
       .rotationEffect(.degrees(-6))
-      .transition(.scale(scale: 1.6).combined(with: .opacity))
+      .transition(ScaleTransition(1.6).combined(with: .opacity))
     }
   }
 

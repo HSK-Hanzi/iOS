@@ -89,7 +89,7 @@ struct SentenceCorpus: Identifiable, Sendable {
       let data = try Data(contentsOf: url)
       guard
         let root = try PropertyListSerialization
-          .propertyList(from: data, format: nil) as? [String: Any],
+          .propertyList(from: data) as? [String: Any],
         let entries = root["entries"] as? [Any]
       else { throw DictionaryLoadingError.malformedData }
       return Self(

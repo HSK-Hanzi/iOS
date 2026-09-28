@@ -199,7 +199,7 @@ private struct SpeakingVerdictBadge: View {
     .accessibilityIdentifier(
       outcome == .correct ? AccessibilityID.speakingCorrect : AccessibilityID.speakingNeedsReview
     )
-    .transition(.scale(scale: 1.6).combined(with: .opacity))
+    .transition(ScaleTransition(1.6).combined(with: .opacity))
   }
 }
 

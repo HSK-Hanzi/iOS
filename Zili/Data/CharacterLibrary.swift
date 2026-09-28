@@ -85,7 +85,7 @@ struct CharacterLibrary: Sendable {
   }
 
   private static func decodeReadings(_ payload: Data) -> CharacterReadings? {
-    guard let object = try? PropertyListSerialization.propertyList(from: payload, format: nil)
+    guard let object = try? PropertyListSerialization.propertyList(from: payload)
     else { return nil }
     return CharacterReadings(propertyList: object)
   }

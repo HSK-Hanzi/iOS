@@ -21,9 +21,9 @@ import Foundation
 final class InputSourceMonitor {
   private(set) var availability: Availability
 
-  /// Tokens for the input-source observers, held so `deinit` can hand them to the thread-safe
-  /// `removeObserver`. Plumbing, not observable state.
-  @ObservationIgnored nonisolated(unsafe) private var observers: [any NSObjectProtocol] = []
+  /// Tokens for the input-source observers, held so `deinit` can remove them. Plumbing, not
+  /// observable state.
+  @ObservationIgnored private var observers: [any NSObjectProtocol] = []
 
   /// Whether the quiz should show its "no Chinese keyboard" warning — only when we positively
   /// determined none is available.
@@ -45,11 +45,11 @@ final class InputSourceMonitor {
       guard let language = FirstResponder.textInputMode?.primaryLanguage else { return .unknown }
       return language.hasPrefix("zh") ? .available : .unavailable
     #elseif os(macOS)
-      guard let source = TISCopyCurrentKeyboardInputSource()?.takeRetainedValue(),
-        let pointer = TISGetInputSourceProperty(source, kTISPropertyInputSourceLanguages)
+      guard let source = unsafe TISCopyCurrentKeyboardInputSource()?.takeRetainedValue(),
+        let pointer = unsafe TISGetInputSourceProperty(source, kTISPropertyInputSourceLanguages)
       else { return .unknown }
       let languages =
-        Unmanaged<CFArray>.fromOpaque(pointer).takeUnretainedValue() as? [String] ?? []
+        unsafe Unmanaged<CFArray>.fromOpaque(pointer).takeUnretainedValue() as? [String] ?? []
       return languages.contains { $0.hasPrefix("zh") } ? .available : .unavailable
     #else
       return .unknown
@@ -93,7 +93,7 @@ final class InputSourceMonitor {
     }
   #endif
 
-  deinit {
+  isolated deinit {
     #if os(macOS)
       let distributed = DistributedNotificationCenter.default()
     #endif

@@ -128,7 +128,7 @@ struct HSKVocabulary: Sendable {
       let data = try Data(contentsOf: url)
       guard
         let root = try PropertyListSerialization
-          .propertyList(from: data, format: nil) as? [String: Any],
+          .propertyList(from: data) as? [String: Any],
         let entries = root["entries"] as? [String: Any]
       else { throw DictionaryLoadingError.malformedData }
 
