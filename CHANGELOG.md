@@ -59,6 +59,13 @@ one of the two places.
   card used to cut straight to its other side; it can now dissolve to it
   instead, for anyone who has asked for cross-fades in place of movement.
 
+### FIXES
+
+- On Apple Vision Pro, a flashcard no longer flickers against the window behind
+  it as it turns over. The card rests a little in front of the glass and lifts
+  far enough for its width to stay clear of the window the whole way round,
+  including the shallow angles where a turn begins and ends.
+
 ## 1.2
 
 Tapping a word now selects the whole word. Zili segments Chinese the way a
