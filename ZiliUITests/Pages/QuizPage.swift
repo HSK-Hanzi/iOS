@@ -21,6 +21,15 @@ struct QuizPage: Page {
   /// The progress pill, reading "1 / 20" on a freshly dealt default deck.
   var progress: XCUIElement { el(AccessibilityID.quizProgress) }
 
+  /// The number of cards in the dealt deck, read off the progress pill's "1 / 20". The pill's text
+  /// is its label on iOS and visionOS but its value on macOS, so whichever carries it is read.
+  var deckSize: Int? {
+    let text = progress.label.isEmpty ? progress.value as? String ?? "" : progress.label
+    return text.split(separator: "/").last.flatMap {
+      Int($0.trimmingCharacters(in: .whitespaces))
+    }
+  }
+
   /// The recognition quiz's "I knew it" judge button.
   var correctButton: XCUIElement { el(AccessibilityID.quizCorrectButton) }
 
@@ -47,8 +56,8 @@ struct QuizPage: Page {
 
   /// Opens a drawing quiz onto its configuration form.
   @discardableResult
-  static func openDrawing(_ test: ZiliUITestCase) async -> Self {
-    await test.openDrawingQuizConfiguration()
+  static func openDrawing(_ test: ZiliUITestCase) async throws -> Self {
+    try await test.openDrawingQuizConfiguration()
     return Self(test: test)
   }
 
@@ -77,6 +86,11 @@ struct QuizPage: Page {
   @discardableResult
   func expectResults(_ message: String = "The quiz reaches its results.") -> XCUIElement {
     test.expect(AccessibilityID.quizResults, message)
+  }
+
+  /// Judges the recognition quiz's current card correct.
+  func judgeCorrect() {
+    correctButton.forceTap()
   }
 
   /// Types `answer` into the listening answer field.
