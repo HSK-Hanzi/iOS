@@ -15,6 +15,7 @@
     static let recognitionQuiz = "recognition-quiz"
     static let drawingQuiz = "drawing-quiz"
     static let listeningQuiz = "listening-quiz"
+    static let speakingQuiz = "speaking-quiz"
   }
 
   /// What a recognition quiz window opens onto. Each request is a fresh window — a second ⌘N opens

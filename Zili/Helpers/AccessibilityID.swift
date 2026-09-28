@@ -42,6 +42,7 @@ enum AccessibilityID {
   static let quizRecognitionCard = "quiz.recognitionCard"
   static let quizDrawingCard = "quiz.drawingCard"
   static let quizListeningCard = "quiz.listeningCard"
+  static let quizSpeakingCard = "quiz.speakingCard"
   static let quizStartButton = "quiz.startButton"
   static let quizSetPicker = "quiz.setPicker"
   static let quizSortPicker = "quiz.sortPicker"
@@ -60,6 +61,14 @@ enum AccessibilityID {
   static let listeningAnswerField = "listening.answerField"
   static let listeningSubmit = "listening.submit"
   static let listeningReplay = "listening.replay"
+
+  // Speaking quiz
+  static let speakingSayIt = "speaking.sayIt"
+  static let speakingHeard = "speaking.heard"
+  static let speakingCorrect = "speaking.correct"
+  static let speakingNeedsReview = "speaking.needsReview"
+  static let speakingUnavailable = "speaking.unavailable"
+  static let speakingRetry = "speaking.retry"
 
   // Drawing quiz
   static let drawingDrawButton = "drawing.drawButton"
