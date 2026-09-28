@@ -61,7 +61,7 @@ struct `Miss tracking` {
   func `de-duplication keeps one record per key and sums the losers' counts into it`() throws {
     let container = try ModelContainer(
       for: WordMissCount.self,
-      configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+      configurations: .throwaway()
     )
     let context = ModelContext(container)
     // Two records CloudKit produced for the same word, each with its own tally.

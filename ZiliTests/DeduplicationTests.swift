@@ -17,7 +17,7 @@ struct `CloudKit de-duplication` {
     let container = try ModelContainer(
       for: WordMissCount.self,
       FavoriteWord.self,
-      configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+      configurations: .throwaway()
     )
     return ModelContext(container)
   }

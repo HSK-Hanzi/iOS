@@ -213,7 +213,7 @@ final class AppData {
 extension AppData {
   /// An instance over a throwaway in-memory store, for SwiftUI previews.
   static func preview() -> AppData {
-    let configuration = ModelConfiguration(isStoredInMemoryOnly: true)
+    let configuration = ModelConfiguration.throwaway()
     guard
       let container = try? ModelContainer(
         for: FavoriteWord.self,
