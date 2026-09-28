@@ -190,6 +190,8 @@ struct Lexicon: Sendable {
   /// bare, toned, or tone-marked, per ``PinyinSearchKey`` — and, when it is plain letters, English
   /// glosses as well. Every candidate is scored by ``SearchRelevance`` on one scale, so Chinese and
   /// English results interleave by merit; ties break on the headword, for a stable order.
+  @diagnose(PerformanceHints, as: warning)
+  @diagnose(ReturnTypeImplicitCopy, as: ignored, reason: "The page of results is the product")
   nonisolated func searchHeadwords(matching query: String, limit: Int = 50) -> [String] {
     let query = query.trimmingCharacters(in: .whitespacesAndNewlines)
     guard !query.isEmpty else { return [] }
@@ -239,6 +241,8 @@ struct Lexicon: Sendable {
   /// The top `limit` headwords by descending score. Ties break on the headword, never on corpus
   /// rank: ranking ties by frequency would silently reduce the score to "exact, then frequency"
   /// and make the similarity and frequency weights decorative.
+  @diagnose(PerformanceHints, as: warning)
+  @diagnose(ReturnTypeImplicitCopy, as: ignored, reason: "The page of results is the product")
   nonisolated private func rankedHeadwords(from scores: [String: Double], limit: Int) -> [String] {
     scores
       .sorted { ($0.value, $1.key) > ($1.value, $0.key) }
@@ -293,6 +297,7 @@ struct Lexicon: Sendable {
     }
   }
 
+  @diagnose(PerformanceHints, as: warning)
   nonisolated private func scored(_ headword: RankedHeadword, queryLength: Int) -> Candidate {
     Candidate(
       headword: headword.simplified,
