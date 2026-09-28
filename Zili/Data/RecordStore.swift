@@ -64,7 +64,7 @@ final class RecordStore<Model: DeduplicableRecord, Key: Hashable> {
 
   /// A container over a throwaway in-memory store, for previews and tests.
   static func inMemoryContainer() -> ModelContainer {
-    let configuration = ModelConfiguration(isStoredInMemoryOnly: true)
+    let configuration = ModelConfiguration.throwaway()
     guard let container = try? ModelContainer(for: Model.self, configurations: configuration) else {
       fatalError("In-memory model container for previews should never fail to build.")
     }
