@@ -36,11 +36,26 @@ class ZiliUITestCase: XCTestCase {
     case misses
   }
 
+  /// What the speaking quiz hears, mirroring the app's `SPEECH` launch environment — a test has
+  /// no voice, so the app hears a script instead of the microphone.
+  enum SpeechScript: String {
+    /// Every word said correctly.
+    case echo
+    /// Every word said wrong.
+    case mishear
+    /// Recognition fails to get ready the first time, and readies on a retry.
+    case unavailableUntilRetried
+  }
+
   /// Launches the app in UI-testing mode and waits until the first screen is ready to drive.
   /// `seed` pre-populates favorites/misses; `failLexiconLoad` forces the load-failure screen so its
-  /// retry path can be exercised.
+  /// retry path can be exercised; `speech` scripts what the speaking quiz hears.
   @discardableResult
-  func launch(seed: Set<Seed> = [], failLexiconLoad: Bool = false) -> XCUIApplication {
+  func launch(
+    seed: Set<Seed> = [],
+    failLexiconLoad: Bool = false,
+    speech: SpeechScript? = nil
+  ) -> XCUIApplication {
     let app = XCUIApplication()
     self.app = app
     // Every switch carries a value, including the bare-looking `-uiTesting`. The argument domain
@@ -59,6 +74,9 @@ class ZiliUITestCase: XCTestCase {
     }
     if failLexiconLoad {
       app.launchEnvironment["FAIL_LEXICON_LOAD"] = "1"
+    }
+    if let speech {
+      app.launchEnvironment["SPEECH"] = speech.rawValue
     }
     #if os(macOS)
       // The app's Window scenes don't present reliably at launch, so wait only for the app to come
@@ -329,6 +347,17 @@ class ZiliUITestCase: XCTestCase {
     expect(AccessibilityID.quizStartButton, "The quiz configuration form.")
   }
 
+  /// Opens a speaking quiz onto its configuration form.
+  func openSpeakingQuizConfiguration() async {
+    #if os(macOS)
+      app.typeKey("n", modifierFlags: [.command, .control])
+    #else
+      app.tapTab(Tab.quiz)
+      await tap(AccessibilityID.quizSpeakingCard, "Speaking quiz card.")
+    #endif
+    expect(AccessibilityID.quizStartButton, "The quiz configuration form.")
+  }
+
   /// Reaches Settings: the Settings tab on iOS, the Settings window (⌘,) on macOS.
   func goToSettings() {
     #if os(macOS)
@@ -345,8 +374,7 @@ class ZiliUITestCase: XCTestCase {
   /// ``XCUIElement/tap(untilExists:using:timeout:)`` re-taps with escalating force until it does,
   /// stopping once Start has navigated away.
   func startQuiz() async {
-    revealStartButton()
-    await tap(AccessibilityID.quizStartButton, "Start Quiz.")
+    await tapStart()
     let progress = el(AccessibilityID.quizProgress)
     if progress.wait() { return }
     let dealt = el(AccessibilityID.quizStartButton).tap(
@@ -354,6 +382,13 @@ class ZiliUITestCase: XCTestCase {
       using: XCUIElement.TapStrategy.escalating
     )
     XCTAssertTrue(dealt, "The quiz deals its first card.")
+  }
+
+  /// Taps the configuration form's Start button, without waiting for a card — for a quiz that may
+  /// stop short of dealing one.
+  func tapStart() async {
+    revealStartButton()
+    await tap(AccessibilityID.quizStartButton, "Start Quiz.")
   }
 
   /// Scrolls a quiz configuration form so its foot-pinned Start button clears the bottom tab bar.

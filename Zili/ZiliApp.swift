@@ -109,6 +109,14 @@ struct ZiliApp: App {
       .restorationBehavior(.disabled)
       .modelContainer(modelContainer)
       .environment(appData)
+
+      WindowGroup("Speaking Quiz", id: WindowID.speakingQuiz, for: UUID.self) { _ in
+        SpeakingQuizWindow()
+      }
+      .defaultSize(width: 720, height: 780)
+      .restorationBehavior(.disabled)
+      .modelContainer(modelContainer)
+      .environment(appData)
     #else
       WindowGroup {
         ContentView()
@@ -276,6 +284,12 @@ struct ZiliApp: App {
           openWindow(id: WindowID.listeningQuiz, value: UUID())
         }
         .keyboardShortcut("n", modifiers: [.command, .option])
+        .disabled(!isEnabled)
+
+        Button("New Speaking Quiz") {
+          openWindow(id: WindowID.speakingQuiz, value: UUID())
+        }
+        .keyboardShortcut("n", modifiers: [.command, .control])
         .disabled(!isEnabled)
       }
     }
