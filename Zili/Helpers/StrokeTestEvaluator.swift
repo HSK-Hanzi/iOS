@@ -20,6 +20,7 @@ import Foundation
 ///
 /// The tolerances, and the way position, direction, shape, and length are weighed separately,
 /// follow [hanzi-writer](https://github.com/chanind/hanzi-writer)'s `strokeMatches`.
+@diagnose(PerformanceHints, as: warning)
 struct StrokeTestEvaluator {
   /// Mean distance from the drawn points to the target's centerline, in grid units.
   private static let averageDistanceThreshold: CGFloat = 350
@@ -141,7 +142,7 @@ struct StrokeTestEvaluator {
     withinDistance(drawn, target, at: index, leniency: leniency)
       && endpointsMatch(drawn.points, target, leniency: leniency)
       && directionMatches(drawn, target)
-      && shapeFits(drawn.points, target.points, leniency: leniency)
+      && shapeFits(drawn, target, leniency: leniency)
       && lengthMatches(drawn, target, leniency: leniency)
   }
 
@@ -167,22 +168,19 @@ struct StrokeTestEvaluator {
   /// judged by where it travels rather than by the chord from its start to its end — the
   /// difference between reading a hooked stroke and mistaking it for a diagonal.
   private func directionMatches(_ drawn: Stroke, _ target: Stroke) -> Bool {
-    let targetVectors = target.vectors
-    guard !targetVectors.isEmpty, !drawn.vectors.isEmpty else { return false }
+    guard !target.vectors.isEmpty, !drawn.vectors.isEmpty else { return false }
     let agreements = drawn.vectors.map { vector in
-      targetVectors.map { cosineSimilarity(vector, $0) }.max() ?? -1
+      target.vectors.lazy.map { cosineSimilarity(vector, $0) }.max() ?? -1
     }
     return mean(agreements) > Self.cosineSimilarityThreshold
   }
 
   /// Compares the two curves stripped of position and size, so shape is judged on its own terms.
-  private func shapeFits(_ drawn: [CGPoint], _ target: [CGPoint], leniency: CGFloat) -> Bool {
-    let drawnCurve = normalizeCurve(drawn)
-    let targetCurve = normalizeCurve(target)
-    guard !drawnCurve.isEmpty, !targetCurve.isEmpty else { return false }
+  private func shapeFits(_ drawn: Stroke, _ target: Stroke, leniency: CGFloat) -> Bool {
+    guard !drawn.shape.isEmpty, !target.shape.isEmpty else { return false }
     let limit = Self.frechetThreshold * leniency
     return Self.shapeFitRotations.contains { tilt in
-      frechetDistance(drawnCurve, rotate(targetCurve, by: tilt)) <= limit
+      frechetDistance(drawn.shape, rotate(target.shape, by: tilt)) <= limit
     }
   }
 
@@ -198,20 +196,24 @@ struct StrokeTestEvaluator {
 // MARK: - Stroke geometry
 
 /// A polyline with the repeated points removed, alongside the measurements every test needs.
+///
+/// Each measurement is taken once, here, because a stroke is tested against many targets.
+@diagnose(PerformanceHints, as: warning)
 private struct Stroke {
   let points: [CGPoint]
   let length: CGFloat
+  /// The step from each point to the next.
+  let vectors: [CGVector]
+  /// The curve with position and size stripped away, or empty when it has no shape to speak of.
+  let shape: [CGPoint]
 
   var isDrawable: Bool { points.count >= 2 }
-
-  /// The step from each point to the next.
-  var vectors: [CGVector] {
-    zip(points, points.dropFirst()).map { CGVector(dx: $1.x - $0.x, dy: $1.y - $0.y) }
-  }
 
   init(points raw: [CGPoint]) {
     points = stripDuplicates(raw)
     length = arcLength(points)
+    vectors = zip(points, points.dropFirst()).map { CGVector(dx: $1.x - $0.x, dy: $1.y - $0.y) }
+    shape = normalizeCurve(points)
   }
 }
 
@@ -224,18 +226,20 @@ private let maximumNormalizedSegment: CGFloat = 0.05
 ///
 /// Measured against the centerline rather than its vertices: a median is stored as a handful of
 /// widely spaced points, and the gap between two of them is still part of the stroke.
+@diagnose(PerformanceHints, as: warning)
 private func averageDistance(from points: [CGPoint], to target: Stroke) -> CGFloat {
   guard !points.isEmpty, target.isDrawable else { return .infinity }
   let total = points.reduce(CGFloat.zero) { running, point in
     let nearest =
       zip(target.points, target.points.dropFirst())
-      .map { distance(from: point, toSegmentFrom: $0, to: $1) }
+      .lazy.map { distance(from: point, toSegmentFrom: $0, to: $1) }
       .min() ?? .infinity
     return running + nearest
   }
   return total / CGFloat(points.count)
 }
 
+@diagnose(PerformanceHints, as: warning)
 private func distance(from point: CGPoint, toSegmentFrom start: CGPoint, to end: CGPoint) -> CGFloat
 {
   let span = CGVector(dx: end.x - start.x, dy: end.y - start.y)
@@ -247,6 +251,8 @@ private func distance(from point: CGPoint, toSegmentFrom start: CGPoint, to end:
 
 /// Strips position and size from a curve so only its shape remains, then breaks up any segment
 /// long enough for the Fréchet walk to cut a corner.
+@diagnose(PerformanceHints, as: warning)
+@diagnose(ReturnTypeImplicitCopy, as: ignored, reason: "Builds a new curve, once per stroke")
 private func normalizeCurve(_ curve: [CGPoint]) -> [CGPoint] {
   guard curve.count > 1 else { return [] }
   let outlined = resamplePolyline(curve, to: outlinePointCount)
@@ -262,6 +268,8 @@ private func normalizeCurve(_ curve: [CGPoint]) -> [CGPoint] {
   return subdivideCurve(normalized)
 }
 
+@diagnose(PerformanceHints, as: warning)
+@diagnose(ReturnTypeImplicitCopy, as: ignored, reason: "Builds a new curve, once per stroke")
 private func subdivideCurve(_ curve: [CGPoint], maxSegment: CGFloat = maximumNormalizedSegment)
   -> [CGPoint]
 {
@@ -282,6 +290,8 @@ private func subdivideCurve(_ curve: [CGPoint], maxSegment: CGFloat = maximumNor
   return result
 }
 
+@diagnose(PerformanceHints, as: warning)
+@diagnose(ReturnTypeImplicitCopy, as: ignored, reason: "Builds a new curve, once per tilt tried")
 private func rotate(_ curve: [CGPoint], by theta: CGFloat) -> [CGPoint] {
   let (cosine, sine) = (cos(theta), sin(theta))
   return curve.map {
@@ -293,15 +303,15 @@ private func rotate(_ curve: [CGPoint], by theta: CGFloat) -> [CGPoint] {
 /// such pacing — so it reads shape and travel direction together.
 ///
 /// The discrete algorithm of Eiter and Mannila, carrying only the last column of the table.
+@diagnose(PerformanceHints, as: warning)
 private func frechetDistance(_ first: [CGPoint], _ second: [CGPoint]) -> CGFloat {
   guard !first.isEmpty, !second.isEmpty else { return .infinity }
   let long = first.count >= second.count ? first : second
   let short = first.count >= second.count ? second : first
 
-  var previousColumn: [CGFloat] = []
+  var previousColumn = [CGFloat](repeating: 0, count: short.count)
+  var column = previousColumn
   for alongLong in long.indices {
-    var column: [CGFloat] = []
-    column.reserveCapacity(short.count)
     for alongShort in short.indices {
       let gap = distance(long[alongLong], short[alongShort])
       let carried: CGFloat =
@@ -312,9 +322,9 @@ private func frechetDistance(_ first: [CGPoint], _ second: [CGPoint]) -> CGFloat
           default:
             min(previousColumn[alongShort], previousColumn[alongShort - 1], column[alongShort - 1])
         }
-      column.append(max(carried, gap))
+      column[alongShort] = max(carried, gap)
     }
-    previousColumn = column
+    swap(&previousColumn, &column)
   }
   return previousColumn[short.count - 1]
 }
@@ -325,6 +335,8 @@ private func cosineSimilarity(_ first: CGVector, _ second: CGVector) -> CGFloat 
   return (first.dx * second.dx + first.dy * second.dy) / magnitudes
 }
 
+@diagnose(PerformanceHints, as: warning)
+@diagnose(ReturnTypeImplicitCopy, as: ignored, reason: "Builds a new curve, once per stroke")
 private func stripDuplicates(_ points: [CGPoint]) -> [CGPoint] {
   points.reduce(into: []) { deduplicated, point in
     if deduplicated.last != point { deduplicated.append(point) }
@@ -332,6 +344,8 @@ private func stripDuplicates(_ points: [CGPoint]) -> [CGPoint] {
 }
 
 /// Resamples a polyline into `count` points spaced evenly along its arc length.
+@diagnose(PerformanceHints, as: warning)
+@diagnose(ReturnTypeImplicitCopy, as: ignored, reason: "Builds a new curve, once per stroke")
 private func resamplePolyline(_ points: [CGPoint], to count: Int) -> [CGPoint] {
   guard count > 1 else { return points }
   guard points.count > 1 else { return Array(repeating: points.first ?? .zero, count: count) }
@@ -340,6 +354,7 @@ private func resamplePolyline(_ points: [CGPoint], to count: Int) -> [CGPoint] {
 
   let interval = total / CGFloat(count - 1)
   var result: [CGPoint] = [points[0]]
+  result.reserveCapacity(count)
   var travelled: CGFloat = 0
   var segmentStart = points[0]
 
