@@ -13,16 +13,12 @@
 
   /// Each quiz window deals and judges its own deck. Two recognition quizzes running at once must
   /// advance independently — the whole reason a quiz is a window rather than a tab.
-  final class MacQuizWindowUITests: XCTestCase {
+  final class MacQuizWindowUITests: ZiliUITestCase {
     /// The default deck size, so a fresh quiz's progress reads "1 / 20".
     private static let deckSize = 20
 
-    override func setUpWithError() throws {
-      continueAfterFailure = false
-    }
-
     func testConcurrentRecognitionQuizzesAdvanceIndependently() async throws {
-      let app = launchApp()
+      let app = launch()
 
       await startRecognitionQuiz(in: app)
       await startRecognitionQuiz(in: app)
@@ -34,19 +30,6 @@
       let advanced = app.staticTexts[progressText(for: 2)]
       XCTAssertTrue(advanced.waitForExistence(timeout: 5), "The frontmost quiz advances.")
       XCTAssertEqual(progressLabels(in: app, reading: 1).count, 1, "The other quiz does not.")
-    }
-
-    /// Launches and waits for the dictionary to load: the File menu's quiz items are inert until
-    /// the language database is in hand. Ignoring persisted window state keeps the launch
-    /// deterministic — a saved-state window left over from a prior run would otherwise starve
-    /// the app's declared scenes of the window slot they need to appear.
-    private func launchApp() -> XCUIApplication {
-      let app = XCUIApplication()
-      app.launchArguments = ["-ApplePersistenceIgnoreState", "YES"]
-      app.launch()
-      let search = app.windows["Dictionary"].searchFields.firstMatch
-      XCTAssertTrue(search.waitForExistence(timeout: 60), "The dictionary loads.")
-      return app
     }
 
     /// Opens a recognition quiz with ⌘N and starts it from its configuration sheet, leaving the
