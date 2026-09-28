@@ -26,7 +26,7 @@ final class GenerateScreenshots: ZiliUITestCase {
 
     await captureDictionary()
     await capturePractice()
-    await captureQuizzes()
+    try await captureQuizzes()
   }
 
   // MARK: - Flows
@@ -60,12 +60,12 @@ final class GenerateScreenshots: ZiliUITestCase {
   }
 
   /// Each study mode on its first live card.
-  private func captureQuizzes() async {
+  private func captureQuizzes() async throws {
     await openRecognitionQuizConfiguration()
     await startQuiz()
     capture("04-Flashcard")
 
-    await openDrawingQuizConfiguration()
+    try await openDrawingQuizConfiguration()
     await startQuiz()
     capture("05-DrawingQuiz")
 

@@ -15,12 +15,13 @@ import XCUITestKit
 
 /// The base for every Zili UI test. It launches the app in its deterministic `-uiTesting` mode and
 /// hides the platform's navigation model behind semantic verbs, so a flow test reads the same on
-/// iOS (a tab bar in one window) and macOS (a window per feature).
+/// iOS (a tab bar in one window), visionOS (the same tabs, in an ornament beside the window), and
+/// macOS (a window per feature).
 ///
 /// Element lookups go through ``el(_:)``, an app-wide identifier query: Zili's accessibility
 /// identifiers are unique across the screens that can be on-screen at once, so a flow never has to
 /// know which window its element lives in. Navigation verbs only bring the right screen forward —
-/// tapping a tab on iOS, opening or raising a window on macOS.
+/// tapping a tab on iOS and visionOS, opening or raising a window on macOS.
 class ZiliUITestCase: XCTestCase {
   private(set) var app: XCUIApplication!
 
@@ -94,7 +95,7 @@ class ZiliUITestCase: XCTestCase {
       app.launchAndWaitUntilReady { app in
         failLexiconLoad
           ? app.descendant(id: AccessibilityID.loadFailureRetry)
-          : app.tabButton(Tab.dictionary)
+          : tabButton(Tab.dictionary)
       }
     #endif
     return app
@@ -119,16 +120,30 @@ class ZiliUITestCase: XCTestCase {
   }
 
   /// Waits for the element with `identifier`, asserts it appeared, then taps it once its frame
-  /// settles. XCUITestKit's ``XCUIElement/coordinateTapWhenFrameStable(timeout:file:line:)`` taps
-  /// the center coordinate — which reliably hits combined-accessibility rows and Liquid Glass
-  /// controls that report the wrong activation point or `isHittable == false` — after polling for a
-  /// stable frame, so a tap can't race a mid-relayout Form. Returns the element for chaining.
+  /// settles (see ``tapWhenSettled(_:)``). Returns the element for chaining.
   @discardableResult
   func tap(_ identifier: String, _ message: String = "") async -> XCUIElement {
     let element = el(identifier)
     XCTAssertTrue(element.wait(), message.isEmpty ? "No element \(identifier) to tap." : message)
-    await element.coordinateTapWhenFrameStable()
+    await tapWhenSettled(element)
     return element
+  }
+
+  /// Taps `element` once its frame stops moving, so a tap can't race a mid-relayout Form.
+  ///
+  /// On iOS and macOS, XCUITestKit's
+  /// ``XCUIElement/coordinateTapWhenFrameStable(timeout:holdFor:file:line:)`` taps the center
+  /// coordinate, which reliably hits combined-accessibility rows and Liquid Glass controls that
+  /// report the wrong activation point or `isHittable == false`. visionOS takes the element's own
+  /// tap instead: a coordinate press there never selects a `List` row, and its controls report
+  /// hit points a tap can trust.
+  private func tapWhenSettled(_ element: XCUIElement) async {
+    #if os(visionOS)
+      element.waitUntilFrameStable()
+      element.tap()
+    #else
+      await element.coordinateTapWhenFrameStable()
+    #endif
   }
 
   /// Taps `tapID` and waits for `destinationID` to appear, tapping once more if it doesn't. After
@@ -141,10 +156,10 @@ class ZiliUITestCase: XCTestCase {
   {
     let target = el(tapID)
     XCTAssertTrue(target.wait(), "No element \(tapID) to tap.")
-    await target.coordinateTapWhenFrameStable()
+    await tapWhenSettled(target)
     let destination = el(destinationID)
     if !destination.wait() {
-      await target.coordinateTapWhenFrameStable()
+      await tapWhenSettled(target)
     }
     XCTAssertTrue(
       destination.wait(),
@@ -178,15 +193,25 @@ class ZiliUITestCase: XCTestCase {
   private func tapFirstVisible(_ identifier: String) async -> Bool {
     let query = app.descendants(matching: .any).matching(identifier: identifier)
     guard query.firstMatch.wait() else { return false }
-    let window = app.windows.firstMatch.frame
+    let window = contentFrame
     let band = (window.minY + window.height * 0.15)...(window.minY + window.height * 0.55)
     for element in query.allElementsBoundByIndex
     where element.exists && band.contains(element.frame.midY) {
-      await element.coordinateTapWhenFrameStable()
+      await tapWhenSettled(element)
       return true
     }
-    await query.firstMatch.coordinateTapWhenFrameStable()
+    await tapWhenSettled(query.firstMatch)
     return true
+  }
+
+  /// The frame of the window the app's screens fill. On visionOS the first window is the tab
+  /// ornament, not the app's own, so the app element's frame stands in for the window there.
+  private var contentFrame: CGRect {
+    #if os(visionOS)
+      app.frame
+    #else
+      app.windows.firstMatch.frame
+    #endif
   }
 
   /// Asserts an element with `identifier` appears within the (scaled) timeout.
@@ -221,11 +246,15 @@ class ZiliUITestCase: XCTestCase {
   }
 
   /// Types `text` into `field`, focusing it first. Bridges the platforms: iOS uses XCUITestKit's
-  /// keyboard-aware `clearAndType`; macOS (a hardware keyboard, no software one) clicks and types.
+  /// keyboard-aware `clearAndType`; macOS clicks and types. The visionOS simulator types through
+  /// its hardware keyboard too — no soft keyboard rises into the app — so it taps and types.
   func type(_ text: String, into field: XCUIElement) {
     XCTAssertTrue(field.wait(), "Text field to type into.")
     #if os(macOS)
       field.click()
+      field.typeText(text)
+    #elseif os(visionOS)
+      field.tap()
       field.typeText(text)
     #else
       field.clearAndType(text, app: app)
@@ -233,9 +262,9 @@ class ZiliUITestCase: XCTestCase {
   }
 
   /// Dismisses the soft keyboard if one is up, so the next tap activates its target instead of just
-  /// resigning first responder. A no-op on macOS (no soft keyboard).
+  /// resigning first responder. A no-op on macOS and visionOS, where typing raises no soft keyboard.
   func dismissKeyboard() {
-    #if !os(macOS)
+    #if os(iOS)
       if app.keyboards.firstMatch.exists {
         app.dismissKeyboardStable()
       }
@@ -280,6 +309,25 @@ class ZiliUITestCase: XCTestCase {
     }
   #endif
 
+  #if !os(macOS)
+    /// The button that selects the tab titled `label`. XCUITestKit's tab helpers are iOS-only;
+    /// visionOS seats the tabs in an ornament, a window of its own beside the app's, where the
+    /// first button with the title is the ornament's, ahead of the title's own nested button.
+    func tabButton(_ label: String) -> XCUIElement {
+      #if os(visionOS)
+        app.buttons[label].firstMatch
+      #else
+        app.tabButton(label)
+      #endif
+    }
+
+    /// Selects the tab titled `label` by a center-coordinate tap, which a Liquid Glass tab bar
+    /// needs where its buttons report themselves unhittable.
+    func tapTab(_ label: String) {
+      tabButton(label).forceTap()
+    }
+  #endif
+
   /// Opens the app at `link`, the way a widget tap or the Start Review control does.
   ///
   /// On macOS the system delivers the link to the running app. `XCUIApplication.open(_:)` would
@@ -299,7 +347,7 @@ class ZiliUITestCase: XCTestCase {
     #if os(macOS)
       app.focusWindow(MacWindow.dictionary, openingWith: "1")
     #else
-      app.tapTab(Tab.dictionary)
+      tapTab(Tab.dictionary)
     #endif
   }
 
@@ -308,7 +356,7 @@ class ZiliUITestCase: XCTestCase {
     #if os(macOS)
       app.focusWindow(MacWindow.practiceCharacters, openingWith: "2")
     #else
-      app.tapTab(Tab.practice)
+      tapTab(Tab.practice)
       await tap(AccessibilityID.practiceCharactersCard, "Practice Characters card.")
     #endif
   }
@@ -318,7 +366,7 @@ class ZiliUITestCase: XCTestCase {
     #if os(macOS)
       app.focusWindow(MacWindow.practiceSentences, openingWith: "3")
     #else
-      app.tapTab(Tab.practice)
+      tapTab(Tab.practice)
       await tap(AccessibilityID.practiceSentencesCard, "Practice Sentences card.")
     #endif
   }
@@ -328,21 +376,24 @@ class ZiliUITestCase: XCTestCase {
     #if os(macOS)
       app.typeKey("n", modifierFlags: .command)
     #else
-      app.tapTab(Tab.quiz)
+      tapTab(Tab.quiz)
       await tap(AccessibilityID.quizRecognitionCard, "Recognition quiz card.")
     #endif
-    expect(AccessibilityID.quizStartButton, "The quiz configuration form.")
+    expectConfigurationForm()
   }
 
-  /// Opens a drawing quiz onto its configuration form.
-  func openDrawingQuizConfiguration() async {
+  /// Opens a drawing quiz onto its configuration form. Skips the calling test on visionOS, where
+  /// the Quiz tab leaves the drawing quiz out: finger-drawing has no fit for eye-and-pinch input.
+  func openDrawingQuizConfiguration() async throws {
     #if os(macOS)
       app.typeKey("n", modifierFlags: [.command, .shift])
+    #elseif os(visionOS)
+      throw XCTSkip("visionOS has no drawing quiz.")
     #else
-      app.tapTab(Tab.quiz)
+      tapTab(Tab.quiz)
       await tap(AccessibilityID.quizDrawingCard, "Drawing quiz card.")
     #endif
-    expect(AccessibilityID.quizStartButton, "The quiz configuration form.")
+    expectConfigurationForm()
   }
 
   /// Opens a listening quiz onto its configuration form.
@@ -350,10 +401,10 @@ class ZiliUITestCase: XCTestCase {
     #if os(macOS)
       app.typeKey("n", modifierFlags: [.command, .option])
     #else
-      app.tapTab(Tab.quiz)
+      tapTab(Tab.quiz)
       await tap(AccessibilityID.quizListeningCard, "Listening quiz card.")
     #endif
-    expect(AccessibilityID.quizStartButton, "The quiz configuration form.")
+    expectConfigurationForm()
   }
 
   /// Opens a speaking quiz onto its configuration form.
@@ -361,18 +412,46 @@ class ZiliUITestCase: XCTestCase {
     #if os(macOS)
       app.typeKey("n", modifierFlags: [.command, .control])
     #else
-      app.tapTab(Tab.quiz)
+      tapTab(Tab.quiz)
       await tap(AccessibilityID.quizSpeakingCard, "Speaking quiz card.")
     #endif
-    expect(AccessibilityID.quizStartButton, "The quiz configuration form.")
+    expectConfigurationForm()
   }
+
+  /// Asserts a quiz configuration form came up, by its Start button. A visionOS window is too short
+  /// for the taller forms, and a form leaves a row it hasn't scrolled to out of the accessibility
+  /// tree, so there a Start that doesn't turn up is scrolled to instead.
+  private func expectConfigurationForm() {
+    let start = el(AccessibilityID.quizStartButton)
+    #if os(visionOS)
+      if !start.wait() {
+        scrollForm(toward: start)
+      }
+    #endif
+    XCTAssertTrue(start.wait(), "The quiz configuration form.")
+  }
+
+  #if os(visionOS)
+    /// The most swipes ``scrollForm(toward:)`` spends looking for an element.
+    private static let formSwipeLimit = 5
+
+    /// Swipes the on-screen form up until `element` enters the accessibility tree. The swipe goes
+    /// to the form itself: visionOS refuses a gesture addressed to the app as a whole, as there is
+    /// no one scene to deliver it to, so XCUITestKit's app-wide scrolling cannot run there.
+    private func scrollForm(toward element: XCUIElement) {
+      let form = app.collectionViews.firstMatch
+      for _ in 0..<Self.formSwipeLimit where !element.exists {
+        form.swipeUp()
+      }
+    }
+  #endif
 
   /// Reaches Settings: the Settings tab on iOS, the Settings window (⌘,) on macOS.
   func goToSettings() {
     #if os(macOS)
       app.typeKey(",", modifierFlags: .command)
     #else
-      app.tapTab(Tab.settings)
+      tapTab(Tab.settings)
     #endif
     expect(AccessibilityID.settingsScriptPicker, "The Settings screen.")
   }
@@ -404,10 +483,10 @@ class ZiliUITestCase: XCTestCase {
   /// A taller form (the recognition quiz's extra study-mode section) leaves Start under the tab
   /// bar, where a center-coordinate tap would land on the tab bar rather than the button;
   /// ``XCUIApplication/scrollIntoSafeBand(_:in:topFraction:bottomFraction:maxAttempts:)`` nudges it
-  /// into the band clear of the floating bars. A no-op on macOS, whose windowed forms have no tab
-  /// bar to clear.
+  /// into the band clear of the floating bars. A no-op on macOS and visionOS, which have no bottom
+  /// tab bar to clear.
   private func revealStartButton() {
-    #if !os(macOS)
+    #if os(iOS)
       app.scrollIntoSafeBand(el(AccessibilityID.quizStartButton))
     #endif
   }

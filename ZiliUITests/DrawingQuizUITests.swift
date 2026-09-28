@@ -17,7 +17,7 @@ final class DrawingQuizUITests: ZiliUITestCase {
   /// begin writing, then skip — until the results seal appears.
   func testSkipThroughDrawingQuizToResults() async throws {
     launch()
-    await openDrawingQuizConfiguration()
+    try await openDrawingQuizConfiguration()
     await startQuiz()
 
     for _ in 0..<120 {
