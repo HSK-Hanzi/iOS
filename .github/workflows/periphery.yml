@@ -84,12 +84,13 @@ jobs:
           brew update
           brew install periphery-pro/tap/periphery-cli
       # Zili builds for both iOS and macOS, and a symbol used only under `#if os(...)` on one platform
-      # looks unused to a single-platform scan, so the index must cover both. Xcode 26's build service
-      # traps (SIGTRAP, surfacing as "exit status 5") when one `build-for-testing` invocation targets an
-      # iOS-Simulator and a macOS destination together, so build each platform in its own invocation
-      # into a shared derived-data dir — matching the flags Periphery would pass itself — then let
-      # Periphery analyze the merged index store with --skip-build. The runner has no signing cert, so
-      # ad-hoc sign and drop the entitlements — these analysis builds never ship.
+      # looks unused to a single-platform scan, so the index must cover both. A single
+      # `build-for-testing` invocation given an iOS-Simulator and a macOS destination together builds
+      # the iOS side, then xcodebuild traps (SIGTRAP, exit code 133) before building for macOS. So
+      # each platform builds in its own invocation, with the flags Periphery would pass itself, into
+      # a shared derived-data dir, and Periphery analyzes the merged index store with --skip-build.
+      # The runner has no signing cert, so ad-hoc sign and drop the entitlements — these analysis
+      # builds never ship.
       - name: Build both platforms for indexing
         env:
           SIM_UDID: ${{ steps.sim.outputs.udid }}

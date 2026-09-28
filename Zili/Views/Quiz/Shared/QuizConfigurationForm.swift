@@ -155,21 +155,24 @@ struct QuizDeckSizePicker: View {
   }
 }
 
-#if os(macOS)
-  /// Frames a quiz's setup sections in a grouped form sized to its content, with the actions
-  /// trailing beneath it — the shape of a Mac sheet.
-  struct QuizConfigurationLayout<Sections: View, Start: View>: View {
+/// Frames a quiz's setup sections in a grouped form. On the Mac the form is sized to its content
+/// with the actions trailing beneath it — the shape of a Mac sheet; elsewhere the start button
+/// sits in a section of its own at the foot.
+struct QuizConfigurationLayout<Sections: View, Start: View>: View {
+  #if os(macOS)
     /// The readable width the grouped form is capped to.
     private static var formMaxWidth: CGFloat { 560 }
 
     /// The trailing inset `.formStyle(.grouped)` gives its section cards, so the standalone
     /// actions line up with the form's right edge rather than the form's outer bounds.
     private static var formSectionInset: CGFloat { 20 }
+  #endif
 
-    @ViewBuilder let sections: Sections
-    @ViewBuilder let start: Start
+  @ViewBuilder let sections: Sections
+  @ViewBuilder let start: Start
 
-    var body: some View {
+  var body: some View {
+    #if os(macOS)
       VStack(alignment: .trailing, spacing: 20) {
         Form { sections }
           .formStyle(.grouped)
@@ -182,23 +185,14 @@ struct QuizDeckSizePicker: View {
       }
       .frame(width: Self.formMaxWidth)
       .scenePadding()
-    }
-  }
-#else
-  /// Frames a quiz's setup sections in a grouped form, with the start button in a section of
-  /// its own at the foot.
-  struct QuizConfigurationLayout<Sections: View, Start: View>: View {
-    @ViewBuilder let sections: Sections
-    @ViewBuilder let start: Start
-
-    var body: some View {
+    #else
       Form {
         sections
         Section { start }
       }
-    }
+    #endif
   }
-#endif
+}
 
 /// A configuration form's actions: the button that deals the deck, and — when the form is
 /// presented modally — a cancel button beside it. Cancel answers the Escape key; Start answers
