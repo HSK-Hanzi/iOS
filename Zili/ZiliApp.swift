@@ -228,8 +228,10 @@ struct ZiliApp: App {
     ])
   }
 
-  /// The app's store, or a throwaway in-memory one when a UI test asked for determinism — no
-  /// CloudKit, no persistence between launches, so every run starts from the same seeded slate.
+  /// The app's store, or a throwaway in-memory one for a test run — no CloudKit, no persistence
+  /// between launches. A UI test gets the same seeded slate every run; a unit test host leaves the
+  /// learner's own store, which shares its bundle identifier and so its container, untouched, and
+  /// needs no iCloud account to launch.
   private static func makeModelContainer(uiTest: UITestConfiguration) -> ModelContainer {
     let schema = Schema([
       FavoriteWord.self,
@@ -239,7 +241,7 @@ struct ZiliApp: App {
       WordReviewSchedule.self
     ])
     let modelConfiguration =
-      uiTest.isEnabled
+      uiTest.isEnabled || isUnitTesting()
       ? .throwaway(schema: schema)
       : ModelConfiguration(
         schema: schema,
