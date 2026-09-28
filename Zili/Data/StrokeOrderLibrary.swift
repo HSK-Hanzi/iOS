@@ -58,7 +58,7 @@ struct StrokeOrderLibrary: Sendable {
       )
     }
     guard let payload,
-      let object = try? PropertyListSerialization.propertyList(from: payload, format: nil)
+      let object = try? PropertyListSerialization.propertyList(from: payload)
     else { return nil }
     return HanziGraphic(propertyList: object)
   }

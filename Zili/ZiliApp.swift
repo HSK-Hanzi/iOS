@@ -155,7 +155,7 @@ struct ZiliApp: App {
     _appData = State(initialValue: AppData(container: container, uiTest: uiTest))
     let router = AppRouter()
     _router = State(initialValue: router)
-    AppDependencyManager.shared.add(dependency: router)
+    unsafe AppDependencyManager.shared.add(dependency: router)
     Self.prewarmScriptConverterIfNeeded()
     Self.configureTips(uiTest: uiTest)
   }
