@@ -52,6 +52,11 @@ one of the two places.
 - Flashcards honor "Prefer Cross-Fade Transitions", dissolving to their other
   side instead of cutting to it when Reduce Motion is on.
 
+### FIXES
+
+- On Apple Vision Pro, a flashcard no longer flickers against the window behind
+  it as it turns over.
+
 ## 1.3
 
 ### NEW

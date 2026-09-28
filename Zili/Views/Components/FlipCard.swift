@@ -104,9 +104,25 @@ private struct CrossFadedFaces<Front: View, Back: View>: View {
 /// turns, a secondary tilt lends momentum, an edge shadow deepens at the halfway point, and the
 /// visible face is swapped as a hard cut exactly when the card is edge-on — never a cross-fade.
 private struct FlipFaces<Front: View, Back: View>: View, Animatable {
+  #if os(visionOS)
+    /// How far the faces' soft shadow and glow reach past the card's edge, with room to spare, so
+    /// the lift clears the blur as well as the card itself.
+    private static var edgeClearance: CGFloat { 96 }
+
+    /// How far the card rests in front of the window's glass, so a turn that has barely begun —
+    /// or has all but finished — never lies within the glass's depth. Short of the judgement
+    /// controls' own lift, so they stay in front of the card at rest.
+    private static var restingLift: CGFloat { 16 }
+  #endif
+
   var angle: Double
   @ViewBuilder var front: () -> Front
   @ViewBuilder var back: () -> Back
+
+  #if os(visionOS)
+    /// The card's laid-out width, which sets how deep its receding edge sinks as it turns.
+    @State private var width: CGFloat = 0
+  #endif
 
   var animatableData: Double {
     get { angle }
@@ -129,10 +145,15 @@ private struct FlipFaces<Front: View, Back: View>: View, Animatable {
       #endif
     }
     #if os(visionOS)
+      .onGeometryChange(for: CGFloat.self) {
+        $0.size.width
+      } action: {
+        width = $0
+      }
       // visionOS turns the card as a real plane in space, so no faked perspective projection or
       // secondary tilt is needed — the depth is genuine. The turn is lifted forward off the
       // window's glass so the receding half never crosses behind the base plane (where it would be
-      // clipped and z-fight); the lift peaks edge-on and resolves to zero flat at each face.
+      // clipped and z-fight); the lift peaks edge-on and settles to a small resting lift at each face.
       .rotation3DEffect(.degrees(angle), axis: (x: 0, y: 1, z: 0))
       .offset(z: liftZ)
     #else
@@ -148,12 +169,17 @@ private struct FlipFaces<Front: View, Back: View>: View, Animatable {
   }
 
   #if os(visionOS)
-    /// Forward displacement during the turn: zero at each face, peaking edge-on, so the plane
-    /// rotates in front of the glass rather than sinking behind it. The peak clears half the
-    /// flashcard's width plus its soft shadow and glow, so even the card's blurred edges stay in
-    /// front of the window's base plane throughout the turn.
+    /// Forward displacement: the resting lift at each face, peaking edge-on, so the plane rotates
+    /// in front of the glass rather than sinking behind it.
+    ///
+    /// A card turned by θ sinks its receding edge half its width times sin θ behind its center, and
+    /// the lift follows the same curve, so a peak past half the width keeps that edge in front of
+    /// the window's base plane at every angle of the turn — its blurred shadow and glow included.
+    /// That curve alone leaves only a few points of clearance at shallow angles, where a card a
+    /// degree or two off flat would otherwise z-fight the glass; the resting lift keeps the whole
+    /// turn clear of it.
     private var liftZ: CGFloat {
-      CGFloat(sin(turnProgress * .pi)) * 240
+      Self.restingLift + CGFloat(sin(turnProgress * .pi)) * (width / 2 + Self.edgeClearance)
     }
   #endif
 
