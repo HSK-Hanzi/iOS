@@ -9,7 +9,9 @@ here and as plain text on the store, where the field shows whatever it is given
 verbatim: a line that only makes sense with its formatting will read badly in
 one of the two places.
 
-## 1.3
+## 2.0
+
+Zili 2.0 requires iOS 27, iPadOS 27, macOS 27, or visionOS 27.
 
 ### NEW
 
