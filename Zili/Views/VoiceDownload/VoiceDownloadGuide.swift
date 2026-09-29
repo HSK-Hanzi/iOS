@@ -156,98 +156,95 @@ private struct VoiceReadyView: View {
 /// One step of downloading a voice, in the words and screenshots of the platform's own Settings.
 struct VoiceDownloadStep: Identifiable {
   #if os(macOS)
-    static let all = [
-      Self(
-        number: 1,
-        instruction: "In Read & Speak, click the Info button next to System voice.",
-        screenshot: .voiceGuideMac1,
-        screenshotDescription: "The System voice setting, with its Info button circled."
-      ),
-      Self(
-        number: 2,
-        instruction: "Choose Chinese, then Mandarin.",
-        screenshot: .voiceGuideMac2,
-        screenshotDescription: "The list of languages, with Chinese and then Mandarin highlighted."
-      ),
-      Self(
-        number: 3,
-        instruction: "Click Voice.",
-        screenshot: .voiceGuideMac3,
-        screenshotDescription: "Mandarin’s voice settings, with the Voice row highlighted."
-      ),
-      Self(
-        number: 4,
-        instruction: "Click the download button next to a voice marked Enhanced or Premium.",
-        screenshot: .voiceGuideMac4,
-        screenshotDescription:
-          "Mandarin voices, with the download buttons of the Enhanced voices circled."
-      )
-    ]
+    static var all: [Self] {
+      [
+        Self(
+          number: 1,
+          instruction: "In Read & Speak, click the Info button next to System voice.",
+          screenshot: .voiceGuideMac1,
+          screenshotDescription: "The System voice setting, with its Info button circled."
+        ),
+        Self(
+          number: 2,
+          instruction: "Choose Chinese, then Mandarin.",
+          screenshot: .voiceGuideMac2,
+          screenshotDescription:
+            "The list of languages, with Chinese and then Mandarin highlighted."
+        ),
+        Self(
+          number: 3,
+          instruction: "Click Voice.",
+          screenshot: .voiceGuideMac3,
+          screenshotDescription: "Mandarin’s voice settings, with the Voice row highlighted."
+        ),
+        Self(
+          number: 4,
+          instruction: "Click the download button next to a voice marked Enhanced or Premium.",
+          screenshot: .voiceGuideMac4,
+          screenshotDescription:
+            "Mandarin voices, with the download buttons of the Enhanced voices circled."
+        )
+      ]
+    }
   #else
     /// The steps for this device. The iPad's first step is in the Settings sidebar, a column
     /// narrow enough that its screenshot is shown at the sidebar's own width rather than stretched.
-    @MainActor static var all: [Self] { [openAccessibility] + fromAccessibility }
-
-    @MainActor private static var openAccessibility: Self {
-      UIDevice.current.userInterfaceIdiom == .pad
-        ? openAccessibilityInSidebar : openAccessibilityInList
+    @MainActor static var all: [Self] {
+      [
+        UIDevice.current.userInterfaceIdiom == .pad
+          ? Self(
+            number: 1,
+            instruction:
+              "Tap Open Settings below, then tap Accessibility in the sidebar. If Settings opens somewhere else, go back to its top level first.",
+            screenshot: .voiceGuidePad1,
+            screenshotDescription: "The Settings sidebar, with Accessibility highlighted.",
+            screenshotMaxWidth: 280
+          )
+          : Self(
+            number: 1,
+            instruction:
+              "Tap Open Settings below, then tap Accessibility. If Settings opens somewhere else, go back to its top level first.",
+            screenshot: .voiceGuidePhone1,
+            screenshotDescription: "The top of Settings, with Accessibility highlighted."
+          ),
+        Self(
+          number: 2,
+          instruction: "Tap Read & Speak.",
+          screenshot: .voiceGuidePhone2,
+          screenshotDescription: "Accessibility settings, with Read & Speak highlighted."
+        ),
+        Self(
+          number: 3,
+          instruction: "Tap Voices.",
+          screenshot: .voiceGuidePhone3,
+          screenshotDescription: "Read & Speak settings, with Voices highlighted."
+        ),
+        Self(
+          number: 4,
+          instruction: "Tap Chinese.",
+          screenshot: .voiceGuidePhone4,
+          screenshotDescription: "The list of voice languages, with Chinese highlighted."
+        ),
+        Self(
+          number: 5,
+          instruction: "Tap Mandarin.",
+          screenshot: .voiceGuidePhone5,
+          screenshotDescription: "Chinese voice settings, with Mandarin highlighted."
+        ),
+        Self(
+          number: 6,
+          instruction: "Tap Voice.",
+          screenshot: .voiceGuidePhone6,
+          screenshotDescription: "Mandarin’s voice settings, with the Voice row highlighted."
+        ),
+        Self(
+          number: 7,
+          instruction: "Tap the download button next to a voice marked Enhanced or Premium.",
+          screenshot: .voiceGuidePhone7,
+          screenshotDescription: "Mandarin voices, with a Premium voice highlighted."
+        )
+      ]
     }
-
-    private static let openAccessibilityInList = Self(
-      number: 1,
-      instruction:
-        "Tap Open Settings below, then tap Accessibility. If Settings opens somewhere else, go back to its top level first.",
-      screenshot: .voiceGuidePhone1,
-      screenshotDescription: "The top of Settings, with Accessibility highlighted."
-    )
-
-    private static let openAccessibilityInSidebar = Self(
-      number: 1,
-      instruction:
-        "Tap Open Settings below, then tap Accessibility in the sidebar. If Settings opens somewhere else, go back to its top level first.",
-      screenshot: .voiceGuidePad1,
-      screenshotDescription: "The Settings sidebar, with Accessibility highlighted.",
-      screenshotMaxWidth: 280
-    )
-
-    private static let fromAccessibility = [
-      Self(
-        number: 2,
-        instruction: "Tap Read & Speak.",
-        screenshot: .voiceGuidePhone2,
-        screenshotDescription: "Accessibility settings, with Read & Speak highlighted."
-      ),
-      Self(
-        number: 3,
-        instruction: "Tap Voices.",
-        screenshot: .voiceGuidePhone3,
-        screenshotDescription: "Read & Speak settings, with Voices highlighted."
-      ),
-      Self(
-        number: 4,
-        instruction: "Tap Chinese.",
-        screenshot: .voiceGuidePhone4,
-        screenshotDescription: "The list of voice languages, with Chinese highlighted."
-      ),
-      Self(
-        number: 5,
-        instruction: "Tap Mandarin.",
-        screenshot: .voiceGuidePhone5,
-        screenshotDescription: "Chinese voice settings, with Mandarin highlighted."
-      ),
-      Self(
-        number: 6,
-        instruction: "Tap Voice.",
-        screenshot: .voiceGuidePhone6,
-        screenshotDescription: "Mandarin’s voice settings, with the Voice row highlighted."
-      ),
-      Self(
-        number: 7,
-        instruction: "Tap the download button next to a voice marked Enhanced or Premium.",
-        screenshot: .voiceGuidePhone7,
-        screenshotDescription: "Mandarin voices, with a Premium voice highlighted."
-      )
-    ]
   #endif
 
   let number: Int
