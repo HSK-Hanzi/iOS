@@ -80,6 +80,9 @@ enum AccessibilityID {
   // Lexicon gate
   static let loadFailureRetry = "loadFailure.retry"
 
+  // Voice download
+  static let voiceGuideOpenSettings = "voiceGuide.openSettings"
+
   /// Every fixed identifier, in declaration order — the roster ``AccessibilityIDParityTests``
   /// checks for uniqueness and well-formedness. Swift can't reflect over `static let` members, so
   /// this list is maintained by hand alongside them: add an identifier above, add it here.
@@ -136,7 +139,8 @@ enum AccessibilityID {
     settingsPencilSqueezePicker,
     settingsResetMissed,
     settingsAbout,
-    loadFailureRetry
+    loadFailureRetry,
+    voiceGuideOpenSettings
   ]
 
   // Parameterized identifiers — a set tile suffixed with the level it stands for.

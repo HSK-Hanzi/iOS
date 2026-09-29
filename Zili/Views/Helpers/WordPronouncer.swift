@@ -21,10 +21,20 @@ final class WordPronouncer {
   /// point of being hard to recognise as speech, so the quality is worth choosing rather than
   /// inheriting. Read fresh each time, since a voice can arrive while the app is running.
   private static var bestVoice: AVSpeechSynthesisVoice? {
-    AVSpeechSynthesisVoice.speechVoices()
-      .filter { $0.language == language }
-      .max { $0.quality.rawValue < $1.quality.rawValue }
+    mandarinVoices.max { $0.quality.rawValue < $1.quality.rawValue }
       ?? AVSpeechSynthesisVoice(language: language)
+  }
+
+  /// Whether an Enhanced or Premium Mandarin voice is installed. Without one, speech falls back to
+  /// a compact voice, and ``VoiceDownloadPromptPolicy`` offers to help the learner download one.
+  static var hasHighQualityVoice: Bool {
+    mandarinVoices.contains {
+      $0.quality.rawValue >= AVSpeechSynthesisVoiceQuality.enhanced.rawValue
+    }
+  }
+
+  private static var mandarinVoices: [AVSpeechSynthesisVoice] {
+    AVSpeechSynthesisVoice.speechVoices().filter { $0.language == language }
   }
 
   private let synthesizer = AVSpeechSynthesizer()

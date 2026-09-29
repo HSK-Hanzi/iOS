@@ -1,0 +1,11 @@
+{
+  "images" : [
+    { "filename" : "VoiceGuidePad1.png", "idiom" : "universal" },
+    {
+      "appearances" : [ { "appearance" : "luminosity", "value" : "dark" } ],
+      "filename" : "VoiceGuidePad1-dark.png",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : { "author" : "xcode", "version" : 1 }
+}

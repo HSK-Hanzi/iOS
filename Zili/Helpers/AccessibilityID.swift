@@ -83,6 +83,9 @@ enum AccessibilityID {
   // Lexicon gate
   static let loadFailureRetry = "loadFailure.retry"
 
+  // Voice download
+  static let voiceGuideOpenSettings = "voiceGuide.openSettings"
+
   // Parameterized identifiers — a set tile suffixed with the level it stands for.
 
   /// The grid tile / list row for one HSK level, suffixed with the level's name.

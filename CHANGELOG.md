@@ -33,6 +33,11 @@ one of the two places.
   checks your tones as well as your syllables: a word that sounds like the one
   you were shown counts, but a word in the wrong tone doesn't. Recognition runs
   on the device.
+- If only a basic Chinese voice is installed, Zili offers to help you download
+  an Enhanced or Premium one, which pronounces words and sentences far more
+  clearly. It walks you through the steps in Settings, with screenshots, and
+  lets you hear the new voice as soon as it arrives. Choose Remind Me Later to
+  be asked again next time, or Don't Remind Me to stop being asked.
 
 ### ACCESSIBILITY
 
