@@ -15,6 +15,8 @@ import TipKit
 struct ZiliApp: App {
   private let modelContainer: ModelContainer
 
+  private let voiceDownloadPromptPolicy: VoiceDownloadPromptPolicy
+
   @State private var appData: AppData
 
   @State private var router: AppRouter
@@ -23,6 +25,13 @@ struct ZiliApp: App {
     mainScene
 
     #if os(macOS)
+      Window("Download a Chinese Voice", id: WindowID.voiceDownloadGuide) {
+        VoiceDownloadGuide()
+      }
+      .windowResizability(.contentSize)
+      .defaultPosition(.leading)
+      .restorationBehavior(.disabled)
+
       Window("About Zili", id: AboutView.windowSceneID) {
         AboutView()
       }
@@ -42,6 +51,7 @@ struct ZiliApp: App {
       Window("Dictionary", id: WindowID.dictionary) {
         DictionaryWindow()
           .wordPeekOverlay()
+          .voiceDownloadPrompt(voiceDownloadPromptPolicy)
       }
       .keyboardShortcut("1")
       .defaultSize(width: 1000, height: 700)
@@ -121,6 +131,7 @@ struct ZiliApp: App {
       WindowGroup {
         ContentView()
           .wordPeekOverlay()
+          .voiceDownloadPrompt(voiceDownloadPromptPolicy)
       }
       .modelContainer(modelContainer)
       .environment(appData)
@@ -140,6 +151,10 @@ struct ZiliApp: App {
     Self.startCrashReportingIfNeeded(uiTest: uiTest)
     let container = Self.makeModelContainer(uiTest: uiTest)
     modelContainer = container
+    voiceDownloadPromptPolicy = VoiceDownloadPromptPolicy(
+      uiTest: uiTest,
+      isUnitTesting: Self.isUnitTesting()
+    )
     _appData = State(initialValue: AppData(container: container, uiTest: uiTest))
     let router = AppRouter()
     _router = State(initialValue: router)

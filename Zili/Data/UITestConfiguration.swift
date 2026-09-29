@@ -18,6 +18,9 @@ import Foundation
 ///   reach the ``LexiconGate`` retry screen on demand.
 /// - `SPEECH` — one of `echo`, `mishear`, or `unavailableUntilRetried`: the speaking quiz hears the learner
 ///   through a ``ScriptedSpeechListener`` following that script, since a test has no voice.
+/// - `VOICE_PROMPT` — `fresh` or `remembered`: shows the launch prompt to download a better Mandarin
+///   voice whatever voices the device has, `fresh` first forgetting an earlier "Don't Remind Me".
+///   Without it a UI test never sees that prompt, so it can't block other flows.
 struct UITestConfiguration: Sendable {
   /// The default: nothing test-specific, matching a shipped launch.
   static let disabled = Self(
@@ -25,7 +28,8 @@ struct UITestConfiguration: Sendable {
     seedsFavorites: false,
     seedsMisses: false,
     failsLexiconLoad: false,
-    speech: nil
+    speech: nil,
+    voicePrompt: nil
   )
 
   /// Reads the configuration from the launched process, returning ``disabled`` unless
@@ -42,6 +46,7 @@ struct UITestConfiguration: Sendable {
   var seedsMisses: Bool
   var failsLexiconLoad: Bool
   var speech: ScriptedSpeechListener.Script?
+  var voicePrompt: VoicePrompt?
 
   /// The resolution rule, pulled out from the process so it can be exercised directly.
   static func resolve(arguments: [String], environment: [String: String]) -> Self {
@@ -52,7 +57,16 @@ struct UITestConfiguration: Sendable {
       seedsFavorites: seed.contains("favorites"),
       seedsMisses: seed.contains("misses"),
       failsLexiconLoad: environment["FAIL_LEXICON_LOAD"] == "1",
-      speech: environment["SPEECH"].flatMap(ScriptedSpeechListener.Script.init)
+      speech: environment["SPEECH"].flatMap(ScriptedSpeechListener.Script.init),
+      voicePrompt: environment["VOICE_PROMPT"].flatMap(VoicePrompt.init)
     )
+  }
+
+  /// How a UI test launch shows the voice-download prompt.
+  enum VoicePrompt: String, Sendable {
+    /// As on a first launch, forgetting any earlier "Don't Remind Me".
+    case fresh
+    /// As an earlier launch left it.
+    case remembered
   }
 }

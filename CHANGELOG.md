@@ -9,6 +9,16 @@ here and as plain text on the store, where the field shows whatever it is given
 verbatim: a line that only makes sense with its formatting will read badly in
 one of the two places.
 
+## 2.1
+
+### NEW
+
+- If only a basic Chinese voice is installed, Zili offers to help you download
+  an Enhanced or Premium one, which pronounces words and sentences far more
+  clearly. It walks you through the steps in Settings, with screenshots, and
+  lets you hear the new voice as soon as it arrives. Choose Remind Me Later to
+  be asked again next time, or Don't Remind Me to stop being asked.
+
 ## 2.0
 
 Zili 2.0 requires iOS 27, iPadOS 27, macOS 27, or visionOS 27.
