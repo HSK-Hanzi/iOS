@@ -1,0 +1,11 @@
+{
+  "images" : [
+    { "filename" : "VoiceGuidePhone2.png", "idiom" : "universal" },
+    {
+      "appearances" : [ { "appearance" : "luminosity", "value" : "dark" } ],
+      "filename" : "VoiceGuidePhone2-dark.png",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : { "author" : "xcode", "version" : 1 }
+}
