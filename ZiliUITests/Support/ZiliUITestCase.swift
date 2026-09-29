@@ -48,14 +48,26 @@ class ZiliUITestCase: XCTestCase {
     case unavailableUntilRetried
   }
 
+  /// Whether a launch shows the prompt to download a better Mandarin voice, mirroring the app's
+  /// `VOICE_PROMPT` launch environment. Otherwise a test never sees it, whatever voices are
+  /// installed.
+  enum VoicePrompt: String {
+    /// Prompts as a first launch would, forgetting any earlier "Don't Remind Me".
+    case fresh
+    /// Prompts unless an earlier launch was told "Don't Remind Me".
+    case remembered
+  }
+
   /// Launches the app in UI-testing mode and waits until the first screen is ready to drive.
   /// `seed` pre-populates favorites/misses; `failLexiconLoad` forces the load-failure screen so its
-  /// retry path can be exercised; `speech` scripts what the speaking quiz hears.
+  /// retry path can be exercised; `speech` scripts what the speaking quiz hears; `voicePrompt`
+  /// lets the voice-download prompt appear.
   @discardableResult
   func launch(
     seed: Set<Seed> = [],
     failLexiconLoad: Bool = false,
-    speech: SpeechScript? = nil
+    speech: SpeechScript? = nil,
+    voicePrompt: VoicePrompt? = nil
   ) -> XCUIApplication {
     let app = XCUIApplication()
     self.app = app
@@ -78,6 +90,9 @@ class ZiliUITestCase: XCTestCase {
     }
     if let speech {
       app.launchEnvironment["SPEECH"] = speech.rawValue
+    }
+    if let voicePrompt {
+      app.launchEnvironment["VOICE_PROMPT"] = voicePrompt.rawValue
     }
     #if os(macOS)
       // The app's Window scenes don't present reliably at launch, so wait only for the app to come
@@ -137,7 +152,7 @@ class ZiliUITestCase: XCTestCase {
   /// report the wrong activation point or `isHittable == false`. visionOS takes the element's own
   /// tap instead: a coordinate press there never selects a `List` row, and its controls report
   /// hit points a tap can trust.
-  private func tapWhenSettled(_ element: XCUIElement) async {
+  func tapWhenSettled(_ element: XCUIElement) async {
     #if os(visionOS)
       element.waitUntilFrameStable()
       element.tap()

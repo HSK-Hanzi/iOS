@@ -37,6 +37,11 @@ one of the two places.
   soon as the word appears and stops when you stop talking, then shows the
   reading of what it heard. Recognition runs on the device, and Mandarin
   downloads the first time you start the quiz.
+- If only a basic Chinese voice is installed, Zili offers to help you download
+  an Enhanced or Premium one, which pronounces words and sentences far more
+  clearly. It walks you through the steps in Settings, with screenshots, and
+  lets you hear the new voice as soon as it arrives. Choose Remind Me Later to
+  be asked again next time, or Don't Remind Me to stop being asked.
 
 ### ACCESSIBILITY
 
