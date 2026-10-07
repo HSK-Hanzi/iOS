@@ -50,15 +50,8 @@ jobs:
         with:
           submodules: false
 
-      # Only the open-licensed data is needed to build and test. Data/Open is public, so rewrite its
-      # SSH submodule URL to anonymous HTTPS and init just that submodule (pulling its Git LFS
-      # plists). Data/Proprietary stays absent — the build falls back to open-only data — so CI never
-      # needs a key and outside pull requests, which can't see secrets, still run.
-      - name: Check out the open data submodule
-        run: |
-          git config --global url."https://github.com/".insteadOf "git@github.com:"
-          git submodule update --init Data/Open
-          git -C Data/Open lfs pull
+      - name: Check out the open data
+        uses: ./.github/actions/open-data
 
       # SwiftData's @Model and @Observable macros can fail fingerprint validation on hosted runners;
       # skipping it lets the build resolve the macro implementations.
@@ -150,15 +143,8 @@ jobs:
         with:
           submodules: false
 
-      # A documentation build compiles the app, and the build needs the open-licensed data. Data/Open
-      # is public, so rewrite its SSH submodule URL to anonymous HTTPS and init just that submodule
-      # (pulling its Git LFS plists). Data/Proprietary stays absent — the build falls back to open-only
-      # data — so CI never needs a key.
-      - name: Check out the open data submodule
-        run: |
-          git config --global url."https://github.com/".insteadOf "git@github.com:"
-          git submodule update --init Data/Open
-          git -C Data/Open lfs pull
+      - name: Check out the open data
+        uses: ./.github/actions/open-data
 
       # SwiftData's @Model and @Observable macros can fail fingerprint validation on hosted runners;
       # skipping it lets the build resolve the macro implementations.
