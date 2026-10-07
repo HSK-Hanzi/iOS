@@ -45,14 +45,8 @@ jobs:
         with:
           submodules: false
 
-      # Periphery builds the app, and the build needs the open-licensed data. Data/Open is public, so
-      # rewrite its SSH submodule URL to anonymous HTTPS and init just that submodule (pulling its Git
-      # LFS plists). Data/Proprietary stays absent — the build falls back to open-only data.
-      - name: Check out the open data submodule
-        run: |
-          git config --global url."https://github.com/".insteadOf "git@github.com:"
-          git submodule update --init Data/Open
-          git -C Data/Open lfs pull
+      - name: Check out the open data
+        uses: ./.github/actions/open-data
 
       - name: Record toolchain version
         id: toolchain

@@ -1,0 +1,13 @@
+name: Check out the open data
+description: Initializes the public Data/Open submodule over anonymous HTTPS.
+
+runs:
+  using: composite
+  steps:
+    # Data/Proprietary stays absent — the build falls back to open-only data — so CI never needs a
+    # key and outside pull requests, which can't see secrets, still run.
+    - name: Initialize the submodule
+      shell: bash
+      run: |
+        git config --global url."https://github.com/".insteadOf "git@github.com:"
+        git submodule update --init Data/Open
