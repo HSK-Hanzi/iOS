@@ -42,7 +42,6 @@ jobs:
       post-checkout-run: |
         git config --global url."https://github.com/".insteadOf "git@github.com:"
         git submodule update --init Data/Open
-        git -C Data/Open lfs pull
     secrets:
       certificates-token: ${{ secrets.CERTIFICATES_TOKEN }}
       match-password: ${{ secrets.MATCH_PASSWORD }}
