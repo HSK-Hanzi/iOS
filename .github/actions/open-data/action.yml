@@ -1,0 +1,34 @@
+name: Check out the open data
+description: >-
+  Initializes the public Data/Open submodule over anonymous HTTPS and fetches its Git LFS plists,
+  restoring them from the Actions cache so each run downloads only objects it hasn't seen.
+
+runs:
+  using: composite
+  steps:
+    # Data/Proprietary stays absent — the build falls back to open-only data — so CI never needs a
+    # key and outside pull requests, which can't see secrets, still run. Smudging is skipped so the
+    # checkout writes pointer files; the LFS pull below fills them in from the cache.
+    - name: Initialize the submodule
+      id: submodule
+      shell: bash
+      env:
+        GIT_LFS_SKIP_SMUDGE: "1"
+      run: |
+        git config --global url."https://github.com/".insteadOf "git@github.com:"
+        git submodule update --init Data/Open
+        echo "revision=$(git rev-parse HEAD:Data/Open)" >> "$GITHUB_OUTPUT"
+
+    # Keyed on the submodule revision; the prefix fallback means a data change downloads only the
+    # objects that changed.
+    - name: Cache the LFS objects
+      uses: actions/cache@v6
+      with:
+        path: .git/modules/Data/Open/lfs/objects
+        key: lfs-data-open-${{ steps.submodule.outputs.revision }}
+        restore-keys: |
+          lfs-data-open-
+
+    - name: Pull the LFS objects
+      shell: bash
+      run: git -C Data/Open lfs pull
