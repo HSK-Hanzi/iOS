@@ -1,0 +1,132 @@
+DEFINE SCHEMA
+
+    RECORD TYPE CD_CoreTipRecord (
+        CD_dateCreated             TIMESTAMP QUERYABLE SORTABLE,
+        CD_entityName              STRING QUERYABLE SEARCHABLE SORTABLE,
+        CD_id                      STRING QUERYABLE SEARCHABLE SORTABLE,
+        CD_invalidationReasonValue INT64 QUERYABLE SORTABLE,
+        CD_statusValue             INT64 QUERYABLE SORTABLE,
+        CD_tipInfo                 BYTES QUERYABLE SORTABLE,
+        "___createTime"            TIMESTAMP,
+        "___createdBy"             REFERENCE,
+        "___etag"                  STRING,
+        "___modTime"               TIMESTAMP,
+        "___modifiedBy"            REFERENCE,
+        "___recordID"              REFERENCE,
+        GRANT WRITE TO "_creator",
+        GRANT CREATE TO "_icloud",
+        GRANT READ TO "_world"
+    );
+
+    RECORD TYPE CD_FavoriteSentence (
+        CD_dateAdded           TIMESTAMP QUERYABLE SORTABLE,
+        CD_entityName          STRING QUERYABLE SEARCHABLE SORTABLE,
+        CD_identifier          STRING QUERYABLE SEARCHABLE SORTABLE,
+        CD_moveReceipt         BYTES QUERYABLE SORTABLE,
+        CD_moveReceipt_ckAsset ASSET,
+        CD_sentenceID          STRING QUERYABLE SEARCHABLE SORTABLE,
+        CD_sentenceID_ckAsset  ASSET,
+        "___createTime"        TIMESTAMP,
+        "___createdBy"         REFERENCE,
+        "___etag"              STRING,
+        "___modTime"           TIMESTAMP,
+        "___modifiedBy"        REFERENCE,
+        "___recordID"          REFERENCE,
+        GRANT WRITE TO "_creator",
+        GRANT CREATE TO "_icloud",
+        GRANT READ TO "_world"
+    );
+
+    RECORD TYPE CD_FavoriteWord (
+        CD_dateAdded           TIMESTAMP QUERYABLE SORTABLE,
+        CD_entityName          STRING QUERYABLE SEARCHABLE SORTABLE,
+        CD_identifier          STRING QUERYABLE SEARCHABLE SORTABLE,
+        CD_moveReceipt         BYTES QUERYABLE SORTABLE,
+        CD_moveReceipt_ckAsset ASSET,
+        CD_word                STRING QUERYABLE SEARCHABLE SORTABLE,
+        CD_word_ckAsset        ASSET,
+        "___createTime"        TIMESTAMP,
+        "___createdBy"         REFERENCE,
+        "___etag"              STRING,
+        "___modTime"           TIMESTAMP,
+        "___modifiedBy"        REFERENCE,
+        "___recordID"          REFERENCE,
+        GRANT WRITE TO "_creator",
+        GRANT CREATE TO "_icloud",
+        GRANT READ TO "_world"
+    );
+
+    RECORD TYPE CD_SentenceMissCount (
+        CD_entityName          STRING QUERYABLE SEARCHABLE SORTABLE,
+        CD_identifier          STRING QUERYABLE SEARCHABLE SORTABLE,
+        CD_listeningMisses     INT64 QUERYABLE SORTABLE,
+        CD_moveReceipt         BYTES QUERYABLE SORTABLE,
+        CD_moveReceipt_ckAsset ASSET,
+        CD_sentenceID          STRING QUERYABLE SEARCHABLE SORTABLE,
+        CD_sentenceID_ckAsset  ASSET,
+        "___createTime"        TIMESTAMP,
+        "___createdBy"         REFERENCE,
+        "___etag"              STRING,
+        "___modTime"           TIMESTAMP,
+        "___modifiedBy"        REFERENCE,
+        "___recordID"          REFERENCE,
+        GRANT WRITE TO "_creator",
+        GRANT CREATE TO "_icloud",
+        GRANT READ TO "_world"
+    );
+
+    RECORD TYPE CD_WordMissCount (
+        CD_entityName             STRING QUERYABLE SEARCHABLE SORTABLE,
+        CD_hanziRecognizingMisses INT64 QUERYABLE SORTABLE,
+        CD_identifier             STRING QUERYABLE SEARCHABLE SORTABLE,
+        CD_moveReceipt            BYTES QUERYABLE SORTABLE,
+        CD_moveReceipt_ckAsset    ASSET,
+        CD_recognizingMisses      INT64 QUERYABLE SORTABLE,
+        CD_speakingMisses         INT64 QUERYABLE SORTABLE,
+        CD_word                   STRING QUERYABLE SEARCHABLE SORTABLE,
+        CD_word_ckAsset           ASSET,
+        CD_writingMisses          INT64 QUERYABLE SORTABLE,
+        "___createTime"           TIMESTAMP,
+        "___createdBy"            REFERENCE,
+        "___etag"                 STRING,
+        "___modTime"              TIMESTAMP,
+        "___modifiedBy"           REFERENCE,
+        "___recordID"             REFERENCE,
+        GRANT WRITE TO "_creator",
+        GRANT CREATE TO "_icloud",
+        GRANT READ TO "_world"
+    );
+
+    RECORD TYPE CD_WordReviewSchedule (
+        CD_ease                DOUBLE QUERYABLE SORTABLE,
+        CD_entityName          STRING QUERYABLE SEARCHABLE SORTABLE,
+        CD_hanziAlone          INT64 QUERYABLE SORTABLE,
+        CD_identifier          STRING QUERYABLE SEARCHABLE SORTABLE,
+        CD_intervalDays        INT64 QUERYABLE SORTABLE,
+        CD_lastReviewed        TIMESTAMP QUERYABLE SORTABLE,
+        CD_moveReceipt         BYTES QUERYABLE SORTABLE,
+        CD_moveReceipt_ckAsset ASSET,
+        CD_word                STRING QUERYABLE SEARCHABLE SORTABLE,
+        CD_word_ckAsset        ASSET,
+        "___createTime"        TIMESTAMP,
+        "___createdBy"         REFERENCE,
+        "___etag"              STRING,
+        "___modTime"           TIMESTAMP,
+        "___modifiedBy"        REFERENCE,
+        "___recordID"          REFERENCE,
+        GRANT WRITE TO "_creator",
+        GRANT CREATE TO "_icloud",
+        GRANT READ TO "_world"
+    );
+
+    RECORD TYPE Users (
+        "___createTime" TIMESTAMP,
+        "___createdBy"  REFERENCE,
+        "___etag"       STRING,
+        "___modTime"    TIMESTAMP,
+        "___modifiedBy" REFERENCE,
+        "___recordID"   REFERENCE,
+        roles           LIST<INT64>,
+        GRANT WRITE TO "_creator",
+        GRANT READ TO "_world"
+    );
