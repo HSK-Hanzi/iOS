@@ -31,6 +31,19 @@ build that carries it ships. Otherwise its records never leave the device.
 The management token lives encrypted in the certificates repository. See its
 `SETUP.md`.
 
+## How it's checked
+
+- **`ZiliTests/CloudKitSchemaTests`** compares `schema.ckdb` with the models the
+  app syncs (`ZiliApp.syncedModels`). A missing record type or field, or a field
+  of the wrong type, is a test warning, so a model change can be built before
+  its schema is deployed.
+- **The CloudKit workflow** exports Production on every push, pull request, and
+  Monday, and fails unless it matches `schema.ckdb`. A failure means someone
+  deployed without exporting (re-run step 3) or edited the file by hand.
+- **The release workflow** runs both checks first, with the schema test strict,
+  and archives nothing if either fails: a model change has to complete all three
+  steps above before it ships.
+
 Don't reset Development to start over. `cktool reset-schema` also deletes
 TipKit's `CD_CoreTipRecord`, which the schema writer can't recreate because only
 TipKit writes it.
