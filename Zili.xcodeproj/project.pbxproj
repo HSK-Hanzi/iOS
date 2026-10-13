@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		5A13B07D40C42FB031FE593B /* CloudKitSchemaTesting in Frameworks */ = {isa = PBXBuildFile; productRef = 5C053E415D021D0C5B753A64 /* CloudKitSchemaTesting */; };
 		014E4F7A30679ACE0069C2EE /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 014E4F7930679ACE0069C2EE /* WidgetKit.framework */; };
 		014E4F7C30679ACE0069C2EE /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 014E4F7B30679ACE0069C2EE /* SwiftUI.framework */; };
 		014E4F8730679ACF0069C2EE /* ZiliWidgetsExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 014E4F7730679ACE0069C2EE /* ZiliWidgetsExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -130,6 +131,7 @@
 		01DD75E82FFBE570000CA793 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			files = (
+				5A13B07D40C42FB031FE593B /* CloudKitSchemaTesting in Frameworks */,
 			);
 		};
 		01DD75F22FFBE570000CA793 /* Frameworks */ = {
@@ -242,6 +244,9 @@
 				01DD75EE2FFBE570000CA793 /* ZiliTests */,
 			);
 			name = ZiliTests;
+			packageProductDependencies = (
+				5C053E415D021D0C5B753A64 /* CloudKitSchemaTesting */,
+			);
 			productName = ZiliTests;
 			productReference = 01DD75EB2FFBE570000CA793 /* ZiliTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
@@ -1042,6 +1047,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		5C053E415D021D0C5B753A64 /* CloudKitSchemaTesting */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A11CE5701000000000000001 /* XCRemoteSwiftPackageReference "XCUITestKit" */;
+			productName = CloudKitSchemaTesting;
+		};
 		01DD76E52FFCB321000CA793 /* GRDB */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 01DD76E42FFCB321000CA793 /* XCRemoteSwiftPackageReference "GRDB" */;
