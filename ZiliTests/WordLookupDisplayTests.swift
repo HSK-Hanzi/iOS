@@ -18,7 +18,7 @@ struct WordLookupDisplayTests {
       dictionaries: [result("cedict", [entry(glosses: ["something else"])])]
     )
 
-    #expect(lookup.definitionSenses == ["to be"])
+    #expect(lookup.definitionSenses() == ["to be"])
   }
 
   /// Outside the HSK core, senses come from the first dictionary offering a bilingual entry —
@@ -30,7 +30,7 @@ struct WordLookupDisplayTests {
       result("cedict", [entry(glosses: ["water", "river"])])
     ])
 
-    #expect(lookup.definitionSenses == ["water", "river"])
+    #expect(lookup.definitionSenses() == ["water", "river"])
   }
 
   /// When every source is monolingual, definition senses fall through to all of its glosses
@@ -39,7 +39,7 @@ struct WordLookupDisplayTests {
   func `definition senses return monolingual glosses when nothing is bilingual`() {
     let lookup = lookup(dictionaries: [result("xiandai-hanyu", [entry(glosses: ["名词。", "动词。"])])])
 
-    #expect(lookup.definitionSenses == ["名词。", "动词。"])
+    #expect(lookup.definitionSenses() == ["名词。", "动词。"])
   }
 
   /// A word in the HSK core but without curated meanings still falls back to the dictionaries.
@@ -50,13 +50,70 @@ struct WordLookupDisplayTests {
       dictionaries: [result("cedict", [entry(glosses: ["water"])])]
     )
 
-    #expect(lookup.definitionSenses == ["water"])
+    #expect(lookup.definitionSenses() == ["water"])
   }
 
   /// Nothing known means no senses.
   @Test
   func `definition senses are empty when nothing is known`() {
-    #expect(lookup().definitionSenses.isEmpty)
+    #expect(lookup().definitionSenses().isEmpty)
+  }
+
+  /// A word whose surname form comes first in the data is still defined, and read, by its
+  /// common form.
+  @Test
+  func `an HSK word is defined by its common form rather than its surname`() {
+    let lookup = lookup(hsk: [
+      hskWord(forms: [form("Lěng", "Leng3", ["surname Leng"]), form("lěng", "leng3", ["cold"])])
+    ])
+
+    #expect(lookup.definitionSenses() == ["cold"])
+    #expect(lookup.romanization(.pinyin) == "lěng")
+  }
+
+  /// Of a word's common readings, the one its syllabus lists is the one shown.
+  @Test
+  func `an HSK word is defined and read by its syllabus reading`() {
+    let lookup = lookup(hsk: [
+      hskWord(
+        forms: [form("shuì", "shui4", ["to persuade"]), form("shuō", "shuo1", ["to speak"])],
+        syllabusReadings: [.new: ["shuō"]]
+      )
+    ])
+
+    #expect(lookup.definitionSenses() == ["to speak"])
+    #expect(lookup.romanization(.pinyin) == "shuō")
+  }
+
+  /// Every form with the syllabus reading contributes its meanings, each once.
+  @Test
+  func `forms sharing the syllabus reading pool their meanings`() {
+    let lookup = lookup(hsk: [
+      hskWord(
+        forms: [
+          form("Chǒu", "Chou3", ["surname Chou"]),
+          form("chǒu", "chou3", ["clown", "shameful"]),
+          form("chǒu", "chou3", ["shameful", "ugly"])
+        ],
+        syllabusReadings: [.old: ["chǒu"]]
+      )
+    ])
+
+    #expect(lookup.definitionSenses() == ["clown", "shameful", "ugly"])
+  }
+
+  /// A deck drilling one standard shows the reading that standard lists first.
+  @Test
+  func `the drilled standard's syllabus reading leads`() {
+    let lookup = lookup(hsk: [
+      hskWord(
+        forms: [form("de", "de5", ["-ly"]), form("dì", "di4", ["earth"])],
+        syllabusReadings: [.newest: ["de"], .new: ["dì", "de"]]
+      )
+    ])
+
+    #expect(lookup.definitionSenses(in: .new) == ["earth"])
+    #expect(lookup.definitionSenses() == ["-ly"])
   }
 
   // MARK: primaryGloss
@@ -85,6 +142,68 @@ struct WordLookupDisplayTests {
     let lookup = lookup(hsk: [hskWord(meanings: ["word", "term"])])
 
     #expect(lookup.primaryGloss == "word")
+  }
+
+  /// A dictionary that lists a surname first still peeks with the word's common meaning.
+  @Test
+  func `primary gloss leads with a dictionary's common reading`() {
+    let lookup = lookup(dictionaries: [
+      result(
+        "cedict",
+        [
+          entry(pinyin: "Leng3", glosses: ["surname Leng"]),
+          entry(pinyin: "leng3", glosses: ["cold"])
+        ]
+      )
+    ])
+
+    #expect(lookup.primaryGloss == "cold")
+  }
+
+  /// An HSK word peeks with the gloss of the reading it shows, even when the dictionary lists
+  /// another common reading first.
+  @Test
+  func `primary gloss follows the HSK word's syllabus reading`() {
+    let lookup = lookup(
+      hsk: [
+        hskWord(
+          forms: [form("shuì", "shui4", ["to persuade"]), form("shuō", "shuo1", ["to speak"])],
+          syllabusReadings: [.new: ["shuō"]]
+        )
+      ],
+      dictionaries: [
+        result(
+          "cedict",
+          [
+            entry(pinyin: "shui4", glosses: ["to persuade"]),
+            entry(pinyin: "shuo1", glosses: ["to speak"])
+          ]
+        )
+      ]
+    )
+
+    #expect(lookup.primaryGloss == "to speak")
+  }
+
+  /// A dictionary that spells its pinyin with a script g still lines up with the syllabus reading.
+  @Test
+  func `primary gloss matches a syllabus reading spelled with a script g`() {
+    let lookup = lookup(
+      hsk: [
+        hskWord(
+          forms: [form("háng", "hang2", ["row"]), form("xíng", "xing2", ["to walk"])],
+          syllabusReadings: [.new: ["xíng"]]
+        )
+      ],
+      dictionaries: [
+        result(
+          "oxford-ce",
+          [entry(pinyin: "hánɡ", glosses: ["line"]), entry(pinyin: "xínɡ", glosses: ["walk"])]
+        )
+      ]
+    )
+
+    #expect(lookup.primaryGloss == "walk")
   }
 
   /// No glosses means no peek gloss.
@@ -178,20 +297,43 @@ struct WordLookupDisplayTests {
       romatzyh: ""
     )
   ) -> HSKWord {
+    hskWord(forms: [
+      HSKWord.Form(
+        traditional: "詞",
+        transcriptions: transcriptions,
+        meanings: meanings,
+        classifiers: []
+      )
+    ])
+  }
+
+  private func hskWord(
+    forms: [HSKWord.Form],
+    syllabusReadings: [HSKLevel.Standard: [String]] = [:]
+  ) -> HSKWord {
     HSKWord(
       simplified: "词",
       radical: "",
       frequencyFigure: 0,
       levels: [],
       partsOfSpeech: [],
-      forms: [
-        HSKWord.Form(
-          traditional: "詞",
-          transcriptions: transcriptions,
-          meanings: meanings,
-          classifiers: []
-        )
-      ]
+      forms: forms,
+      syllabusReadings: syllabusReadings
+    )
+  }
+
+  private func form(_ pinyin: String, _ numeric: String, _ meanings: [String]) -> HSKWord.Form {
+    HSKWord.Form(
+      traditional: "詞",
+      transcriptions: HSKWord.Transcriptions(
+        pinyin: pinyin,
+        numeric: numeric,
+        bopomofo: "",
+        wadeGiles: "",
+        romatzyh: ""
+      ),
+      meanings: meanings,
+      classifiers: []
     )
   }
 

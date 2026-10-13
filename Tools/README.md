@@ -117,4 +117,8 @@ generate_db.py characters \
   `HSKSentences.plist`) from the HSK workbook dump using the Claude API. See the module docstring
   for usage; this step feeds the pipeline rather than being part of the SQLite build.
 - **`hsk_sentences.py`** — cleans the raw HSK sentence dump consumed by `generate_sentences.py`.
-- **`test_pinyin_keys.py`, `test_hsk_sentences.py`** — unit tests for the two helpers.
+- **`hsk_syllabus_readings.py`** — records in `HSKVocabulary.plist` the reading each HSK syllabus
+  gives a word, from the published HSK 2.0 and 3.0 lists, so the app can pick that reading out of
+  the word's CC-CEDICT forms. See the module docstring for the sources and usage.
+- **`test_pinyin_keys.py`, `test_hsk_sentences.py`, `test_hsk_syllabus_readings.py`** — unit tests
+  for the helpers.

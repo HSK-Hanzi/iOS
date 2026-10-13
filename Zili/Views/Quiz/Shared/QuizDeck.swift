@@ -221,7 +221,8 @@ enum QuizDeckBuilder {
 
   /// Resolves a lookup into a card: its simplified Hanzi, its reading in the chosen system, its
   /// senses — the HSK meanings when present, else the best dictionary's glosses — and its
-  /// coloring band, scoped to `standard` when the deck is (else its lowest band across standards).
+  /// coloring band. The reading, senses, and band are scoped to `standard` when the deck is (else
+  /// they draw on every standard).
   static func card(
     from lookup: WordLookup,
     romanization: Romanization,
@@ -230,14 +231,14 @@ enum QuizDeckBuilder {
     QuizCard(
       word: lookup.word,
       hanzi: lookup.word,
-      reading: lookup.romanization(romanization) ?? "",
-      senses: senses(from: lookup),
+      reading: lookup.romanization(romanization, in: standard) ?? "",
+      senses: senses(from: lookup, in: standard),
       hskBand: HSKPalette.band(of: lookup.hskEntries.flatMap(\.levels), inStandard: standard)
     )
   }
 
-  private static func senses(from lookup: WordLookup) -> [String] {
-    let senses = lookup.definitionSenses
+  private static func senses(from lookup: WordLookup, in standard: HSKLevel.Standard?) -> [String] {
+    let senses = lookup.definitionSenses(in: standard)
     return senses.isEmpty ? [missingDefinition] : senses
   }
 }

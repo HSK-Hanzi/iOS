@@ -384,7 +384,8 @@ private extension WordLookup {
               meanings: ["good"],
               classifiers: []
             )
-          ]
+          ],
+          syllabusReadings: [.new: ["hǎo"], .old: ["hǎo"]]
         )
       ],
       frequency: WordFrequency(perMillion: 3800, contextualDiversity: 92),

@@ -72,6 +72,10 @@ struct HSKWord: Hashable, Sendable {
   let partsOfSpeech: [String]
   let forms: [Form]
 
+  /// The word's readings in each standard whose syllabus lists it, in list order, each spelled
+  /// as ``Form/syllabusReading`` spells a form's.
+  let syllabusReadings: [HSKLevel.Standard: [String]]
+
   /// One traditional-script form of the word with its transcriptions and meanings.
   struct Form: Hashable, Sendable {
     let traditional: String
@@ -181,10 +185,62 @@ extension HSKWord {
     levels = (record["levels"] as? [String] ?? []).compactMap(HSKLevel.init(rawValue:))
     partsOfSpeech = record["pos"] as? [String] ?? []
     forms = (record["forms"] as? [Any] ?? []).compactMap(Form.init(propertyList:))
+    syllabusReadings = Self.syllabusReadings(propertyList: record["syllabusReadings"])
+  }
+
+  private static func syllabusReadings(propertyList value: Any?) -> [HSKLevel.Standard: [String]] {
+    let readings = value as? [String: [String]] ?? [:]
+    return Dictionary(
+      uniqueKeysWithValues: readings.compactMap { standard, readings in
+        HSKLevel.Standard(rawValue: standard).map { ($0, readings) }
+      }
+    )
+  }
+}
+
+// MARK: - Relevant forms
+
+extension HSKWord {
+  /// The forms of the word's most prominent kind: its common readings, else its proper nouns,
+  /// else its variants.
+  private var mostProminentForms: [Form] {
+    guard let prominence = forms.map(\.prominence).min() else { return [] }
+    return forms.filter { $0.prominence == prominence }
+  }
+
+  /// The forms that carry the word as a learner meets it in `standard` (or in any standard): of
+  /// its most prominent forms, those with the reading the syllabus gives it — 说 as shuō, not the
+  /// shuì of “to persuade” — falling back to the first such form's reading when no syllabus
+  /// reading matches. Every form sharing that reading is kept, so 丑 is both a clown and ugly.
+  func relevantForms(in standard: HSKLevel.Standard? = nil) -> [Form] {
+    let candidates = mostProminentForms
+    let candidateReadings = candidates.map(\.syllabusReading)
+    guard
+      let reading = syllabusReadings(preferring: standard).first(where: candidateReadings.contains)
+        ?? candidateReadings.first
+    else { return [] }
+    return candidates.filter { $0.syllabusReading == reading }
+  }
+
+  /// The word's syllabus readings, `standard`'s first and then every other standard's in turn.
+  private func syllabusReadings(preferring standard: HSKLevel.Standard?) -> [String] {
+    let others = HSKLevel.Standard.allCases.filter { $0 != standard }
+    return ([standard].compactMap(\.self) + others).flatMap { syllabusReadings[$0] ?? [] }
   }
 }
 
 extension HSKWord.Form {
+  /// How central this form is to the word's everyday use.
+  var prominence: SenseProminence {
+    SenseProminence(pinyin: transcriptions.numeric, glosses: meanings)
+  }
+
+  /// The form's reading as the syllabus lists spell it: its tone-marked pinyin lowercased, with
+  /// spaces and punctuation dropped ("Dǎ kāi" is "dǎkāi").
+  var syllabusReading: String {
+    transcriptions.pinyin.lowercased().filter(\.isLetter)
+  }
+
   init?(propertyList value: Any) {
     guard let form = value as? [String: Any],
       let traditional = form["traditional"] as? String,
@@ -194,6 +250,20 @@ extension HSKWord.Form {
     self.transcriptions = transcriptions
     meanings = form["meanings"] as? [String] ?? []
     classifiers = form["classifiers"] as? [String] ?? []
+  }
+
+  /// The reading's letters and tone digits alone, lowercased, with the Oxford dictionary's script
+  /// g ("xínɡ") read as g and anything after Xiandai Hanyu's fullwidth note ("（口语…）") dropped.
+  private static func comparable(_ pinyin: String) -> String {
+    let reading = pinyin.prefix { $0 != "（" }.replacing("ɡ", with: "g")
+    return reading.lowercased().filter { $0.isLetter || $0.isNumber }
+  }
+
+  /// Whether a dictionary's reading of the word, numbered ("shuo1") or tone-marked ("Shuō"), is
+  /// this form's.
+  func isRead(as pinyin: String) -> Bool {
+    let reading = Self.comparable(pinyin)
+    return [transcriptions.numeric, transcriptions.pinyin].map(Self.comparable).contains(reading)
   }
 }
 

@@ -44,7 +44,8 @@ struct HSKVocabularyTests {
             frequencyFigure: 0,
             levels: levels,
             partsOfSpeech: [],
-            forms: []
+            forms: [],
+            syllabusReadings: [:]
           )
         ]
       }
