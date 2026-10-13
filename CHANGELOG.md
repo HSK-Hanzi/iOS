@@ -9,6 +9,20 @@ here and as plain text on the store, where the field shows whatever it is given
 verbatim: a line that only makes sense with its formatting will read badly in
 one of the two places.
 
+## 1.3
+
+### NEW
+
+- Flashcards remember whether a word was missed with its pinyin showing or from
+  the Hanzi alone. A Missed deck with pinyin brings back the words you didn't
+  know; one without it brings back the characters you didn't recognize.
+
+### FIXES
+
+- Flashcards show a word with the reading and meaning the HSK syllabus teaches.
+  A card for 说 now reads shuō, "to speak", rather than shuì, "to persuade",
+  and words like 冷 and 都 no longer come up as surnames.
+
 ## 1.2
 
 Tapping a word now selects the whole word. Zili segments Chinese the way a
