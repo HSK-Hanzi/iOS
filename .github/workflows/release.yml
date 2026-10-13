@@ -9,7 +9,10 @@ name: Release
 # version ends up pointing at the newer build; the older one stays on App Store Connect, since a
 # build can be expired but never deleted. A tag push is a deploy, not bookkeeping.
 #
-# Nothing here re-runs the tests: tag a commit CI has already passed.
+# Nothing here re-runs the test suites: tag a commit CI has already passed. The one test it does
+# run is CloudKitSchemaTests, strictly, after checking Production still matches
+# CloudKit/schema.ckdb: a model that schema doesn't cover would never sync from the build being
+# shipped. See CloudKit/README.md.
 on:
   push:
     tags: ["[0-9]+.[0-9]+*"]
@@ -25,7 +28,35 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  cloudkit:
+    uses: RISCfuture/XCUITestKit/.github/workflows/cloudkit-schema.yml@1.1.0
+    with:
+      runner: xcode-27
+      team-id: 2NFSK2WB24
+      container-id: iCloud.codes.tim.Zili
+      certificates-repo: RISCfuture/certificates
+      scheme: Zili
+      only-testing: ZiliTests/CloudKitSchemaTests
+      # The macOS test host needs no simulator. CI's runner has no signing identity and no iCloud
+      # account, so the build is ad-hoc signed without its entitlements, as in ci.yml. The host
+      # app loads the open data at launch, so the public Data/Open submodule is checked out too.
+      xcodebuild-args: >-
+        CODE_SIGN_ENTITLEMENTS=
+        CODE_SIGN_IDENTITY=-
+        CODE_SIGNING_REQUIRED=NO
+        CODE_SIGNING_ALLOWED=YES
+        CODE_SIGN_STYLE=Manual
+        DEVELOPMENT_TEAM=
+        PROVISIONING_PROFILE_SPECIFIER=
+      post-checkout-run: |
+        git config --global url."https://github.com/".insteadOf "git@github.com:"
+        git submodule update --init Data/Open
+    secrets:
+      certificates-token: ${{ secrets.CERTIFICATES_TOKEN }}
+      match-password: ${{ secrets.MATCH_PASSWORD }}
+
   release:
+    needs: cloudkit
     uses: RISCfuture/XCUITestKit/.github/workflows/ios-release.yml@1.0.0
     with:
       platforms: '["iOS","macOS","visionOS"]'

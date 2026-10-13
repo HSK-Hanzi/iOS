@@ -16,8 +16,8 @@ struct ZiliApp: App {
   /// The iCloud container the learner's records and TipKit's state sync through.
   private static let cloudKitContainerIdentifier = "iCloud.codes.tim.Zili"
 
-  /// Every model the app persists, all of them synced through ``cloudKitContainerIdentifier``.
-  private static let syncedModels: [any PersistentModel.Type] = [
+  /// Every model the app persists, all of them synced through `cloudKitContainerIdentifier`.
+  static let syncedModels: [any PersistentModel.Type] = [
     FavoriteWord.self,
     FavoriteSentence.self,
     WordMissCount.self,
