@@ -11,7 +11,12 @@ import SwiftData
 /// tests recognizing a word — so a word's misses are tallied separately per skill.
 enum WordQuizMode: Sendable {
   case writing
+  /// A flashcard that showed the reading with the Hanzi, or asked for the word from its meaning:
+  /// a miss means the learner didn't know the word.
   case recognizing
+  /// A flashcard that showed the Hanzi alone: a miss may mean only that the learner didn't
+  /// recognize the characters of a word they know.
+  case recognizingHanzi
 }
 
 /// The learner's per-word miss tallies, the single source of truth the UI reads and mutates.
@@ -78,6 +83,7 @@ final class WordMissStore {
     switch mode {
       case .writing: record.writingMisses += 1
       case .recognizing: record.recognizingMisses += 1
+      case .recognizingHanzi: record.hanziRecognizingMisses += 1
     }
     save()
     reload()
@@ -119,13 +125,21 @@ final class WordMissStore {
     let merged = deduplicate(fetchAll(), by: \.word, in: context) { survivor, loser in
       survivor.writingMisses += loser.writingMisses
       survivor.recognizingMisses += loser.recognizingMisses
+      survivor.hanziRecognizingMisses += loser.hanziRecognizingMisses
     }
     if merged {
       save()
     }
     tallies = Dictionary(
       fetchAll().map {
-        ($0.word, Tally(writing: $0.writingMisses, recognizing: $0.recognizingMisses))
+        (
+          $0.word,
+          Tally(
+            writing: $0.writingMisses,
+            recognizing: $0.recognizingMisses,
+            recognizingHanzi: $0.hanziRecognizingMisses
+          )
+        )
       },
       uniquingKeysWith: { $0.merged(with: $1) }
     )
@@ -158,22 +172,28 @@ final class WordMissStore {
     }
   }
 
-  /// A word's misses across the two modes, the shape the in-memory mirror holds.
+  /// A word's misses across every mode, the shape the in-memory mirror holds.
   private struct Tally {
     var writing = 0
     var recognizing = 0
+    var recognizingHanzi = 0
 
-    var total: Int { writing + recognizing }
+    var total: Int { writing + recognizing + recognizingHanzi }
 
     func count(for mode: WordQuizMode) -> Int {
       switch mode {
         case .writing: writing
         case .recognizing: recognizing
+        case .recognizingHanzi: recognizingHanzi
       }
     }
 
     func merged(with other: Self) -> Self {
-      Self(writing: writing + other.writing, recognizing: recognizing + other.recognizing)
+      Self(
+        writing: writing + other.writing,
+        recognizing: recognizing + other.recognizing,
+        recognizingHanzi: recognizingHanzi + other.recognizingHanzi
+      )
     }
   }
 }

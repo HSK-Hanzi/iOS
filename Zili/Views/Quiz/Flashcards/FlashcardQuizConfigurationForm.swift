@@ -34,7 +34,7 @@ struct FlashcardQuizConfigurationForm: View {
         source: $configuration.source,
         savedLevels: $savedLevels,
         sort: $configuration.sort,
-        missedWords: wordMisses.wordsMissed(in: .recognizing),
+        missedWords: wordMisses.wordsMissed(in: configuration.missMode),
         countLabel: Text("\(wordCount) words selected.")
       )
       studyModeSection
@@ -94,7 +94,8 @@ struct FlashcardQuizConfigurationForm: View {
       limit: configuration.deckSize,
       romanization: romanization
     )
-    start(QuizSession(deck: deck, onMiss: { wordMisses.recordMiss($0, mode: .recognizing) }))
+    let missMode = configuration.missMode
+    start(QuizSession(deck: deck, onMiss: { wordMisses.recordMiss($0, mode: missMode) }))
   }
 }
 

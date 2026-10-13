@@ -26,6 +26,12 @@ final class FlashcardQuizConfiguration {
   /// The most cards to draw, or `nil` for the whole source.
   var deckSize: Int?
 
+  /// The tally a miss on these settings counts toward: recognizing the Hanzi when the prompt shows
+  /// them alone, and recognizing the word when it shows the reading too or asks from the meaning.
+  var missMode: WordQuizMode {
+    direction == .chineseToEnglish && !showsReadingWithHanzi ? .recognizingHanzi : .recognizing
+  }
+
   init(
     source: QuizDeckSource,
     direction: PromptDirection = .chineseToEnglish,

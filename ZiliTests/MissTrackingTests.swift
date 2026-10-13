@@ -20,18 +20,41 @@ struct MissTrackingTests {
     store.recordMiss("好", mode: .writing)
     store.recordMiss("好", mode: .recognizing)
     store.recordMiss("你", mode: .recognizing)
+    store.recordMiss("好", mode: .recognizingHanzi)
 
     #expect(store.misses(for: "好", mode: .writing) == 2)
     #expect(store.misses(for: "好", mode: .recognizing) == 1)
-    #expect(store.totalMisses(for: "好") == 3)
+    #expect(store.misses(for: "好", mode: .recognizingHanzi) == 1)
+    #expect(store.totalMisses(for: "好") == 4)
     #expect(store.wordsMissed(in: .writing) == ["好"])
     #expect(Set(store.wordsMissed(in: .recognizing)) == ["好", "你"])
+    #expect(store.wordsMissed(in: .recognizingHanzi) == ["好"])
 
     store.reset("好")
 
     #expect(store.totalMisses(for: "好") == 0)
     #expect(store.wordsMissed(in: .writing).isEmpty)
     #expect(store.wordsMissed(in: .recognizing) == ["你"])
+    #expect(store.wordsMissed(in: .recognizingHanzi).isEmpty)
+  }
+
+  @Test(arguments: [
+    (PromptDirection.chineseToEnglish, false, WordQuizMode.recognizingHanzi),
+    (.chineseToEnglish, true, .recognizing),
+    (.englishToChinese, false, .recognizing)
+  ])
+  func `a flashcard miss counts toward Hanzi recognition only when the Hanzi showed alone`(
+    direction: PromptDirection,
+    showsReading: Bool,
+    expected: WordQuizMode
+  ) {
+    let configuration = FlashcardQuizConfiguration(
+      source: .favorites([]),
+      direction: direction,
+      showsReadingWithHanzi: showsReading
+    )
+
+    #expect(configuration.missMode == expected)
   }
 
   @Test
