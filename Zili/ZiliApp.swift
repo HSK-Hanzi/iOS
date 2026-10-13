@@ -12,6 +12,17 @@ import TipKit
 
 @main
 struct ZiliApp: App {
+  /// The iCloud container the learner's records and TipKit's state sync through.
+  private static let cloudKitContainerIdentifier = "iCloud.codes.tim.Zili"
+
+  /// Every model the app persists, all of them synced through ``cloudKitContainerIdentifier``.
+  private static let syncedModels: [any PersistentModel.Type] = [
+    FavoriteWord.self,
+    FavoriteSentence.self,
+    WordMissCount.self,
+    SentenceMissCount.self
+  ]
+
   private let modelContainer: ModelContainer
 
   @State private var appData: AppData
@@ -214,19 +225,20 @@ struct ZiliApp: App {
     }
     try? Tips.configure([
       .displayFrequency(.immediate),
-      .cloudKitContainer(.named("iCloud.codes.tim.Zili"))
+      .cloudKitContainer(.named(cloudKitContainerIdentifier))
     ])
   }
 
   /// The app's store, or a throwaway in-memory one when a UI test asked for determinism — no
   /// CloudKit, no persistence between launches, so every run starts from the same seeded slate.
   private static func makeModelContainer(uiTest: UITestConfiguration) -> ModelContainer {
-    let schema = Schema([
-      FavoriteWord.self,
-      FavoriteSentence.self,
-      WordMissCount.self,
-      SentenceMissCount.self
-    ])
+    #if DEBUG
+      CloudKitSchemaInitializer.initializeIfRequested(
+        models: syncedModels,
+        containerIdentifier: cloudKitContainerIdentifier
+      )
+    #endif
+    let schema = Schema(syncedModels)
     let modelConfiguration =
       uiTest.isEnabled
       ? ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
