@@ -20,9 +20,7 @@ Tools/__pycache__/
 .build/
 
 # fastlane outputs
-fastlane/report.xml
 fastlane/Preview.html
-fastlane/test_output/
 screenshots/
 
 # fastlane secrets — fastlane loads fastlane/.env automatically
