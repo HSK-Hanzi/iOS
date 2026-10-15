@@ -1,0 +1,1 @@
+New in 2.0: say a word aloud and Zili checks your tones. Favorites come back when they're due, and widgets show what's waiting, plus a Word of the Day.
