@@ -3,6 +3,8 @@
 //  ZiliUITests
 //
 
+// swiftlint:disable prefer_nimble
+
 import XCTest
 import XCUITestKit
 
@@ -10,6 +12,11 @@ import XCUITestKit
 /// level lists its sentence rows, and a row opens that sentence's detail; an empty set drills into
 /// its empty state.
 struct PracticeSentencesPage: Page {
+  #if os(macOS)
+    /// How long the pointer rests on a word before its peek is drawn and settled.
+    private static let peekDelay: TimeInterval = 1
+  #endif
+
   let test: ZiliUITestCase
 
   /// Reaches the sentence corpora (its Practice card on iOS, its window on macOS).
@@ -36,6 +43,31 @@ struct PracticeSentencesPage: Page {
     return test.expect(AccessibilityID.sentenceDetail, "The sentence's detail.")
   }
 
+  /// Taps `word` in the open sentence and waits for its peek, with its reading and meaning.
+  func lookUp(_ word: String) async {
+    await test.tapWhenSettled(wordInSentence(word))
+    test.expect(AccessibilityID.wordPeekOpenEntry, "The peek of \(word).")
+  }
+
+  #if os(macOS)
+    /// Rests the pointer on `word` in the open sentence until its peek shows the reading and
+    /// meaning. Unlike the tapped peek, a popover in a window of its own, this one is drawn inside
+    /// the sentence's window.
+    func peek(_ word: String) {
+      wordInSentence(word).hover()
+      Thread.sleep(forTimeInterval: Self.peekDelay)
+    }
+  #endif
+
+  /// `word` in the open sentence, matched by its exact label app-wide rather than under the detail
+  /// view: on macOS a peek rebuilds that subtree as the pointer moves in, and a sentence row
+  /// elsewhere is labeled with the whole sentence, never with one word of it.
+  private func wordInSentence(_ word: String) -> XCUIElement {
+    let element = test.app.descendants(matching: .any)[word].firstMatch
+    XCTAssertTrue(element.wait(), "\(word) in the sentence.")
+    return element
+  }
+
   /// Asserts the level's sentence list appeared.
   @discardableResult
   func expectSentenceList() -> XCUIElement {
@@ -54,3 +86,5 @@ struct PracticeSentencesPage: Page {
     test.expect(AccessibilityID.sentenceListEmptyState, "The set's empty state.")
   }
 }
+
+// swiftlint:enable prefer_nimble

@@ -380,6 +380,7 @@ private struct WordPeekPopover: View {
         Label("Open full entry", systemImage: "arrow.up.forward.square")
           .font(.callout)
       }
+      .accessibilityIdentifier(AccessibilityID.wordPeekOpenEntry)
     }
     .padding()
     .frame(minWidth: 160, maxWidth: 280, alignment: .leading)

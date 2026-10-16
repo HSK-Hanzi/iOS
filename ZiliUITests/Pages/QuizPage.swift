@@ -88,6 +88,11 @@ struct QuizPage: Page {
     test.expect(AccessibilityID.quizResults, message)
   }
 
+  /// Ends the quiz in progress, leaving the cards undealt.
+  func close() async {
+    await test.tap(AccessibilityID.quizCloseButton, "Close the quiz.")
+  }
+
   /// Judges the recognition quiz's current card correct.
   func judgeCorrect() {
     correctButton.forceTap()

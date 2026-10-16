@@ -117,7 +117,7 @@ class ZiliUITestCase: XCTestCase {
   }
 
   /// A seam a subclass can override to configure ``app`` in the moment between its creation and
-  /// launch — the screenshot run overrides it to wire up fastlane's `setupSnapshot`. Ordinary flow
+  /// launch — the App Store captures override it to add promokit's launch arguments. Ordinary flow
   /// tests leave it untouched, so this is a no-op for them.
   func prepareForLaunch() {}
 
@@ -278,13 +278,29 @@ class ZiliUITestCase: XCTestCase {
 
   /// Dismisses the soft keyboard if one is up, so the next tap activates its target instead of just
   /// resigning first responder. A no-op on macOS and visionOS, where typing raises no soft keyboard.
+  ///
+  /// An iPad's keyboard has a key of its own that hides it, which works where the nav-bar tap and
+  /// swipe don't: a search field in a split view's sidebar keeps its keyboard through both.
   func dismissKeyboard() {
     #if os(iOS)
-      if app.keyboards.firstMatch.exists {
+      guard app.keyboards.firstMatch.exists else { return }
+      let hideKey = app.keyboards.buttons[Self.hideKeyboardKey]
+      if hideKey.exists {
+        hideKey.tap()
+        XCTAssertTrue(
+          app.keyboards.firstMatch.waitForNonExistence(timeout: ScaledTimeouts.element),
+          "The keyboard hides."
+        )
+      } else {
         app.dismissKeyboardStable()
       }
     #endif
   }
+
+  #if os(iOS)
+    /// The label of the key that hides an iPad's keyboard.
+    private static let hideKeyboardKey = "Hide keyboard"
+  #endif
 
   /// Drags `element` from its trailing edge toward its leading one, to reveal a trailing swipe
   /// action. By coordinate rather than `swipeLeft()`, which asks the app for a hit point a grid
@@ -322,9 +338,7 @@ class ZiliUITestCase: XCTestCase {
       static let quiz = "Quiz"
       static let settings = "Settings"
     }
-  #endif
 
-  #if !os(macOS)
     /// The button that selects the tab titled `label`. XCUITestKit's tab helpers are iOS-only;
     /// visionOS seats the tabs in an ornament, a window of its own beside the app's, where the
     /// first button with the title is the ornament's, ahead of the title's own nested button.
@@ -391,8 +405,7 @@ class ZiliUITestCase: XCTestCase {
     #if os(macOS)
       app.typeKey("n", modifierFlags: .command)
     #else
-      tapTab(Tab.quiz)
-      await tap(AccessibilityID.quizRecognitionCard, "Recognition quiz card.")
+      await openQuizCard(AccessibilityID.quizRecognitionCard, "Recognition quiz card.")
     #endif
     expectConfigurationForm()
   }
@@ -405,8 +418,7 @@ class ZiliUITestCase: XCTestCase {
     #elseif os(visionOS)
       throw XCTSkip("visionOS has no drawing quiz.")
     #else
-      tapTab(Tab.quiz)
-      await tap(AccessibilityID.quizDrawingCard, "Drawing quiz card.")
+      await openQuizCard(AccessibilityID.quizDrawingCard, "Drawing quiz card.")
     #endif
     expectConfigurationForm()
   }
@@ -416,8 +428,7 @@ class ZiliUITestCase: XCTestCase {
     #if os(macOS)
       app.typeKey("n", modifierFlags: [.command, .option])
     #else
-      tapTab(Tab.quiz)
-      await tap(AccessibilityID.quizListeningCard, "Listening quiz card.")
+      await openQuizCard(AccessibilityID.quizListeningCard, "Listening quiz card.")
     #endif
     expectConfigurationForm()
   }
@@ -427,11 +438,46 @@ class ZiliUITestCase: XCTestCase {
     #if os(macOS)
       app.typeKey("n", modifierFlags: [.command, .control])
     #else
-      tapTab(Tab.quiz)
-      await tap(AccessibilityID.quizSpeakingCard, "Speaking quiz card.")
+      await openQuizCard(AccessibilityID.quizSpeakingCard, "Speaking quiz card.")
     #endif
     expectConfigurationForm()
   }
+
+  #if !os(macOS)
+    /// Taps the Quiz tab's card for one kind of quiz.
+    private func openQuizCard(_ identifier: String, _ message: String) async {
+      tapTab(Tab.quiz)
+      let card = expect(identifier, message)
+      #if os(visionOS)
+        await tapWhenSettled(card)
+      #else
+        tapClearOfTabBar(card)
+      #endif
+    }
+  #endif
+
+  #if os(iOS)
+    /// Taps the middle of the part of `card` the floating tab bar leaves uncovered. The bar overlaps
+    /// the last card: on a short phone the cards scroll, and scrolling to the end lifts the card
+    /// clear; on a tall one they fit and can't scroll, so only the card's top shows above the bar.
+    private func tapClearOfTabBar(_ card: XCUIElement) {
+      card.waitUntilFrameStable()
+      if card.frame.maxY > tabBarTop {
+        app.scrollViews.firstMatch.swipeUp()
+        card.waitUntilFrameStable()
+      }
+      let frame = card.frame
+      let uncovered = min(frame.maxY, tabBarTop) - frame.minY
+      card.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: uncovered / 2 / frame.height))
+        .tap()
+    }
+
+    /// Where the tab bar begins, or the window's bottom edge when there's no tab bar.
+    private var tabBarTop: CGFloat {
+      let tabBar = app.tabBars.firstMatch
+      return tabBar.exists ? tabBar.frame.minY : app.windows.firstMatch.frame.maxY
+    }
+  #endif
 
   /// Asserts a quiz configuration form came up, by its Start button. A visionOS window is too short
   /// for the taller forms, and a form leaves a row it hasn't scrolled to out of the accessibility
