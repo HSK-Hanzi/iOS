@@ -1,0 +1,55 @@
+/* Laid out on Apple's 3840×1646 header template, whose art safe area is 1646×661 at (1097, 493): the
+   pad and the headline sit inside it, and the copybook row runs out past it to both edges. */
+
+.cell {
+  --cell: 340px;
+  top: 653px;
+}
+
+.b1 {
+  left: -43px;
+}
+
+.b2 {
+  left: 337px;
+}
+
+.b3 {
+  left: 717px;
+}
+
+.t1 {
+  left: 2783px;
+  --trace: 0.3;
+}
+
+.t2 {
+  left: 3163px;
+  --trace: 0.15;
+}
+
+.t3 {
+  left: 3543px;
+}
+
+/* The pad's canvas alone, cut from the capture. */
+.pad {
+  left: 1117px;
+  top: 503px;
+  width: 640px;
+  height: 640px;
+  object-view-box: inset(920px 96px 820px 96px);
+  --radius: 36px;
+  --shadow-scale: 28px;
+}
+
+h1 {
+  position: absolute;
+  left: 1837px;
+  top: 493px;
+  width: 906px;
+  height: 661px;
+  display: flex;
+  align-items: center;
+  font-size: 196px;
+}
