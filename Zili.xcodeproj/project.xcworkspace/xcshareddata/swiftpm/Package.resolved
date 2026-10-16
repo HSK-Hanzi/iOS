@@ -1,5 +1,5 @@
 {
-  "originHash" : "19a4d7c607939aa1f96d8c203d8525da62ef1f17a76669a2d818f8417536665f",
+  "originHash" : "233fd604db24b73bf8d591923c785fd03826cba753c547b8dd60d25014532e3d",
   "pins" : [
     {
       "identity" : "grdb.swift",
@@ -17,6 +17,15 @@
       "state" : {
         "revision" : "cd213f98af160e6497eeff0707bc3f6a205b159c",
         "version" : "9.26.0"
+      }
+    },
+    {
+      "identity" : "xcuipromokit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/RISCfuture/XCUIPromoKit",
+      "state" : {
+        "revision" : "0d28f772f9bb10da8e97ef50e8445c6d40533a88",
+        "version" : "2.0.0"
       }
     },
     {

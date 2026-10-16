@@ -1,0 +1,31 @@
+{
+  "$schema": "./node_modules/xcuipromokit/schema/promokit.schema.json",
+  "app": "Zili",
+  "project": "../Zili.xcodeproj",
+  "scheme": "Zili",
+  "testPlan": "Promo",
+  "buildSettings": {
+    "SWIFT_ACTIVE_COMPILATION_CONDITIONS": "DEBUG"
+  },
+  "locales": [
+    "en-US"
+  ],
+  "brand": {
+    "css": "brand.css",
+    "assets": [
+      "../docs/css/fonts"
+    ]
+  },
+  "stills": {
+    "test": "ZiliUITests/StoreScreenshots/testCaptureStills",
+    "devices": [
+      "iPhone 18 Pro Max",
+      "iPad Pro 13-inch (M5)",
+      "iPhone Duo"
+    ]
+  },
+  "mac": {
+    "test": "ZiliUITests/MacStoreScreenshots/testCaptureStills",
+    "capture": "screen"
+  }
+}

@@ -14,6 +14,7 @@
 		01DD76E62FFCB321000CA793 /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = 01DD76E52FFCB321000CA793 /* GRDB */; };
 		5E17A9000000000000000003 /* Sentry in Frameworks */ = {isa = PBXBuildFile; productRef = 5E17A9000000000000000002 /* Sentry */; };
 		A11CE5701000000000000003 /* XCUITestKit in Frameworks */ = {isa = PBXBuildFile; productRef = A11CE5701000000000000002 /* XCUITestKit */; };
+		A11CE5702000000000000003 /* XCUIPromoKit in Frameworks */ = {isa = PBXBuildFile; productRef = A11CE5702000000000000002 /* XCUIPromoKit */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -138,6 +139,7 @@
 			isa = PBXFrameworksBuildPhase;
 			files = (
 				A11CE5701000000000000003 /* XCUITestKit in Frameworks */,
+				A11CE5702000000000000003 /* XCUIPromoKit in Frameworks */,
 			);
 		};
 /* End PBXFrameworksBuildPhase section */
@@ -270,6 +272,7 @@
 			name = ZiliUITests;
 			packageProductDependencies = (
 				A11CE5701000000000000002 /* XCUITestKit */,
+				A11CE5702000000000000002 /* XCUIPromoKit */,
 			);
 			productName = ZiliUITests;
 			productReference = 01DD75F52FFBE570000CA793 /* ZiliUITests.xctest */;
@@ -314,6 +317,7 @@
 				01DD76E42FFCB321000CA793 /* XCRemoteSwiftPackageReference "GRDB" */,
 				5E17A9000000000000000001 /* XCRemoteSwiftPackageReference "sentry-cocoa" */,
 				A11CE5701000000000000001 /* XCRemoteSwiftPackageReference "XCUITestKit" */,
+				A11CE5702000000000000001 /* XCRemoteSwiftPackageReference "XCUIPromoKit" */,
 			);
 			preferredProjectObjectVersion = 110;
 			productRefGroup = 01DD75DB2FFBE56F000CA793 /* Products */;
@@ -1044,6 +1048,14 @@
 				kind = branch;
 			};
 		};
+		A11CE5702000000000000001 /* XCRemoteSwiftPackageReference "XCUIPromoKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/RISCfuture/XCUIPromoKit";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.0.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -1066,6 +1078,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = A11CE5701000000000000001 /* XCRemoteSwiftPackageReference "XCUITestKit" */;
 			productName = XCUITestKit;
+		};
+		A11CE5702000000000000002 /* XCUIPromoKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A11CE5702000000000000001 /* XCRemoteSwiftPackageReference "XCUIPromoKit" */;
+			productName = XCUIPromoKit;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

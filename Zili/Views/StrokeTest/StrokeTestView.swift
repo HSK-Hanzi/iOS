@@ -82,7 +82,7 @@ struct StrokeTestView: View {
     .gesture(drawGesture)
     .pencilCursor()
     .pencilSqueeze(perform: respondToSqueeze)
-    .accessibilityIdentifier("strokeTestCanvas")
+    .accessibilityIdentifier(AccessibilityID.strokeTestCanvas)
     .accessibilityLabel(Text("Stroke practice canvas"))
     .accessibilityValue(Text(verdictSummary))
   }
@@ -117,7 +117,7 @@ struct StrokeTestView: View {
           Label("Hint", systemImage: showsHint ? "eye.fill" : "eye")
         }
         .toggleStyle(.button)
-        .accessibilityIdentifier("strokeTestHint")
+        .accessibilityIdentifier(AccessibilityID.strokeTestHint)
 
         if showsHint {
           Button {
@@ -125,7 +125,7 @@ struct StrokeTestView: View {
           } label: {
             Label("Play", image: "stroke.order")
           }
-          .accessibilityIdentifier("strokeTestPlay")
+          .accessibilityIdentifier(AccessibilityID.strokeTestPlay)
           .transition(.blurReplace)
         }
 
@@ -135,7 +135,7 @@ struct StrokeTestView: View {
           Label("Undo Stroke", systemImage: "arrow.uturn.backward")
         }
         .disabled(model.strokes.isEmpty)
-        .accessibilityIdentifier("strokeTestUndo")
+        .accessibilityIdentifier(AccessibilityID.strokeTestUndo)
 
         Button(role: .destructive) {
           model.clear()
@@ -144,7 +144,7 @@ struct StrokeTestView: View {
           Label("Clear", systemImage: "eraser")
         }
         .disabled(model.strokes.isEmpty && currentStroke.isEmpty)
-        .accessibilityIdentifier("strokeTestClear")
+        .accessibilityIdentifier(AccessibilityID.strokeTestClear)
       }
       .labelStyle(.iconOnly)
       .glassButton()

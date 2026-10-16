@@ -19,10 +19,6 @@ Tools/__pycache__/
 # SwiftPM build products
 .build/
 
-# fastlane outputs
-fastlane/Preview.html
-screenshots/
-
 # fastlane secrets — fastlane loads fastlane/.env automatically
 fastlane/.env
 fastlane/.env.*
