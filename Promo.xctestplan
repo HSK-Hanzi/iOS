@@ -20,6 +20,7 @@
     {
       "selectedTests" : [
         "MacStoreScreenshots",
+        "PreviewRecording",
         "StoreScreenshots"
       ],
       "target" : {
