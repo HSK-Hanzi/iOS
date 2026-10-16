@@ -88,4 +88,15 @@ extension StrokePracticePage.Stroke {
     .init(start: CGVector(dx: 0.119, dy: 0.766), end: CGVector(dx: 0.904, dy: 0.759))
   ]
 
+  /// 其's eight strokes, from the start to the end of each one's centerline in the stroke data.
+  static let qi: [Self] = [
+    .init(start: CGVector(dx: 0.226, dy: 0.246), end: CGVector(dx: 0.774, dy: 0.190)),
+    .init(start: CGVector(dx: 0.333, dy: 0.105), end: CGVector(dx: 0.361, dy: 0.598)),
+    .init(start: CGVector(dx: 0.567, dy: 0.048), end: CGVector(dx: 0.572, dy: 0.575)),
+    .init(start: CGVector(dx: 0.404, dy: 0.369), end: CGVector(dx: 0.544, dy: 0.349)),
+    .init(start: CGVector(dx: 0.407, dy: 0.488), end: CGVector(dx: 0.543, dy: 0.463)),
+    .init(start: CGVector(dx: 0.104, dy: 0.647), end: CGVector(dx: 0.900, dy: 0.599)),
+    .init(start: CGVector(dx: 0.417, dy: 0.725), end: CGVector(dx: 0.185, dy: 0.878)),
+    .init(start: CGVector(dx: 0.567, dy: 0.696), end: CGVector(dx: 0.735, dy: 0.882))
+  ]
 }

@@ -1,5 +1,307 @@
 {
   "$schema": "./node_modules/xcuipromokit/schema/storyboard.schema.json",
+  "previews": [
+    {
+      "id": "learning",
+      "take": "learning",
+      "device": "iphone",
+      "poster": {
+        "scene": "sticks",
+        "at": 5.0
+      },
+      "taps": {
+        "before": 0.12,
+        "after": 0.35
+      },
+      "captionEntrance": {
+        "unit": "word",
+        "delay": 0.15,
+        "duration": 0.38,
+        "stagger": 0.06,
+        "easing": [
+          0.2,
+          0.8,
+          0.25,
+          1
+        ],
+        "keyframes": [
+          {
+            "at": 0,
+            "opacity": 0,
+            "y": 0.6,
+            "skew": -18,
+            "rotate": -4,
+            "blur": 0.06
+          },
+          {
+            "at": 0.35,
+            "opacity": 1
+          },
+          {
+            "at": 0.75,
+            "y": -0.04,
+            "skew": 4,
+            "rotate": 0.5,
+            "blur": 0
+          },
+          {
+            "at": 1,
+            "y": 0,
+            "skew": 0,
+            "rotate": 0
+          }
+        ]
+      },
+      "scenes": [
+        {
+          "scene": "practice",
+          "caption": {
+            "copy": "practice",
+            "y": 0.82
+          },
+          "zoom": [
+            {
+              "to": 2.0,
+              "x": 0.5,
+              "y": 0.41,
+              "at": 1.15,
+              "duration": 0.3,
+              "easing": [
+                0.16,
+                1,
+                0.3,
+                1
+              ]
+            },
+            {
+              "to": 1,
+              "at": 2.75,
+              "duration": 0.3,
+              "easing": [
+                0.7,
+                0,
+                0.3,
+                1
+              ]
+            }
+          ]
+        },
+        {
+          "scene": "drill",
+          "transition": {
+            "type": "slide",
+            "direction": "left",
+            "duration": 0.22,
+            "easing": [
+              0.7,
+              0,
+              0.3,
+              1
+            ],
+            "motionBlur": 0.12
+          },
+          "caption": {
+            "copy": "drill",
+            "y": 0.72
+          },
+          "stretches": [
+            {
+              "index": 0,
+              "speed": {
+                "rate": 1.4,
+                "ramp": 0.3
+              }
+            },
+            {
+              "index": 1,
+              "speed": {
+                "rate": 1.4,
+                "ramp": 0.3
+              }
+            },
+            {
+              "index": 2,
+              "speed": {
+                "rate": 1.4,
+                "ramp": 0.3
+              }
+            },
+            {
+              "index": 3,
+              "speed": {
+                "rate": 1.4,
+                "ramp": 0.3
+              }
+            }
+          ]
+        },
+        {
+          "scene": "lookup",
+          "transition": {
+            "type": "slide",
+            "direction": "left",
+            "duration": 0.22,
+            "easing": [
+              0.7,
+              0,
+              0.3,
+              1
+            ],
+            "motionBlur": 0.12
+          },
+          "caption": {
+            "copy": "lookup",
+            "y": 0.86
+          },
+          "trim": {
+            "end": 0.3
+          },
+          "zoom": [
+            {
+              "to": 2.2,
+              "x": 0.0,
+              "y": 0.2,
+              "at": 2.6,
+              "duration": 0.3,
+              "easing": [
+                0.16,
+                1,
+                0.3,
+                1
+              ]
+            }
+          ]
+        },
+        {
+          "scene": "right",
+          "transition": {
+            "type": "slide",
+            "direction": "left",
+            "duration": 0.22,
+            "easing": [
+              0.7,
+              0,
+              0.3,
+              1
+            ],
+            "motionBlur": 0.12
+          },
+          "caption": {
+            "copy": "right",
+            "y": 0.72
+          },
+          "stretches": [
+            {
+              "index": 0,
+              "speed": {
+                "rate": 2,
+                "ramp": 0.3
+              }
+            },
+            {
+              "index": 1,
+              "speed": {
+                "rate": 2,
+                "ramp": 0.3
+              }
+            },
+            {
+              "index": 2,
+              "speed": {
+                "rate": 2,
+                "ramp": 0.3
+              }
+            },
+            {
+              "index": 3,
+              "speed": {
+                "rate": 2,
+                "ramp": 0.3
+              }
+            }
+          ]
+        },
+        {
+          "scene": "sticks",
+          "transition": {
+            "type": "slide",
+            "direction": "left",
+            "duration": 0.22,
+            "easing": [
+              0.7,
+              0,
+              0.3,
+              1
+            ],
+            "motionBlur": 0.12
+          },
+          "caption": {
+            "copy": "sticks",
+            "y": 0.82
+          },
+          "stretches": [
+            {
+              "index": 0,
+              "speed": {
+                "rate": 2,
+                "ramp": 0.3
+              }
+            },
+            {
+              "index": 1,
+              "speed": {
+                "rate": 2,
+                "ramp": 0.3
+              }
+            },
+            {
+              "index": 2,
+              "speed": {
+                "rate": 2,
+                "ramp": 0.3
+              }
+            },
+            {
+              "index": 3,
+              "speed": {
+                "rate": 2,
+                "ramp": 0.3
+              }
+            },
+            {
+              "index": 4,
+              "speed": {
+                "rate": 2,
+                "ramp": 0.3
+              }
+            },
+            {
+              "index": 5,
+              "speed": {
+                "rate": 2,
+                "ramp": 0.3
+              }
+            },
+            {
+              "index": 6,
+              "speed": {
+                "rate": 2,
+                "ramp": 0.3
+              }
+            },
+            {
+              "index": 7,
+              "speed": {
+                "rate": 2,
+                "ramp": 0.3
+              }
+            },
+            8
+          ]
+        }
+      ]
+    }
+  ],
   "screenshots": [
     {
       "id": "handwriting",
