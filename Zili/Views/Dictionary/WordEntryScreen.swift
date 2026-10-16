@@ -38,11 +38,13 @@ struct WordEntryScreen: View {
             } label: {
               Label("Stroke Order", image: "stroke.order")
             }
+            .accessibilityIdentifier(AccessibilityID.wordStrokeOrderLink)
             NavigationLink {
               StrokePracticeScreen(graphics: graphics)
             } label: {
               Label("Practice", image: "practice.grid")
             }
+            .accessibilityIdentifier(AccessibilityID.wordPracticeLink)
           }
         }
       }

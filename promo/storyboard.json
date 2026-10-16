@@ -1,0 +1,40 @@
+{
+  "$schema": "./node_modules/xcuipromokit/schema/storyboard.schema.json",
+  "screenshots": [
+    {
+      "id": "handwriting",
+      "still": "handwriting",
+      "caption": "handwriting"
+    },
+    {
+      "id": "look-up",
+      "still": "look-up",
+      "caption": "look-up"
+    },
+    {
+      "id": "review",
+      "still": "review",
+      "caption": "review"
+    },
+    {
+      "id": "speaking",
+      "still": "speaking",
+      "caption": "speaking"
+    },
+    {
+      "id": "word-entry",
+      "still": "word-entry",
+      "caption": "word-entry"
+    },
+    {
+      "id": "practice-characters",
+      "still": "practice-characters",
+      "caption": "practice-characters"
+    },
+    {
+      "id": "listening",
+      "still": "listening",
+      "caption": "listening"
+    }
+  ]
+}

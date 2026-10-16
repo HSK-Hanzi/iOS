@@ -64,6 +64,16 @@ converts the bundled property lists into prebuilt SQLite databases (dictionary,
 frequency, strokes, and character stores). The app queries these lazily at
 runtime rather than parsing large plists into memory.
 
+### App Store media
+
+[XCUIPromoKit](https://github.com/RISCfuture/XCUIPromoKit) captures and renders
+the listing's screenshots from `promo/`, through the **Promo** test plan: run
+`pnpm install` there once, then `fastlane screenshots` or
+`fastlane mac_screenshots`. They build with Xcode 27.1 or later, which the
+iPhone Duo simulator needs; set `DUO_XCODE` in `fastlane/.env` if it isn't the
+release candidate in `/Applications`. `promo/storyboard.json` and
+`promo/brand.css` set how they look.
+
 ### Crash reporting
 
 [Sentry](https://sentry.io) is wired in for exception and crash reporting.

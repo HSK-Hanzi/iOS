@@ -15,6 +15,8 @@ enum AccessibilityID {
   static let dictionaryEmptyState = "dictionary.emptyState"
   static let wordEntry = "word.entry"
   static let wordFavoriteToggle = "word.favoriteToggle"
+  static let wordStrokeOrderLink = "word.strokeOrderLink"
+  static let wordPracticeLink = "word.practiceLink"
 
   // Practice
   static let practiceCharactersCard = "practice.charactersCard"
@@ -34,6 +36,7 @@ enum AccessibilityID {
   static let sentenceListEmptyState = "sentence.emptyState"
   static let sentenceDetail = "sentence.detail"
   static let sentenceFavoriteToggle = "sentence.favoriteToggle"
+  static let wordPeekOpenEntry = "wordPeek.openEntry"
 
   // Quiz (shared)
   static let quizRecognitionCard = "quiz.recognitionCard"
@@ -67,6 +70,13 @@ enum AccessibilityID {
   static let speakingUnavailable = "speaking.unavailable"
   static let speakingRetry = "speaking.retry"
 
+  // Stroke practice pad
+  static let strokeTestCanvas = "strokeTest.canvas"
+  static let strokeTestHint = "strokeTest.hint"
+  static let strokeTestPlay = "strokeTest.play"
+  static let strokeTestUndo = "strokeTest.undo"
+  static let strokeTestClear = "strokeTest.clear"
+
   // Drawing quiz
   static let drawingDrawButton = "drawing.drawButton"
 
@@ -92,6 +102,8 @@ enum AccessibilityID {
     dictionaryEmptyState,
     wordEntry,
     wordFavoriteToggle,
+    wordStrokeOrderLink,
+    wordPracticeLink,
     practiceCharactersCard,
     practiceSentencesCard,
     characterSetFavorites,
@@ -107,6 +119,7 @@ enum AccessibilityID {
     sentenceListEmptyState,
     sentenceDetail,
     sentenceFavoriteToggle,
+    wordPeekOpenEntry,
     quizRecognitionCard,
     quizDrawingCard,
     quizListeningCard,
@@ -133,6 +146,11 @@ enum AccessibilityID {
     speakingNeedsReview,
     speakingUnavailable,
     speakingRetry,
+    strokeTestCanvas,
+    strokeTestHint,
+    strokeTestPlay,
+    strokeTestUndo,
+    strokeTestClear,
     drawingDrawButton,
     settingsScriptPicker,
     settingsRomanizationPicker,

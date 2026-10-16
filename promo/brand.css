@@ -1,0 +1,94 @@
+/* Zili's look for promokit renders: the site's paper, ink and cinnabar, and its display serif. */
+
+@font-face {
+  font-family: "Instrument Serif";
+  src: url("../docs/css/fonts/instrument-serif-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304,
+    U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Instrument Serif";
+  src: url("../docs/css/fonts/instrument-serif-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308,
+    U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113,
+    U+2C60-2C7F, U+A720-A7FF;
+}
+
+.promo-root {
+  --paper: #eee3d0;
+  --ink: #1a1613;
+  --cinnabar: #c0201a;
+
+  background: var(--paper);
+}
+
+/* Screenshots: each feature's character in a practice square over an Instrument Serif headline, as
+   the site marks its features, with the screen below on its own rounded corners and the site's
+   lifted-sheet shadow. */
+.promo-screenshot {
+  --radius: 9vw;
+
+  padding-top: 5vh;
+  gap: 4vh;
+  color: var(--ink);
+}
+
+.promo-headline {
+  max-width: 84vw;
+  font-family: "Instrument Serif", Georgia, serif;
+  font-size: 8.4vw;
+  font-weight: 400;
+  letter-spacing: -0.015em;
+  line-height: 1.05;
+  text-align: center;
+  text-wrap: balance;
+}
+
+.promo-headline::before {
+  display: block;
+  width: 1.2em;
+  aspect-ratio: 1;
+  margin: 0 auto 0.35em;
+  border: 0.012em solid #d3c4a9;
+  background:
+    repeating-linear-gradient(to right, #d3c4a9 0 0.04em, transparent 0 0.08em) center / 100% 0.012em no-repeat,
+    repeating-linear-gradient(to bottom, #d3c4a9 0 0.04em, transparent 0 0.08em) center / 0.012em 100% no-repeat;
+  font-family: "PingFang SC", "Hiragino Sans GB", serif;
+  font-size: 0.62em;
+  line-height: 1.2;
+  color: var(--cinnabar);
+}
+
+.promo-screen {
+  height: 70vh;
+  width: auto;
+  border-radius: var(--radius);
+  box-shadow: 0 1.2vh 4vh rgb(60 40 20 / 0.18), 0 0.2vh 0.6vh rgb(60 40 20 / 0.1);
+}
+
+.promo-screenshot[data-layout="tablet"] {
+  --radius: 2.5vw;
+}
+
+.promo-screenshot[data-layout="mac"] {
+  padding-top: 6vh;
+}
+
+.promo-screenshot[data-layout="mac"] .promo-headline {
+  font-size: 3.6vw;
+}
+
+.promo-screenshot[data-layout="mac"] .promo-screen {
+  height: auto;
+  max-height: 72vh;
+  border-radius: 0;
+}
+
+[data-copy="handwriting"]::before { content: "写"; }
+[data-copy="look-up"]::before { content: "句"; }
+[data-copy="review"]::before { content: "考"; }
+[data-copy="speaking"]::before { content: "说"; }
+[data-copy="word-entry"]::before { content: "查"; }
+[data-copy="practice-characters"]::before { content: "级"; }
+[data-copy="listening"]::before { content: "听"; }

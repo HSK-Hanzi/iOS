@@ -1,0 +1,33 @@
+{
+  "configurations" : [
+    {
+      "id" : "6C1F0E2A-58B4-4D3E-9A71-2F4B8C0D5E91",
+      "name" : "Debug",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "targetForVariableExpansion" : {
+      "containerPath" : "container:Zili.xcodeproj",
+      "identifier" : "01DD75D92FFBE56F000CA793",
+      "name" : "Zili"
+    },
+    "testTimeoutsEnabled" : true
+  },
+  "testTargets" : [
+    {
+      "selectedTests" : [
+        "MacStoreScreenshots",
+        "StoreScreenshots"
+      ],
+      "target" : {
+        "containerPath" : "container:Zili.xcodeproj",
+        "identifier" : "01DD75F42FFBE570000CA793",
+        "name" : "ZiliUITests"
+      }
+    }
+  ],
+  "version" : 1
+}
