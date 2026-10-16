@@ -16,6 +16,12 @@
       "../docs/css/fonts"
     ]
   },
+  "takes": {
+    "learning": {
+      "test": "ZiliUITests/PreviewRecording/testRecordPreview",
+      "device": "iPhone 18 Pro Max"
+    }
+  },
   "stills": {
     "test": "ZiliUITests/StoreScreenshots/testCaptureStills",
     "devices": [

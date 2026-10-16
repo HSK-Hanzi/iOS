@@ -23,6 +23,59 @@
   background: var(--paper);
 }
 
+/* Preview captions: the site's display serif in ink, outlined in paper to lift it off the app. */
+.promo-caption {
+  padding: 0 7vw;
+  font-family: "Instrument Serif", Georgia, serif;
+  font-size: 13vw;
+  font-weight: 400;
+  letter-spacing: -0.015em;
+  line-height: 1;
+  text-align: center;
+  text-wrap: balance;
+  color: var(--ink);
+  -webkit-text-stroke: 0.22em var(--paper);
+  paint-order: stroke fill;
+}
+
+/* A tap: a cinnabar ring that lands small and spreads as the finger lifts, like ink in paper. */
+.promo-tap {
+  width: 15vmin;
+  background: none;
+  border: 0.9vmin solid var(--cinnabar);
+  scale: calc(0.6 + 0.4 * var(--promo-tap-in) + 0.5 * var(--promo-tap-out));
+}
+
+/* Each feature's caption carries its character in a practice square, as the site marks features: a
+   hairline box quartered by dashed centre lines, the character in cinnabar. */
+.promo-caption::before {
+  display: block;
+  width: 1.35em;
+  aspect-ratio: 1;
+  margin: 0 auto 0.2em;
+  border: 0.02em solid #d3c4a9;
+  background:
+    repeating-linear-gradient(to right, #d3c4a9 0 0.06em, transparent 0 0.12em) center / 100% 0.02em no-repeat,
+    repeating-linear-gradient(to bottom, #d3c4a9 0 0.06em, transparent 0 0.12em) center / 0.02em 100% no-repeat,
+    var(--paper);
+  font-family: "PingFang SC", "Hiragino Sans GB", serif;
+  font-size: 0.62em;
+  line-height: 1.35;
+  color: var(--cinnabar);
+  -webkit-text-stroke: 0;
+}
+
+[data-copy="practice"]::before { content: "写"; }
+[data-copy="drill"]::before { content: "练"; }
+[data-copy="lookup"]::before { content: "查"; }
+[data-copy="right"]::before { content: "对"; }
+[data-copy="sticks"]::before { content: "记"; }
+
+.promo-caption-em {
+  font-style: normal;
+  color: var(--cinnabar);
+}
+
 /* Screenshots: each feature's character in a practice square over an Instrument Serif headline, as
    the site marks its features, with the screen below on its own rounded corners and the site's
    lifted-sheet shadow. */
