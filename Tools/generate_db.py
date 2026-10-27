@@ -11,9 +11,10 @@ nothing large is parsed into memory at runtime. One subcommand per store:
     generate_db.py sentences  <source.plist> <dest.sqlite>
 
 Each row keeps its record as a binary-plist blob (or plain columns) so the app decodes it through
-the same parsers the source data uses, alongside indexed columns for lookup and search. Word
-frequency is folded into the dictionaries as a `rank` column so Chinese/pinyin search can order by
-it in SQL; English is a per-sense FTS5 index ranked by bm25 relevance.
+the same parsers the source data uses, alongside indexed columns for lookup and search. Stroke
+graphics, the bulkiest records, use a compact binary form of their own (see ``encoded_graphic``).
+Word frequency is folded into the dictionaries as a `rank` column so Chinese/pinyin search can
+order by it in SQL; English is a per-sense FTS5 index ranked by bm25 relevance.
 
 Each reading is indexed under three keys — see ``pinyin_keys`` — so a query of bare letters, tone
 digits, or tone marks each has a column to prefix-match against. The alphabet those keys use MUST
@@ -23,7 +24,9 @@ stay in step with ``PinyinSearchKey`` in the app.
 import argparse
 import plistlib
 import sqlite3
+import struct
 import sys
+import zlib
 from pathlib import Path
 
 from pinyin_keys import character_readings, search_keys
@@ -198,12 +201,59 @@ def build_frequency(source, destination):
 # MARK: Strokes
 
 
+# How many coordinates follow each SVG path command in Make Me a Hanzi's outlines.
+PATH_COMMAND_ARITY = {"M": 2, "L": 2, "Q": 4, "C": 6, "Z": 0}
+
+# Coordinates are stored in quarter units, which every outline coordinate is a whole number of.
+COORDINATE_SCALE = 4
+
+
+def encoded_graphic(graphic):
+    """A stroke graphic in the compact binary form `HanziGraphic(encoded:)` decodes, raw-DEFLATE
+    compressed. All integers are little-endian; coordinates are int16 quarter units.
+
+        u8  stroke count N
+        N × outline: u16 command count, then per command its ASCII letter and its coordinates
+        N × median:  u16 point count, then per point its x and y
+
+    Outlines round-trip exactly. A median point off the quarter-unit grid, in a handful of glyphs,
+    rounds to the nearest quarter unit.
+    """
+    strokes, medians = graphic["strokes"], graphic["medians"]
+    out = bytearray(struct.pack("<B", len(strokes)))
+    for path in strokes:
+        commands = path_commands(path)
+        out += struct.pack("<H", len(commands))
+        for letter, values in commands:
+            out += letter.encode("ascii") + struct.pack(f"<{len(values)}h", *values)
+    for median in medians:
+        out += struct.pack("<H", len(median))
+        for point in median:
+            out += struct.pack("<2h", *(round(value * COORDINATE_SCALE) for value in point))
+    compressor = zlib.compressobj(9, zlib.DEFLATED, -15)
+    return compressor.compress(bytes(out)) + compressor.flush()
+
+
+def path_commands(path):
+    """An SVG path `d` string as (command letter, scaled coordinates) pairs."""
+    tokens = path.split()
+    commands = []
+    index = 0
+    while index < len(tokens):
+        letter = tokens[index]
+        arity = PATH_COMMAND_ARITY[letter]
+        values = tokens[index + 1 : index + 1 + arity]
+        commands.append((letter, [round(float(value) * COORDINATE_SCALE) for value in values]))
+        index += 1 + arity
+    return commands
+
+
 def build_strokes(source, destination):
     entries, _ = entries_of(load_plist(source))
     connection = fresh_database(destination)
     connection.execute("CREATE TABLE graphic (character TEXT PRIMARY KEY, payload BLOB NOT NULL)")
     rows = [
-        (character, blob(graphic))
+        (character, encoded_graphic(graphic))
         for character, graphic in entries.items()
         if len(character) == 1 and isinstance(graphic, dict)
     ]
