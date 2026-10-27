@@ -8,6 +8,7 @@ nothing large is parsed into memory at runtime. One subcommand per store:
     generate_db.py frequency  <source.plist> <dest.sqlite>
     generate_db.py strokes    <source.plist> <dest.sqlite>
     generate_db.py characters <readings.plist> <etymology.plist> <charfreq.plist> <dest.sqlite>
+    generate_db.py sentences  <source.plist> <dest.sqlite>
 
 Each row keeps its record as a binary-plist blob (or plain columns) so the app decodes it through
 the same parsers the source data uses, alongside indexed columns for lookup and search. Word
@@ -252,6 +253,45 @@ def build_characters(readings_plist, etymology_plist, charfreq_plist, destinatio
     return len(rows)
 
 
+def build_sentences(source, destination):
+    """One row per practice sentence, with its level in each HSK standard (null where that standard's
+    syllabus doesn't cover it). Rows keep the source's order, which the app lists them in."""
+    sentences, _ = entries_of(load_plist(source))
+    connection = fresh_database(destination)
+    connection.executescript(
+        """
+        CREATE TABLE sentence (
+            id TEXT PRIMARY KEY,
+            hanzi TEXT NOT NULL,
+            numbered_pinyin TEXT NOT NULL,
+            translation TEXT NOT NULL,
+            level_old INTEGER,
+            level_new INTEGER,
+            level_newest INTEGER
+        );
+        CREATE INDEX sentence_level_old ON sentence(level_old);
+        CREATE INDEX sentence_level_new ON sentence(level_new);
+        CREATE INDEX sentence_level_newest ON sentence(level_newest);
+        """
+    )
+    for entry in sentences:
+        levels = entry.get("levels", {})
+        connection.execute(
+            "INSERT INTO sentence VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (
+                entry["id"],
+                entry["hanzi"],
+                entry["numberedPinyin"],
+                entry["translation"],
+                levels.get("old"),
+                levels.get("new"),
+                levels.get("newest"),
+            ),
+        )
+    finish(connection)
+    return len(sentences)
+
+
 # MARK: Entry point
 
 
@@ -265,7 +305,7 @@ def main(argv):
     dictionary.add_argument("--frequency", default=None)
     dictionary.add_argument("--readings", required=True)
 
-    for name in ("frequency", "strokes"):
+    for name in ("frequency", "strokes", "sentences"):
         one = kinds.add_parser(name)
         one.add_argument("source")
         one.add_argument("destination")
@@ -289,6 +329,8 @@ def main(argv):
         count = build_frequency(args.source, args.destination)
     elif args.kind == "strokes":
         count = build_strokes(args.source, args.destination)
+    elif args.kind == "sentences":
+        count = build_sentences(args.source, args.destination)
     else:
         count = build_characters(args.readings, args.etymology, args.charfreq, args.destination)
 

@@ -244,7 +244,6 @@ struct CorpusInventory: Sendable {
   static func load(from bundle: Bundle = .main) async -> Self {
     async let vocabulary = try? HSKVocabulary.load(from: bundle)
     async let dictionaries = openDictionaries(from: bundle)
-    async let sentences = SentenceLibrary.load(from: bundle)
 
     let hsk = await vocabulary
     let corpus = OpenedCorpus(
@@ -253,7 +252,7 @@ struct CorpusInventory: Sendable {
       characters: (try? CharacterLibrary.load(from: bundle))?.coverage,
       frequency: try? FrequencyList.load(.subtitleWords, from: bundle),
       hsk: hsk,
-      sentences: await sentences
+      sentences: SentenceLibrary.load(from: bundle)
     )
 
     return Self(

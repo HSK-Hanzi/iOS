@@ -1,414 +1,921 @@
 #!/usr/bin/env python3
-"""Generate Zili's bundled sentence corpora from the HSK workbook dump.
+"""Generate Zili's practice-sentence library with the Claude API.
 
-Two corpora come out of one pass over the cleaned HSK sentences (see ``hsk_sentences``):
+The library is written word by word: every headword of the three HSK syllabi gets a handful of
+original example sentences, written for the band the word is taught at, then checked, leveled in all
+three standards, and merged with the sentences already shipped. One subcommand per stage:
 
-  - ``HSKSentences.plist`` — the **original** HSK sentences with generated numbered pinyin and an
-    English translation. Copyrighted; ships only in Debug builds (``Data/Proprietary/``).
-  - ``PracticeSentences.plist`` — a **novel** sentence for each usable HSK sentence, written with
-    vocabulary at or below that sentence's HSK level, plus its pinyin and translation. Original
-    content; always ships (``Data/Open/``).
+  - ``words pilot`` — a few requests across the bands, synchronously, to read and to price.
+  - ``words submit --yes`` — every word not yet generated, through the Batches API (half price).
+  - ``review pilot`` / ``review submit --yes`` — a second model's read of every sentence that passed
+    the checks; a sentence it rejects is dropped.
+  - ``fetch [--wait]`` — downloads the results of submitted batches.
+  - ``assemble [--write]`` — checks, levels, and dedupes everything generated (see
+    ``sentence_library``), reports what it kept, and with ``--write`` writes the corpora.
+  - ``cost`` — what every request so far has cost.
 
-Each HSK sentence is sent to Claude once (via the Batches API for the full run, or synchronously for
-a ``--limit`` pilot), which decides whether the input is a usable standalone sentence and, if so,
-returns both corpora's fields as one structured object. Pinyin is **space-separated numbered pinyin**
-(``wo3 xiang3 mai3 shui3 guo3``); the app transliterates it to the reader's romanization at display
-time, so this is the one canonical reading we store.
+Every request and result is kept in ``Tools/.cache/sentences/`` — a batch's id is written down before
+anything else happens — so an interrupted run resumes instead of paying twice, and ``submit`` skips any
+request that already succeeded.
 
-Usage::
-
-    # Pilot: 12 sentences, synchronous, prints results — validate quality before the full run.
-    python generate_sentences.py --limit 12
-
-    # Full run over every clean sentence, via the Batches API (50% cost, ~1h).
-    python generate_sentences.py --batch
-
-``ANTHROPIC_API_KEY`` is read from the environment (source it from 1Password, e.g. ``op run``).
+Credentials come from ``ANTHROPIC_API_KEY`` (source it from 1Password with ``op run``).
 """
 
 from __future__ import annotations
 
 import argparse
-import hashlib
-import os
+import concurrent.futures
+import json
 import plistlib
+import random
+import subprocess
 import sys
 import time
+from collections import Counter, defaultdict
+from dataclasses import dataclass
+from datetime import UTC, datetime
 from pathlib import Path
 
 import anthropic
 from anthropic.types.message_create_params import MessageCreateParamsNonStreaming
 from anthropic.types.messages.batch_create_params import Request
 
-import hsk_sentences
+import sentence_library as library
 
-# The model that writes the sentences. Opus by default (the strongest option for correct pinyin and
-# level-appropriate vocabulary); override with --model claude-sonnet-5 to cut cost roughly in half.
-DEFAULT_MODEL = "claude-opus-4-8"
+WRITER_MODEL = "claude-opus-5-5"
+REVIEWER_MODEL = "claude-sonnet-5-5"
+
+# Dollars per million tokens: input, output, cache read. A cache write costs 1.25× input.
+PRICES = {
+    "claude-opus-5-5": (4.00, 20.00, 0.20),
+    "claude-sonnet-5-5": (2.00, 10.00, 0.20),
+}
+BATCH_DISCOUNT = 0.5
 
 REPO = Path(__file__).resolve().parent.parent
-SOURCE_FILE = Path.home() / "Desktop" / "HSK_Practice_Sentences.txt"
-HSK_VOCABULARY = REPO / "Data" / "open" / "HSKVocabulary.plist"
-LICENSED_OUT = REPO / "Data" / "licensed" / "HSKSentences.plist"
-OPEN_OUT = REPO / "Data" / "open" / "PracticeSentences.plist"
+OPEN = REPO / "Data" / "Open"
+PROPRIETARY = REPO / "Data" / "Proprietary"
+CACHE = Path(__file__).resolve().parent / ".cache" / "sentences"
 
-# The Standard Course workbooks the dump is drawn from teach HSK 2.0, whose six levels the vocabulary
-# plist tags "old-1"…"old-6". A sentence at level N may use any word introduced at or below level N.
-VOCABULARY_STANDARD = "old"
+PRACTICE_SENTENCES = OPEN / "PracticeSentences.plist"
+HSK_SENTENCES = PROPRIETARY / "HSKSentences.plist"
+WORKBOOK_GRAMMAR = PROPRIETARY / "WorkbookGrammar.json"
 
-SYSTEM_PROMPT = """\
-You are an expert Mandarin Chinese teacher building study material for HSK learners.
+TARGETS_PER_REQUEST = 5
+SENTENCES_PER_WORD = {1: 12, 2: 12, 3: 12, 4: 8, 5: 8, 6: 8, 7: 5}
+REVIEWS_PER_REQUEST = 25
+# Bands whose whole vocabulary is short enough to list in the prompt.
+LISTED_VOCABULARY_BANDS = {1, 2, 3}
+# Bands whose prompts list the workbook grammar to practice.
+GRAMMAR_BANDS = {1, 2, 3}
 
-You are given one sentence extracted from an HSK Standard Course workbook, tagged with its HSK level \
-(1 = beginner … 6 = advanced). The extraction is imperfect, so first judge whether the input is a \
-single, coherent, self-contained Chinese sentence worth studying.
+WORDS_SYSTEM = """\
+You write original example sentences for learners of Mandarin Chinese preparing for HSK 3.0, whose \
+bands run from 1 (beginner) to 7 (advanced; levels 7–9).
 
-Set `usable` to false — and leave every other field an empty string — when the input is not one \
-clean sentence: it is a fragment, two unrelated sentences run together, a comprehension question \
-about a passage the learner cannot see, garbled OCR, or otherwise not a natural standalone sentence.
+For each target word you are given, write the requested number of sentences. Every sentence must:
+- use the target word in a common, natural sense (spread the sentences across its common senses);
+- be natural, self-contained, standard Mandarin in simplified characters, the kind of thing a native \
+speaker would actually say or write;
+- use only vocabulary and grammar a learner at the given band knows, besides the target word itself;
+- write numbers in Chinese characters, with no Arabic digits, Latin letters or brand names;
+- end with 。, ？ or ！.
 
-When `usable` is true, produce all of these:
-  - `original_pinyin`: the input sentence's reading as space-separated numbered pinyin — one \
-syllable per token, each ending in its tone digit 1–5 (5 = neutral tone), e.g. \
-"wo3 xiang3 mai3 yi4 xie1 shui3 guo3". Group syllables into words with no internal spaces is NOT \
-required; a plain space between every syllable is fine. Apply tone sandhi as actually spoken \
-(e.g. 不 before a 4th tone is bu2, 一 is often yi4/yi2). No tone marks, no punctuation, letters only.
-  - `original_translation`: a natural, concise English translation of the input sentence.
-  - `novel_hanzi`: a NEW, original Chinese sentence — never copy the input — that is similar in \
-topic, structure, and difficulty, and uses ONLY vocabulary and grammar a learner at this HSK level \
-(or below) would know. Keep it natural and roughly the same length. End it with normal Chinese \
-punctuation (。？！).
-  - `novel_pinyin`: `novel_hanzi`'s reading, in the same numbered-pinyin format as `original_pinyin`.
-  - `novel_translation`: a natural, concise English translation of `novel_hanzi`.
+Across the set, vary the topic, the subject, the sentence type (statements, questions, short spoken \
+replies, exclamations) and the length, and never reuse one template with words swapped. Avoid proper \
+names unless the sentence needs one, and then use a common one such as 小王 or 李老师.
 
-Return only the structured object.\
+Fields for each sentence:
+- `target`: the target word, exactly as given.
+- `hanzi`: the sentence, with its punctuation.
+- `words`: the sentence's characters only (no punctuation), split into words with "/"; prefix a \
+proper name with "*", e.g. "*小王/在/家/吗".
+- `pinyin`: numbered pinyin for the same words, "/" between words and a space between the syllables \
+of a word, e.g. "xiao3 wang2/zai4/jia1/ma5". Mark every syllable 1–5 (5 = neutral tone). Write ü \
+as "u:". Write an erhua 儿 as its own syllable "r5". Write 一 and 不 with the tone they are spoken \
+with in context; never apply third-tone sandhi.
+- `translation`: a natural, concise English translation.
+- `topic`: one or two lowercase English words, such as "food" or "travel".
+- `grammar`: when the sentence uses one of the structures listed for the band, that structure \
+exactly as listed; otherwise "".\
 """
 
-# The structured-output contract: every field required so the model can't omit one, empty strings
-# when the sentence is unusable.
-OUTPUT_SCHEMA = {
+REVIEW_SYSTEM = """\
+You check example sentences written for learners of Mandarin Chinese. For every sentence given, \
+decide whether it may be shown to learners. Reject it when any of these is true:
+- it is ungrammatical, unidiomatic, or something a native speaker would not say;
+- the English translation misstates its meaning;
+- its numbered pinyin is wrong for any character: a wrong tone, the wrong reading of a polyphone, or a \
+neutral tone where one doesn't belong. (一 and 不 are written with the tone spoken in context, third \
+tone sandhi is never written, and an erhua 儿 is "r5".)
+- it is offensive, or culturally or factually wrong.
+
+Reject only a definite error. A reading with an accepted standard variant is correct — a neutral \
+tone on the second syllable of words like 漂亮, 困难, 这个 or 多少, or a full tone there instead. \
+A translation that is accurate but could be worded better is correct.
+
+For every id, first write `problem`: the definite error, or "" when there is none. Then set `ok` \
+to whether `problem` is empty.\
+"""
+
+WORDS_SCHEMA = {
     "type": "object",
     "properties": {
-        "usable": {"type": "boolean"},
-        "original_pinyin": {"type": "string"},
-        "original_translation": {"type": "string"},
-        "novel_hanzi": {"type": "string"},
-        "novel_pinyin": {"type": "string"},
-        "novel_translation": {"type": "string"},
+        "sentences": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    field: {"type": "string"}
+                    for field in (
+                        "target",
+                        "hanzi",
+                        "words",
+                        "pinyin",
+                        "translation",
+                        "topic",
+                        "grammar",
+                    )
+                },
+                "required": [
+                    "target",
+                    "hanzi",
+                    "words",
+                    "pinyin",
+                    "translation",
+                    "topic",
+                    "grammar",
+                ],
+                "additionalProperties": False,
+            },
+        }
     },
-    "required": [
-        "usable",
-        "original_pinyin",
-        "original_translation",
-        "novel_hanzi",
-        "novel_pinyin",
-        "novel_translation",
-    ],
+    "required": ["sentences"],
+    "additionalProperties": False,
+}
+
+REVIEW_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "verdicts": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "id": {"type": "string"},
+                    "problem": {"type": "string"},
+                    "ok": {"type": "boolean"},
+                },
+                "required": ["id", "problem", "ok"],
+                "additionalProperties": False,
+            },
+        }
+    },
+    "required": ["verdicts"],
     "additionalProperties": False,
 }
 
 
 def main(argv: list[str]) -> int:
     args = parse_arguments(argv)
-    sentences = hsk_sentences.clean_sentences(SOURCE_FILE.read_text())
-    if args.levels:
-        sentences = [s for s in sentences if s.level in args.levels]
-    if args.limit:
-        sentences = even_sample(sentences, args.limit)
-    print(f"{len(sentences)} sentence(s) to generate from.", file=sys.stderr)
-
-    allowed = allowed_characters_by_level()
-    client = anthropic.Anthropic()
-    results = (
-        run_batch(client, sentences, args)
-        if args.batch
-        else run_sync(client, sentences, args)
-    )
-
-    kept = assemble(sentences, results, allowed)
-    if args.limit and not args.write:
-        preview(kept)
-        return 0
-    write_corpora(kept)
-    return 0
+    return args.run(args)
 
 
-# MARK: Generation
+# MARK: Source data
 
 
-def run_sync(client, sentences, args):
-    """Generate one sentence at a time, in order — for a small pilot you can eyeball."""
-    results: dict[str, dict] = {}
-    for index, sentence in enumerate(sentences, start=1):
-        print(
-            f"  [{index}/{len(sentences)}] HSK{sentence.level} {sentence.hanzi}",
-            file=sys.stderr,
+@dataclass
+class Sources:
+    """Everything the stages read: the syllabi, readings, workbook sentences and grammar, and the
+    sentences already shipped."""
+
+    vocabulary: dict
+    syllabi: dict[str, library.Syllabus]
+    readings: library.Readings
+    lexicon: set[str]
+    practice: list[dict]
+    workbook: list[dict]
+    grammar: dict[int, list[str]]
+
+    @classmethod
+    def load(cls) -> Sources:
+        vocabulary = entries(OPEN / "HSKVocabulary.plist")
+        dictionary = entries(OPEN / "CEDICT.plist")
+        return cls(
+            vocabulary=vocabulary,
+            syllabi=library.syllabi(vocabulary),
+            readings=library.Readings.build(entries(OPEN / "CharacterReadings.plist"), dictionary),
+            lexicon=set(dictionary) | set(vocabulary),
+            practice=committed_entries(PRACTICE_SENTENCES),
+            workbook=committed_entries(HSK_SENTENCES) if HSK_SENTENCES.exists() else [],
+            grammar=workbook_grammar(),
         )
-        message = client.messages.create(
-            model=args.model,
-            max_tokens=1024,
-            system=[
-                {
-                    "type": "text",
-                    "text": SYSTEM_PROMPT,
-                    "cache_control": {"type": "ephemeral"},
-                }
-            ],
-            output_config={"format": {"type": "json_schema", "schema": OUTPUT_SCHEMA}},
-            messages=[{"role": "user", "content": prompt_for(sentence)}],
-        )
-        results[key_of(sentence)] = parse_output(message)
-    return results
+
+    def targets_by_band(self) -> dict[int, list[str]]:
+        """Every headword written entirely in Hanzi, by the band it is generated for."""
+        bands: dict[int, list[str]] = defaultdict(list)
+        for word in sorted(self.vocabulary):
+            band = library.generation_band(word, self.syllabi)
+            if band and library.han_only(word) == word:
+                bands[band].append(word)
+        return bands
+
+    def known_words(self, band: int) -> list[str]:
+        """The HSK 3.0 (2026) words taught at `band` or below."""
+        return sorted(w for w, b in self.syllabi["newest"].bands.items() if b <= band)
+
+    def structures(self, band: int) -> list[str]:
+        """The workbook grammar taught at `band` or below, for the bands where it is still being
+        learned; past them it is assumed."""
+        if band not in GRAMMAR_BANDS:
+            return []
+        return [s for level, items in sorted(self.grammar.items()) if level <= band for s in items]
+
+    def workbook_examples(self, band: int, count: int, seed: str) -> list[str]:
+        level = min(band, 6)
+        pool = [e["hanzi"] for e in self.workbook if workbook_level(e) == level]
+        return random.Random(seed).sample(pool, min(count, len(pool)))
 
 
-def run_batch(client, sentences, args):
-    """Generate every sentence through the Batches API — half price, keyed by our own IDs."""
-    shared_system = [
-        {"type": "text", "text": SYSTEM_PROMPT, "cache_control": {"type": "ephemeral"}}
-    ]
-    batch = client.messages.batches.create(
-        requests=[
-            Request(
-                custom_id=key_of(sentence),
-                params=MessageCreateParamsNonStreaming(
-                    model=args.model,
-                    max_tokens=1024,
-                    system=shared_system,
-                    output_config={
-                        "format": {"type": "json_schema", "schema": OUTPUT_SCHEMA}
-                    },
-                    messages=[{"role": "user", "content": prompt_for(sentence)}],
-                ),
-            )
-            for sentence in sentences
-        ]
-    )
-    print(f"Batch {batch.id} submitted; polling…", file=sys.stderr)
-    await_batch(client, batch.id)
-
-    results: dict[str, dict] = {}
-    for result in client.messages.batches.results(batch.id):
-        if result.result.type == "succeeded":
-            results[result.custom_id] = parse_output(result.result.message)
-        else:
-            print(f"  {result.custom_id}: {result.result.type}", file=sys.stderr)
-    return results
+def entries(path: Path):
+    return plistlib.loads(path.read_bytes())["entries"]
 
 
-def await_batch(client, batch_id):
-    """Blocks until the batch ends, reporting progress. Date.now() is fine here — a plain script."""
-    while True:
-        batch = client.messages.batches.retrieve(batch_id)
-        counts = batch.request_counts
-        print(
-            f"  status={batch.processing_status} "
-            f"done={counts.succeeded + counts.errored} processing={counts.processing}",
-            file=sys.stderr,
-        )
-        if batch.processing_status == "ended":
-            return
-        time.sleep(30)
+def committed_entries(path: Path):
+    """The entries of `path` as its submodule last committed it — the corpus already shipped, which
+    ``assemble --write`` replaces in the working tree and must not then read back as its baseline."""
+    committed = subprocess.run(
+        ["git", "-C", str(path.parent), "cat-file", "--filters", f"HEAD:{path.name}"],
+        capture_output=True,
+        check=True,
+    ).stdout
+    return plistlib.loads(committed)["entries"]
 
 
-def prompt_for(sentence: hsk_sentences.Sentence) -> str:
-    return f"HSK level: {sentence.level}\nSentence: {sentence.hanzi}"
+def workbook_level(entry: dict) -> int | None:
+    """The HSK 2.0 level a workbook sentence is taught at."""
+    return entry.get("level") or entry.get("levels", {}).get("old")
 
 
-def parse_output(message) -> dict:
-    """The JSON object the structured-output format guarantees in the message's text block."""
-    import json
-
-    text = next(block.text for block in message.content if block.type == "text")
-    return json.loads(text)
-
-
-# MARK: Assembly & validation
-
-
-def assemble(sentences, results, allowed):
-    """Turn the raw model outputs into the two corpora's entries, dropping unusable sentences and
-    warning when a novel sentence strays outside its level's vocabulary or its pinyin looks off."""
-    licensed: list[dict] = []
-    openly: list[dict] = []
-    for sentence in sentences:
-        result = results.get(key_of(sentence))
-        if not result or not result.get("usable"):
-            continue
-        licensed.append(
-            entry(
-                sentence.hanzi,
-                sentence.level,
-                result["original_pinyin"],
-                result["original_translation"],
-            )
-        )
-        novel = result["novel_hanzi"]
-        openly.append(
-            entry(
-                novel,
-                sentence.level,
-                result["novel_pinyin"],
-                result["novel_translation"],
-            )
-        )
-        warn_if_off_level(novel, sentence.level, allowed)
-        warn_if_pinyin_mismatched(novel, result["novel_pinyin"])
-    print(f"Kept {len(openly)} usable sentence(s).", file=sys.stderr)
-    return {"licensed": dedupe(licensed), "open": dedupe(openly)}
-
-
-def entry(hanzi: str, level: int, numbered_pinyin: str, translation: str) -> dict:
+def workbook_grammar() -> dict[int, list[str]]:
+    if not WORKBOOK_GRAMMAR.exists():
+        return {}
+    document = json.loads(WORKBOOK_GRAMMAR.read_text())
     return {
-        "id": content_id(hanzi),
-        "level": level,
-        "hanzi": hanzi,
-        "numberedPinyin": numbered_pinyin.strip(),
-        "translation": translation.strip(),
+        int(level): [lesson["structure"] for lesson in lessons]
+        for level, lessons in document["levels"].items()
     }
 
 
-def content_id(hanzi: str) -> str:
-    """A stable id derived from the sentence text, so a learner's favorites survive regeneration."""
-    return hashlib.sha1(hanzi.encode("utf-8")).hexdigest()[:16]
+# MARK: Requests
 
 
-def dedupe(entries: list[dict]) -> list[dict]:
-    """One entry per id, first occurrence winning, keeping level order."""
-    seen: set[str] = set()
-    return [e for e in entries if e["id"] not in seen and not seen.add(e["id"])]
+@dataclass(frozen=True)
+class PlannedRequest:
+    custom_id: str
+    kind: str
+    model: str
+    system: list[dict]
+    prompt: str
+    schema: dict
+    metadata: dict
 
-
-def warn_if_off_level(hanzi: str, level: int, allowed: dict[int, set[str]]) -> None:
-    stray = {c for c in hanzi if hsk_sentences._HAN_RE.match(c)} - allowed.get(
-        level, set()
-    )
-    if stray:
-        print(
-            f"  ⚠︎ HSK{level} novel uses off-level char(s) {''.join(sorted(stray))}: {hanzi}",
-            file=sys.stderr,
-        )
-
-
-def warn_if_pinyin_mismatched(hanzi: str, numbered_pinyin: str) -> None:
-    syllables = len(numbered_pinyin.split())
-    han = len(hsk_sentences._HAN_RE.findall(hanzi))
-    if syllables != han:
-        print(
-            f"  ⚠︎ pinyin has {syllables} syllables for {han} characters: {hanzi}",
-            file=sys.stderr,
-        )
-
-
-def allowed_characters_by_level() -> dict[int, set[str]]:
-    """For each HSK level 1–6, the set of Han characters used by words at that level or below —
-    the yardstick for flagging a novel sentence that reaches beyond its level's vocabulary."""
-    root = plistlib.loads(HSK_VOCABULARY.read_bytes())
-    per_level: dict[int, set[str]] = {level: set() for level in range(1, 7)}
-    for simplified, records in root.get("entries", {}).items():
-        bands = {
-            int(tag.split("-")[1])
-            for record in records
-            for tag in record.get("levels", [])
-            if tag.startswith(f"{VOCABULARY_STANDARD}-")
+    def params(self, effort: str) -> dict:
+        return {
+            "model": self.model,
+            "max_tokens": 16000,
+            "system": self.system,
+            "output_config": {
+                "effort": effort,
+                "format": {"type": "json_schema", "schema": self.schema},
+            },
+            "messages": [{"role": "user", "content": self.prompt}],
         }
-        lowest = min(bands, default=None)
-        if lowest is None:
+
+
+def word_requests(sources: Sources, per_word: dict[int, int]) -> list[PlannedRequest]:
+    """One request per group of target words, every band, in a fixed shuffled order so each group
+    mixes words from across the alphabet."""
+    planned = []
+    for band, words in sorted(sources.targets_by_band().items()):
+        system = [
+            {"type": "text", "text": WORDS_SYSTEM},
+            {
+                "type": "text",
+                "text": band_guide(sources, band),
+                "cache_control": {"type": "ephemeral"},
+            },
+        ]
+        shuffled = words[:]
+        random.Random(f"band-{band}").shuffle(shuffled)
+        for start in range(0, len(shuffled), TARGETS_PER_REQUEST):
+            targets = shuffled[start : start + TARGETS_PER_REQUEST]
+            custom_id = f"w{band}-{library.content_id('|'.join(targets))}"
+            planned.append(
+                PlannedRequest(
+                    custom_id=custom_id,
+                    kind="words",
+                    model=WRITER_MODEL,
+                    system=system,
+                    prompt=words_prompt(sources, band, targets, per_word[band], custom_id),
+                    schema=WORDS_SCHEMA,
+                    metadata={"band": band, "targets": targets},
+                )
+            )
+    return planned
+
+
+def band_guide(sources: Sources, band: int) -> str:
+    low, high = library.LENGTH_BOUNDS[band]
+    lines = [
+        f"Band: {band}.",
+        f"Keep each sentence between {low} and {high} characters, most of them nearer the short end.",
+    ]
+    if band in LISTED_VOCABULARY_BANDS:
+        lines.append(
+            "Besides the target word, use only these words (and names and numbers): "
+            + "、".join(sources.known_words(band))
+        )
+    else:
+        lines.append(
+            f"Besides the target word, use common vocabulary from HSK 3.0 band {band} and below."
+        )
+    if structures := sources.structures(band):
+        lines.append("Structures learners at this band know: " + "; ".join(structures))
+    return "\n".join(lines)
+
+
+def words_prompt(sources: Sources, band: int, targets: list[str], count: int, seed: str) -> str:
+    lines = [f"Write {count} sentences for each of these target words:"]
+    lines += [f"- {target}" for target in targets]
+    if examples := sources.workbook_examples(band, 3, seed):
+        lines.append(
+            "For the difficulty and register only — never copy or paraphrase them — "
+            "here are textbook sentences at this level:"
+        )
+        lines += [f"  {example}" for example in examples]
+    return "\n".join(lines)
+
+
+def review_requests(candidates: list[dict]) -> list[PlannedRequest]:
+    planned = []
+    for start in range(0, len(candidates), REVIEWS_PER_REQUEST):
+        group = candidates[start : start + REVIEWS_PER_REQUEST]
+        ids = [c["id"] for c in group]
+        prompt = "\n".join(
+            json.dumps(
+                {
+                    "id": c["id"],
+                    "hanzi": c["hanzi"],
+                    "pinyin": c["numberedPinyin"],
+                    "translation": c["translation"],
+                },
+                ensure_ascii=False,
+            )
+            for c in group
+        )
+        planned.append(
+            PlannedRequest(
+                custom_id=f"r-{library.content_id('|'.join(ids))}",
+                kind="review",
+                model=REVIEWER_MODEL,
+                system=[{"type": "text", "text": REVIEW_SYSTEM}],
+                prompt=prompt,
+                schema=REVIEW_SCHEMA,
+                metadata={"ids": ids},
+            )
+        )
+    return planned
+
+
+# MARK: Cache
+
+
+class Cache:
+    """The on-disk record of every request made and every result received, append-only."""
+
+    def __init__(self, root: Path = CACHE) -> None:
+        self.root = root
+        (root / "results").mkdir(parents=True, exist_ok=True)
+
+    @property
+    def batches_file(self) -> Path:
+        return self.root / "batches.jsonl"
+
+    def append(self, path: Path, records) -> None:
+        with path.open("a") as file:
+            for record in records:
+                file.write(json.dumps(record, ensure_ascii=False) + "\n")
+
+    def record_requests(self, planned: list[PlannedRequest], effort: str) -> None:
+        self.append(
+            self.root / "requests.jsonl",
+            (
+                {
+                    "custom_id": p.custom_id,
+                    "kind": p.kind,
+                    "effort": effort,
+                    **p.metadata,
+                }
+                for p in planned
+            ),
+        )
+
+    def requests(self) -> dict[str, dict]:
+        return {r["custom_id"]: r for r in read_jsonl(self.root / "requests.jsonl")}
+
+    def record_batch(self, batch_id: str, kind: str, count: int) -> None:
+        self.append(
+            self.batches_file,
+            [{"id": batch_id, "kind": kind, "count": count, "created": now()}],
+        )
+
+    def batches(self) -> list[dict]:
+        return read_jsonl(self.batches_file)
+
+    def results_file(self, name: str) -> Path:
+        return self.root / "results" / f"{name}.jsonl"
+
+    def results(self) -> list[dict]:
+        """Every result received, oldest first, so a later retry supersedes an earlier failure."""
+        files = sorted(self.root.glob("results/*.jsonl"), key=lambda p: p.stat().st_mtime)
+        return [record for path in files for record in read_jsonl(path)]
+
+    def succeeded(self) -> dict[str, dict]:
+        """The latest successful result for each custom id."""
+        return {r["custom_id"]: r for r in self.results() if r["status"] == "succeeded"}
+
+
+def read_jsonl(path: Path) -> list[dict]:
+    if not path.exists():
+        return []
+    return [json.loads(line) for line in path.read_text().splitlines() if line.strip()]
+
+
+def now() -> str:
+    return datetime.now(UTC).isoformat(timespec="seconds")
+
+
+def result_record(
+    custom_id: str, model: str, message=None, *, batch: bool, error: str = ""
+) -> dict:
+    """A result as kept on disk: its status, parsed output, and token usage."""
+    record = {
+        "custom_id": custom_id,
+        "model": model,
+        "batch": batch,
+        "status": "errored",
+        "error": error,
+    }
+    if message is None:
+        return record
+    record["usage"] = message.usage.model_dump(mode="json")
+    if message.stop_reason in ("refusal", "max_tokens"):
+        record["error"] = message.stop_reason
+        return record
+    text = next((block.text for block in message.content if block.type == "text"), "")
+    try:
+        record["output"] = json.loads(text)
+        record["status"] = "succeeded"
+    except json.JSONDecodeError:
+        record["error"] = "unparseable output"
+    return record
+
+
+# MARK: Running
+
+
+def run_sync(client, cache: Cache, planned: list[PlannedRequest], effort: str) -> list[dict]:
+    """Runs requests concurrently at full price, recording each result as it arrives."""
+    cache.record_requests(planned, effort)
+    path = cache.results_file(f"sync-{planned[0].kind}-{int(time.time())}")
+
+    def run(request: PlannedRequest) -> dict:
+        try:
+            message = client.messages.create(**request.params(effort))
+            return result_record(request.custom_id, request.model, message, batch=False)
+        except anthropic.APIError as error:
+            return result_record(request.custom_id, request.model, batch=False, error=str(error))
+
+    records = []
+    with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
+        for record in pool.map(run, planned):
+            cache.append(path, [record])
+            records.append(record)
+            print(
+                f"  {record['custom_id']}: {record['status']} {record['error']}",
+                file=sys.stderr,
+            )
+    return records
+
+
+def submit_batch(client, cache: Cache, planned: list[PlannedRequest], effort: str) -> str:
+    cache.record_requests(planned, effort)
+    batch = client.messages.batches.create(
+        requests=[
+            Request(
+                custom_id=p.custom_id,
+                params=MessageCreateParamsNonStreaming(**p.params(effort)),
+            )
+            for p in planned
+        ]
+    )
+    cache.record_batch(batch.id, planned[0].kind, len(planned))
+    print(f"Submitted batch {batch.id} ({len(planned)} requests).", file=sys.stderr)
+    return batch.id
+
+
+def fetch(client, cache: Cache, *, wait: bool) -> None:
+    """Downloads the results of every ended batch not yet downloaded, polling when `wait`."""
+    pending = [b for b in cache.batches() if not cache.results_file(b["id"]).exists()]
+    while pending:
+        for record in pending[:]:
+            try:
+                if download(client, cache, record):
+                    pending.remove(record)
+            except anthropic.APIConnectionError as error:
+                print(f"  {record['id']}: {error}; retrying.", file=sys.stderr)
+        if pending and wait:
+            time.sleep(60)
+        elif pending:
+            return
+
+
+def download(client, cache: Cache, record: dict) -> bool:
+    """Reports a batch's progress and, once it has ended, saves its results. Whether it ended."""
+    batch = client.messages.batches.retrieve(record["id"])
+    counts = batch.request_counts
+    print(
+        f"  {batch.id}: {batch.processing_status} — {counts.succeeded} succeeded, "
+        f"{counts.errored} errored, {counts.processing} processing",
+        file=sys.stderr,
+    )
+    if batch.processing_status != "ended":
+        return False
+    model = WRITER_MODEL if record["kind"] == "words" else REVIEWER_MODEL
+    results = [
+        result_record(r.custom_id, model, r.result.message, batch=True)
+        if r.result.type == "succeeded"
+        else result_record(r.custom_id, model, batch=True, error=r.result.type)
+        for r in client.messages.batches.results(batch.id)
+    ]
+    partial = cache.results_file(f"{batch.id}.partial")
+    partial.unlink(missing_ok=True)
+    cache.append(partial, results)
+    partial.rename(cache.results_file(batch.id))
+    return True
+
+
+# MARK: Cost
+
+
+def cost(record: dict) -> float:
+    usage = record.get("usage")
+    if not usage:
+        return 0.0
+    input_price, output_price, read_price = PRICES[record["model"]]
+    dollars = (
+        usage.get("input_tokens", 0) * input_price
+        + (usage.get("cache_creation_input_tokens") or 0) * input_price * 1.25
+        + (usage.get("cache_read_input_tokens") or 0) * read_price
+        + usage.get("output_tokens", 0) * output_price
+    ) / 1_000_000
+    return dollars * (BATCH_DISCOUNT if record.get("batch") else 1)
+
+
+def report_cost(cache: Cache) -> None:
+    by_kind: Counter = Counter()
+    requests = cache.requests()
+    for record in cache.results():
+        kind = requests.get(record["custom_id"], {}).get("kind", "?")
+        by_kind[(kind, "batch" if record.get("batch") else "sync")] += cost(record)
+    for (kind, mode), dollars in sorted(by_kind.items()):
+        print(f"  {kind:7} {mode:5} ${dollars:8.2f}")
+    print(f"  total         ${sum(by_kind.values()):8.2f}")
+
+
+# MARK: Assembly
+
+
+@dataclass
+class Assembly:
+    kept: list[dict]
+    candidates: list[dict]
+    rejections: Counter
+    unreviewed: int
+
+
+def assemble(sources: Sources, cache: Cache) -> Assembly:
+    """Every sentence that may ship: the ones already shipped, then each generated sentence that
+    passes the checks, isn't a copy of a workbook or earlier sentence, and wasn't rejected in review."""
+    requests = cache.requests()
+    succeeded = cache.succeeded()
+    verdicts = {
+        verdict["id"]: verdict
+        for custom_id, record in succeeded.items()
+        if requests.get(custom_id, {}).get("kind") == "review"
+        for verdict in record["output"]["verdicts"]
+    }
+    near_copies = library.NearCopyIndex(e["hanzi"] for e in sources.workbook)
+    rejections: Counter = Counter()
+
+    kept = [existing_entry(e, sources) for e in sources.practice]
+    seen_text = {library.han_only(e["hanzi"]) for e in kept}
+    seen_words = {tuple(e["words"]) for e in kept}
+
+    candidates = []
+    for custom_id, record in sorted(succeeded.items()):
+        request = requests.get(custom_id, {})
+        if request.get("kind") != "words":
             continue
-        for level in range(lowest, 7):
-            per_level[level].update(simplified)
-    return per_level
+        for sentence in record["output"]["sentences"]:
+            entry, reason = generated_entry(sentence, request, sources, near_copies)
+            text = library.han_only(sentence["hanzi"])
+            if not reason and text in seen_text:
+                reason = "duplicate"
+            if not reason and tuple(entry["words"]) in seen_words:
+                reason = "same words as another sentence"
+            if reason:
+                rejections[reason] += 1
+                continue
+            seen_text.add(text)
+            seen_words.add(tuple(entry["words"]))
+            candidates.append(entry)
+
+    reviewed = [c for c in candidates if c["id"] in verdicts]
+    rejections["rejected in review"] = sum(1 for c in reviewed if not verdicts[c["id"]]["ok"])
+    kept += [c for c in candidates if verdicts.get(c["id"], {"ok": True})["ok"]]
+    return Assembly(kept, candidates, rejections, len(candidates) - len(reviewed))
 
 
-# MARK: Output
+def existing_entry(entry: dict, sources: Sources) -> dict:
+    """An already-shipped sentence, leveled, under its original id and keeping what it records —
+    segmented locally only if it came without a segmentation."""
+    if "words" in entry:
+        sentence_tokens = [library.Token(word) for word in entry["words"]]
+    else:
+        sentence_tokens = library.segment(entry["hanzi"], sources.lexicon, 7)
+    kept = {k: v for k, v in entry.items() if k in ("target", "topic", "grammar")}
+    return {
+        "id": entry["id"],
+        "hanzi": entry["hanzi"],
+        "numberedPinyin": entry["numberedPinyin"],
+        "translation": entry["translation"],
+        "words": [token.text for token in sentence_tokens],
+        "levels": library.levels(sentence_tokens, sources.syllabi),
+        **kept,
+    }
 
 
-def write_corpora(kept: dict) -> None:
-    write_plist(
-        LICENSED_OUT,
-        kept["licensed"],
-        name="HSK Standard Course Sentences",
-        description="Practice sentences extracted from the HSK Standard Course workbooks. "
-        "Copyrighted; bundled in Debug builds only.",
+def generated_entry(sentence: dict, request: dict, sources: Sources, near_copies):
+    """A generated sentence as a corpus entry, with the reason to drop it if there is one."""
+    band = request["band"]
+    found = library.problems(
+        hanzi=sentence["hanzi"],
+        words=sentence["words"],
+        pinyin=sentence["pinyin"],
+        band=band,
+        target=sentence["target"],
+        readings=sources.readings,
     )
+    if found:
+        return None, reason_category(found[0])
+    if near_copies.is_near_copy(sentence["hanzi"]):
+        return None, "near copy of a workbook sentence"
+    sentence_tokens = library.tokens(sentence["words"])
+    levels = library.levels(sentence_tokens, sources.syllabi)
+    if not levels:
+        return None, "outside every syllabus"
+    entry = {
+        "id": library.content_id(sentence["hanzi"].strip()),
+        "hanzi": sentence["hanzi"].strip(),
+        "numberedPinyin": library.numbered_pinyin(sentence["pinyin"]),
+        "translation": sentence["translation"].strip(),
+        "words": [token.text for token in sentence_tokens],
+        "levels": levels,
+        "target": sentence["target"],
+        "band": band,
+    }
+    for field in ("topic", "grammar"):
+        if value := sentence.get(field, "").strip():
+            entry[field] = value
+    return entry, None
+
+
+def reason_category(problem: str) -> str:
+    """Groups a problem message into a category for the report."""
+    for marker, category in (
+        (" isn't read ", "pinyin reading"),
+        ("doesn't fit", "pinyin shape"),
+        ("word counts", "pinyin shape"),
+        ("characters, outside", "length"),
+        ("target word", "missing target"),
+        ("Latin", "Latin letters or digits"),
+        ("segmentation", "segmentation"),
+    ):
+        if marker in problem:
+            return category
+    return problem
+
+
+def report(assembly: Assembly, verbose_samples: int = 0) -> None:
+    print(
+        f"Kept {len(assembly.kept)} sentences; {len(assembly.candidates)} generated passed the checks."
+    )
+    print(f"Awaiting review: {assembly.unreviewed}")
+    for reason, count in assembly.rejections.most_common():
+        print(f"  dropped {count:6} — {reason}")
+    for standard in library.STANDARDS:
+        counts = Counter(e["levels"].get(standard) for e in assembly.kept)
+        bands = "  ".join(f"{level}:{counts[level]}" for level in sorted(k for k in counts if k))
+        print(f"  {standard:7} {bands}  unleveled:{counts[None]}")
+    for entry in random.Random(0).sample(
+        assembly.candidates, min(verbose_samples, len(assembly.candidates))
+    ):
+        print(
+            f"\nband {entry['band']} [{entry['target']}] {entry['levels']}  {entry.get('grammar', '')}"
+        )
+        print(f"  {entry['hanzi']}\n  {entry['numberedPinyin']}\n  {entry['translation']}")
+
+
+def write(assembly: Assembly, sources: Sources) -> None:
+    shipped = [{k: v for k, v in e.items() if k != "band"} for e in assembly.kept]
     write_plist(
-        OPEN_OUT,
-        kept["open"],
+        PRACTICE_SENTENCES,
+        shipped,
         name="Zili Practice Sentences",
-        description="Original HSK-leveled practice sentences generated for Zili.",
+        description="Original practice sentences generated for Zili, leveled in each HSK standard.",
     )
+    if sources.workbook:
+        write_plist(
+            HSK_SENTENCES,
+            [existing_entry(e, sources) for e in sources.workbook],
+            name="HSK Standard Course Sentences",
+            description="Practice sentences extracted from the HSK Standard Course workbooks. "
+            "Copyrighted; bundled in Debug builds only.",
+        )
 
 
-def write_plist(
-    path: Path, entries: list[dict], *, name: str, description: str
+def write_plist(path: Path, entries_: list[dict], *, name: str, description: str) -> None:
+    """Writes the corpus in the order given, which the app lists each level in — so the sentences
+    already shipped lead their levels, ahead of the generated ones."""
+    document = {"meta": {"name": name, "description": description}, "entries": entries_}
+    path.write_bytes(plistlib.dumps(document, fmt=plistlib.FMT_BINARY))
+    print(f"Wrote {len(entries_)} entries → {path.relative_to(REPO)}", file=sys.stderr)
+
+
+# MARK: Commands
+
+
+def words_command(args) -> int:
+    sources = Sources.load()
+    cache = Cache()
+    per_word = SENTENCES_PER_WORD | dict(args.per_word or {})
+    planned = word_requests(sources, per_word)
+    done = cache.succeeded()
+    remaining = [p for p in planned if p.custom_id not in done]
+    print(
+        f"{len(planned)} requests planned; {len(remaining)} not yet generated.",
+        file=sys.stderr,
+    )
+    if args.action == "pilot":
+        sample = pilot_sample(remaining, args.requests, args.seed)
+        records = run_sync(anthropic.Anthropic(), cache, sample, args.effort)
+        project(records, sample, remaining)
+        return 0
+    return submit(args, cache, remaining)
+
+
+def review_command(args) -> int:
+    sources = Sources.load()
+    cache = Cache()
+    done = cache.succeeded()
+    reviewed = {
+        i
+        for r in cache.requests().values()
+        if r["kind"] == "review" and r["custom_id"] in done
+        for i in r["ids"]
+    }
+    candidates = [c for c in assemble(sources, cache).candidates if c["id"] not in reviewed]
+    random.Random(1).shuffle(candidates)
+    planned = review_requests(candidates)
+    print(
+        f"{len(candidates)} sentences to review in {len(planned)} requests.",
+        file=sys.stderr,
+    )
+    if args.action == "pilot":
+        sample = planned[: args.requests]
+        records = run_sync(anthropic.Anthropic(), cache, sample, args.effort)
+        project(records, sample, planned)
+        return 0
+    return submit(args, cache, planned)
+
+
+def submit(args, cache: Cache, planned: list[PlannedRequest]) -> int:
+    if not planned:
+        print("Nothing to submit.", file=sys.stderr)
+        return 0
+    if not args.yes:
+        print("Re-run with --yes to submit.", file=sys.stderr)
+        return 1
+    client = anthropic.Anthropic()
+    submit_batch(client, cache, planned, args.effort)
+    fetch(client, cache, wait=True)
+    return 0
+
+
+def pilot_sample(planned: list[PlannedRequest], count: int, seed: int) -> list[PlannedRequest]:
+    """`count` requests spread evenly over the bands."""
+    by_band: dict[int, list[PlannedRequest]] = defaultdict(list)
+    for request in planned:
+        by_band[request.metadata.get("band", 0)].append(request)
+    generator = random.Random(seed)
+    per_band = max(1, count // len(by_band))
+    return [
+        r
+        for band in sorted(by_band)
+        for r in generator.sample(by_band[band], min(per_band, len(by_band[band])))
+    ]
+
+
+def project(
+    records: list[dict], sample: list[PlannedRequest], remaining: list[PlannedRequest]
 ) -> None:
-    ordered = sorted(entries, key=lambda e: (e["level"], e["id"]))
-    document = {"meta": {"name": name, "description": description}, "entries": ordered}
-    path.write_bytes(plistlib.dumps(document, fmt=plistlib.FMT_XML))
-    print(f"Wrote {len(ordered)} entries → {path.relative_to(REPO)}", file=sys.stderr)
+    """Prices the pilot and what running every remaining request as a batch would cost."""
+    spent = sum(map(cost, records))
+    by_band = defaultdict(list)
+    bands = {p.custom_id: p.metadata.get("band", 0) for p in sample}
+    for record in records:
+        by_band[bands[record["custom_id"]]].append(cost(record) * BATCH_DISCOUNT)
+    remaining_by_band = Counter(p.metadata.get("band", 0) for p in remaining)
+    projected = sum(
+        remaining_by_band[band] * (sum(costs) / len(costs)) for band, costs in by_band.items()
+    )
+    failures = sum(1 for r in records if r["status"] != "succeeded")
+    print(f"\nPilot: {len(records)} requests, {failures} failed, ${spent:.2f} spent.")
+    print(f"Projected batch cost of all {len(remaining)} remaining requests: ${projected:.2f}")
 
 
-def preview(kept: dict) -> None:
-    for entry in kept["open"]:
-        print(f"HSK{entry['level']}  {entry['hanzi']}")
-        print(f"        {entry['numberedPinyin']}")
-        print(f"        {entry['translation']}\n")
+def assemble_command(args) -> int:
+    sources = Sources.load()
+    assembly = assemble(sources, Cache())
+    report(assembly, args.samples)
+    if args.write:
+        write(assembly, sources)
+    return 0
 
 
-# MARK: Helpers
+def fetch_command(args) -> int:
+    fetch(anthropic.Anthropic(), Cache(), wait=args.wait)
+    return 0
 
 
-def key_of(sentence: hsk_sentences.Sentence) -> str:
-    """The batch custom_id for a source sentence: stable, and ≤64 chars as the API requires."""
-    return content_id(sentence.hanzi)
-
-
-def even_sample(sentences, limit):
-    """Up to `limit` sentences spread evenly across the levels present, for a representative pilot."""
-    from collections import defaultdict
-
-    by_level: dict[int, list] = defaultdict(list)
-    for sentence in sentences:
-        by_level[sentence.level].append(sentence)
-    per_level = max(1, limit // len(by_level))
-    sample = [s for level in sorted(by_level) for s in by_level[level][:per_level]]
-    return sample[:limit]
+def cost_command(args) -> int:
+    report_cost(Cache())
+    return 0
 
 
 def parse_arguments(argv):
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "--model", default=DEFAULT_MODEL, help="Model id (default: %(default)s)."
+    parser = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
-    parser.add_argument(
-        "--batch",
-        action="store_true",
-        help="Generate the full corpus via the Batches API (half price, async).",
-    )
-    parser.add_argument(
-        "--limit",
-        type=int,
-        help="Generate only this many sentences, synchronously, and print them.",
-    )
-    parser.add_argument(
-        "--levels",
-        type=int,
-        nargs="+",
-        choices=range(1, 7),
-        help="Restrict to these HSK levels.",
-    )
-    parser.add_argument(
-        "--write",
-        action="store_true",
-        help="Write the plists even for a --limit pilot (default: just print).",
-    )
-    args = parser.parse_args(argv)
-    if not args.batch and not args.limit:
-        parser.error("pass --limit N for a pilot or --batch for the full run.")
-    if not os.environ.get("ANTHROPIC_API_KEY"):
-        parser.error(
-            "ANTHROPIC_API_KEY is not set (source it from 1Password, e.g. `op run`)."
+    commands = parser.add_subparsers(required=True)
+
+    for name, run, default_effort in (
+        ("words", words_command, "low"),
+        ("review", review_command, "low"),
+    ):
+        command = commands.add_parser(name)
+        command.set_defaults(run=run)
+        command.add_argument("action", choices=("pilot", "submit"))
+        command.add_argument(
+            "--requests",
+            type=int,
+            default=35,
+            help="Pilot size (default: %(default)s).",
         )
-    return args
+        command.add_argument("--seed", type=int, default=0, help="Picks the pilot sample.")
+        command.add_argument("--effort", default=default_effort, choices=("low", "medium", "high"))
+        command.add_argument("--yes", action="store_true", help="Actually submit the batch.")
+        if name == "words":
+            command.add_argument(
+                "--per-word",
+                type=lambda text: [tuple(map(int, pair.split("="))) for pair in text.split(",")],
+                help="Override sentences per word by band, e.g. 1=10,7=2.",
+            )
+
+    command = commands.add_parser("fetch")
+    command.set_defaults(run=fetch_command)
+    command.add_argument("--wait", action="store_true")
+
+    command = commands.add_parser("assemble")
+    command.set_defaults(run=assemble_command)
+    command.add_argument("--write", action="store_true")
+    command.add_argument("--samples", type=int, default=0, help="Print this many kept sentences.")
+
+    commands.add_parser("cost").set_defaults(run=cost_command)
+
+    return parser.parse_args(argv)
 
 
 if __name__ == "__main__":

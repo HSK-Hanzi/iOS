@@ -21,10 +21,13 @@ Each source plist uses a self-describing `{ meta, entries }` schema (or a bare e
   pyenv virtualenv 3.14.6 zili-tools
   ```
 
-- **No third-party packages.** `generate_db.py` and its `pinyin_keys` helper use only the standard
-  library (`argparse`, `plistlib`, `sqlite3`, `pathlib`, `re`, `unicodedata`). The SQLite bundled
-  with Python must include the **FTS5** extension — standard on macOS and in the pyenv builds — for
-  the dictionary's English full-text index.
+- **No third-party packages for the build.** `generate_db.py` and its `pinyin_keys` helper use only
+  the standard library (`argparse`, `plistlib`, `sqlite3`, `pathlib`, `re`, `unicodedata`). The
+  SQLite bundled with Python must include the **FTS5** extension — standard on macOS and in the
+  pyenv builds — for the dictionary's English full-text index.
+- **`anthropic` for sentence generation only.** `generate_sentences.py` calls the Claude API;
+  install the SDK (and `pytest` for the tests) into the virtualenv with
+  `pip install anthropic pytest`.
 
 ## `generate_db.py`
 
@@ -109,16 +112,35 @@ generate_db.py characters \
   Characters.sqlite
 ```
 
+### `sentences`
+
+Builds a sentence corpus's database from a sentence plist, one row per sentence with its level in
+each HSK standard (null where that standard's syllabus doesn't cover the sentence). Rows keep the
+plist's order.
+
+```text
+generate_db.py sentences <source.plist> <dest.sqlite>
+```
+
+```sh
+generate_db.py sentences ../Data/Open/PracticeSentences.plist PracticeSentences.sqlite
+```
+
 ## Supporting scripts
 
 - **`pinyin_keys.py`** — derives the three per-reading pinyin search keys (toneless, numbered,
   tone-marked). Imported by `generate_db.py`; its alphabet mirrors `PinyinSearchKey` in the app.
-- **`generate_sentences.py`** — generates the bundled sentence corpora (`PracticeSentences.plist`,
-  `HSKSentences.plist`) from the HSK workbook dump using the Claude API. See the module docstring
-  for usage; this step feeds the pipeline rather than being part of the SQLite build.
-- **`hsk_sentences.py`** — cleans the raw HSK sentence dump consumed by `generate_sentences.py`.
+- **`generate_sentences.py`** — generates the practice-sentence library (`PracticeSentences.plist`)
+  with the Claude API: example sentences for every HSK headword, checked, reviewed by a second
+  model, and leveled in all three standards, then merged with the sentences already shipped. It
+  also levels the workbook corpus (`HSKSentences.plist`). See the module docstring for the stages;
+  this step feeds the pipeline rather than being part of the SQLite build. Requests and results
+  are kept in the gitignored `Tools/.cache/`, so a run resumes rather than paying twice.
+- **`sentence_library.py`** — the checks and leveling `generate_sentences.py` applies: pinyin
+  against each character's readings and CC-CEDICT's word readings, a sentence's level in each
+  standard from its hardest word, and near-copy detection.
 - **`hsk_syllabus_readings.py`** — records in `HSKVocabulary.plist` the reading each HSK syllabus
   gives a word, from the published HSK 2.0 and 3.0 lists, so the app can pick that reading out of
   the word's CC-CEDICT forms. See the module docstring for the sources and usage.
-- **`test_pinyin_keys.py`, `test_hsk_sentences.py`, `test_hsk_syllabus_readings.py`** — unit tests
-  for the helpers.
+- **`test_pinyin_keys.py`, `test_sentence_library.py`, `test_hsk_syllabus_readings.py`** — unit
+  tests for the helpers.

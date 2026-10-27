@@ -8,26 +8,21 @@ import Testing
 @testable import Zili
 
 struct `Sentence quiz deck building` {
-  private static func sentence(_ id: String, level: Int) -> PracticeSentence {
-    PracticeSentence(
-      id: id,
-      level: level,
-      hanzi: "句\(id)",
-      numberedPinyin: "ju4",
-      translation: "sentence \(id)"
-    )
+  private static func sentence(_ id: String, level: Int) -> LeveledSentence {
+    LeveledSentence(id: id, levels: [.newest: level])
   }
 
-  private static func library() -> SentenceLibrary {
-    let corpus = SentenceCorpus(
-      source: .practice,
-      sentences: [
-        sentence("a", level: 2),
-        sentence("b", level: 1),
-        sentence("c", level: 3),
-        sentence("d", level: 1)
-      ]
-    )
+  private static func levels(_ bands: Int...) -> Set<HSKLevel> {
+    Set(bands.map { HSKLevel(standard: .newest, band: $0) })
+  }
+
+  private static func library() throws -> SentenceLibrary {
+    let corpus = try SentenceCorpus.fixture([
+      sentence("a", level: 2),
+      sentence("b", level: 1),
+      sentence("c", level: 3),
+      sentence("d", level: 1)
+    ])
     return SentenceLibrary(corpora: [corpus])
   }
 
@@ -35,19 +30,20 @@ struct `Sentence quiz deck building` {
   func `a levels source draws the chosen bands in ascending level order, whatever order asked`()
     throws
   {
-    let library = Self.library()
+    let library = try Self.library()
     let corpusID = try #require(library.defaultCorpus).id
-    let source = SentenceQuizSource.levels(corpusID: corpusID, levels: [3, 1])
+    let source = SentenceQuizSource.levels(corpusID: corpusID, levels: Self.levels(3, 1))
     let ids =
       SentenceQuizDeckBuilder
       .sentences(for: source, in: library, favoriteIDs: []).map(\.id)
     #expect(ids == ["b", "d", "c"])
+    #expect(SentenceQuizDeckBuilder.count(for: source, in: library, favoriteIDs: []) == 3)
   }
 
   @Test
-  func `an unknown corpus id falls back to the default corpus`() {
-    let library = Self.library()
-    let source = SentenceQuizSource.levels(corpusID: "not-a-corpus", levels: [1])
+  func `an unknown corpus id falls back to the default corpus`() throws {
+    let library = try Self.library()
+    let source = SentenceQuizSource.levels(corpusID: "not-a-corpus", levels: Self.levels(1))
     let ids =
       SentenceQuizDeckBuilder
       .sentences(for: source, in: library, favoriteIDs: []).map(\.id)
@@ -55,8 +51,9 @@ struct `Sentence quiz deck building` {
   }
 
   @Test
-  func `Favorites resolves the favorite ids to sentences, skipping ids not in the library`() {
-    let library = Self.library()
+  func `Favorites resolves the favorite ids to sentences, skipping ids not in the library`() throws
+  {
+    let library = try Self.library()
     let deck = SentenceQuizDeckBuilder.sentences(
       for: .favorites,
       in: library,
@@ -66,8 +63,8 @@ struct `Sentence quiz deck building` {
   }
 
   @Test
-  func `Missed resolves its snapshot of ids, skipping ids not in the library`() {
-    let library = Self.library()
+  func `Missed resolves its snapshot of ids, skipping ids not in the library`() throws {
+    let library = try Self.library()
     let deck = SentenceQuizDeckBuilder.sentences(
       for: .missed(["d", "gone", "a"]),
       in: library,
@@ -77,8 +74,8 @@ struct `Sentence quiz deck building` {
   }
 
   @Test
-  func `Most Recent draws the newest favorites, Oldest the ones that have waited longest`() {
-    let library = Self.library()
+  func `Most Recent draws the newest favorites, Oldest the ones that have waited longest`() throws {
+    let library = try Self.library()
     let favoriteIDs = ["d", "c", "b", "a"]
 
     func deck(_ sort: QuizDeckSort) -> Set<String> {
@@ -100,9 +97,9 @@ struct `Sentence quiz deck building` {
   func `build caps the pool at limit and draws only from it, returning all when limit is nil`(
     limit: Int?
   ) throws {
-    let library = Self.library()
+    let library = try Self.library()
     let corpusID = try #require(library.defaultCorpus).id
-    let source = SentenceQuizSource.levels(corpusID: corpusID, levels: [1, 2, 3])
+    let source = SentenceQuizSource.levels(corpusID: corpusID, levels: Self.levels(1, 2, 3))
     let pool = Set(
       SentenceQuizDeckBuilder.sentences(for: source, in: library, favoriteIDs: []).map(\.id)
     )

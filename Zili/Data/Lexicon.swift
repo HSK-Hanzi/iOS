@@ -72,20 +72,18 @@ struct Lexicon: Sendable {
     from bundle: Bundle = .main
   ) async throws -> Self {
     async let hsk = HSKVocabulary.load(from: bundle)
-    async let sentences = SentenceLibrary.load(from: bundle)
     let dictionaries = try await loadDictionaries(sources, from: bundle)
       .sorted { presentationRank(of: $0.metadata) < presentationRank(of: $1.metadata) }
 
     // Opening the SQLite-backed stores is cheap (no data is read until queried), so they load
-    // inline while the HSK plist parse, the sentence corpora, and the dictionary meta reads run
-    // concurrently.
+    // inline while the HSK plist parse and the dictionary meta reads run concurrently.
     return Self(
       dictionaries: dictionaries,
       hsk: try await hsk,
       frequency: try FrequencyList.load(.subtitleWords, from: bundle),
       strokes: try StrokeOrderLibrary.load(from: bundle),
       characters: try CharacterLibrary.load(from: bundle),
-      sentences: await sentences
+      sentences: SentenceLibrary.load(from: bundle)
     )
   }
 
