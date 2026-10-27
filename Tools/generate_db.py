@@ -8,7 +8,8 @@ nothing large is parsed into memory at runtime. One subcommand per store:
     generate_db.py frequency  <source.plist> <dest.sqlite>
     generate_db.py strokes    <source.plist> <dest.sqlite>
     generate_db.py characters <readings.plist> <etymology.plist> <charfreq.plist> <dest.sqlite>
-    generate_db.py sentences  <source.plist> <dest.sqlite>
+                              [--radicals <radicals.plist>]
+    generate_db.py sentences  <source.plist> <dest.sqlite> [--grammar <grammar.plist>]
 
 Each row keeps its record as a binary-plist blob (or plain columns) so the app decodes it through
 the same parsers the source data uses, alongside indexed columns for lookup and search. Stroke
@@ -265,21 +266,34 @@ def build_strokes(source, destination):
 # MARK: Characters
 
 
-def build_characters(readings_plist, etymology_plist, charfreq_plist, destination):
+def build_characters(readings_plist, etymology_plist, charfreq_plist, destination, radicals_plist):
     readings, _ = entries_of(load_plist(readings_plist))
     etymology, _ = entries_of(load_plist(etymology_plist))
     charfreq, _ = entries_of(load_plist(charfreq_plist))
-    characters = {c for source in (readings, etymology, charfreq) for c in source if len(c) == 1}
+    radical_document = load_plist(radicals_plist) if radicals_plist else {}
+    radicals = radical_document.get("entries", {})
+    characters = {
+        c for source in (readings, etymology, charfreq, radicals) for c in source if len(c) == 1
+    }
 
     connection = fresh_database(destination)
-    connection.execute(
+    connection.executescript(
         """
         CREATE TABLE character (
             character TEXT PRIMARY KEY,
             readings BLOB,
             etymology TEXT,
-            frequency_rank INTEGER
-        )
+            frequency_rank INTEGER,
+            radical TEXT,
+            residual_strokes INTEGER
+        );
+        CREATE INDEX character_radical ON character(radical, residual_strokes);
+        CREATE TABLE radical (
+            number TEXT PRIMARY KEY,
+            glyph TEXT NOT NULL,
+            strokes INTEGER NOT NULL,
+            ordinal INTEGER NOT NULL
+        );
         """
     )
     rows = []
@@ -287,26 +301,40 @@ def build_characters(readings_plist, etymology_plist, charfreq_plist, destinatio
         reading = readings.get(character)
         etym = etymology.get(character)
         rank = charfreq.get(character)
+        radical = radicals.get(character, {})
         rows.append(
             (
                 character,
                 blob(reading) if isinstance(reading, dict) else None,
                 etym if isinstance(etym, str) else None,
                 int(rank) if isinstance(rank, int) else None,
+                radical.get("radical"),
+                radical.get("residualStrokes"),
             )
         )
     connection.executemany(
-        "INSERT INTO character(character, readings, etymology, frequency_rank) VALUES (?, ?, ?, ?)",
+        "INSERT INTO character(character, readings, etymology, frequency_rank, radical, "
+        "residual_strokes) VALUES (?, ?, ?, ?, ?, ?)",
         rows,
+    )
+    connection.executemany(
+        "INSERT INTO radical(number, glyph, strokes, ordinal) VALUES (?, ?, ?, ?)",
+        [
+            (radical["number"], radical["glyph"], radical["strokes"], ordinal)
+            for ordinal, radical in enumerate(radical_document.get("radicals", []))
+        ],
     )
     finish(connection)
     return len(rows)
 
 
-def build_sentences(source, destination):
-    """One row per practice sentence, with its level in each HSK standard (null where that standard's
-    syllabus doesn't cover it). Rows keep the source's order, which the app lists them in."""
+def build_sentences(source, destination, grammar_plist):
+    """One row per practice sentence, with its level in each HSK standard (null where that
+    standard's syllabus doesn't cover it) and the word it was written to exemplify, if any. Rows
+    keep the source's order, which the app lists them in. With a grammar-point list, also the
+    points in level order and, for each, the sentences that use it."""
     sentences, _ = entries_of(load_plist(source))
+    points, _ = entries_of(load_plist(grammar_plist)) if grammar_plist else ([], {})
     connection = fresh_database(destination)
     connection.executescript(
         """
@@ -317,17 +345,40 @@ def build_sentences(source, destination):
             translation TEXT NOT NULL,
             level_old INTEGER,
             level_new INTEGER,
-            level_newest INTEGER
+            level_newest INTEGER,
+            target TEXT
         );
         CREATE INDEX sentence_level_old ON sentence(level_old);
         CREATE INDEX sentence_level_new ON sentence(level_new);
         CREATE INDEX sentence_level_newest ON sentence(level_newest);
+        CREATE INDEX sentence_target ON sentence(target);
+        CREATE TABLE grammar_point (
+            id TEXT PRIMARY KEY,
+            level INTEGER NOT NULL,
+            ordinal INTEGER NOT NULL,
+            name TEXT NOT NULL,
+            pattern TEXT NOT NULL,
+            explanation TEXT NOT NULL
+        );
+        CREATE TABLE sentence_grammar (
+            point_id TEXT NOT NULL REFERENCES grammar_point(id),
+            sentence_id TEXT NOT NULL REFERENCES sentence(id)
+        );
+        CREATE INDEX sentence_grammar_point ON sentence_grammar(point_id);
         """
     )
+    connection.executemany(
+        "INSERT INTO grammar_point VALUES (?, ?, ?, ?, ?, ?)",
+        [
+            (p["id"], p["level"], ordinal, p["name"], p["pattern"], p["explanation"])
+            for ordinal, p in enumerate(points)
+        ],
+    )
+    known_points = {p["id"] for p in points}
     for entry in sentences:
         levels = entry.get("levels", {})
         connection.execute(
-            "INSERT INTO sentence VALUES (?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO sentence VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
             (
                 entry["id"],
                 entry["hanzi"],
@@ -336,7 +387,16 @@ def build_sentences(source, destination):
                 levels.get("old"),
                 levels.get("new"),
                 levels.get("newest"),
+                entry.get("target"),
             ),
+        )
+        connection.executemany(
+            "INSERT INTO sentence_grammar(point_id, sentence_id) VALUES (?, ?)",
+            [
+                (point, entry["id"])
+                for point in dict.fromkeys(entry.get("grammarPoints", []))
+                if point in known_points
+            ],
         )
     finish(connection)
     return len(sentences)
@@ -359,12 +419,15 @@ def main(argv):
         one = kinds.add_parser(name)
         one.add_argument("source")
         one.add_argument("destination")
+        if name == "sentences":
+            one.add_argument("--grammar", default=None)
 
     characters = kinds.add_parser("characters")
     characters.add_argument("readings")
     characters.add_argument("etymology")
     characters.add_argument("charfreq")
     characters.add_argument("destination")
+    characters.add_argument("--radicals", default=None)
 
     args = parser.parse_args(argv[1:])
     if args.kind == "dictionary":
@@ -380,9 +443,11 @@ def main(argv):
     elif args.kind == "strokes":
         count = build_strokes(args.source, args.destination)
     elif args.kind == "sentences":
-        count = build_sentences(args.source, args.destination)
+        count = build_sentences(args.source, args.destination, args.grammar)
     else:
-        count = build_characters(args.readings, args.etymology, args.charfreq, args.destination)
+        count = build_characters(
+            args.readings, args.etymology, args.charfreq, args.destination, args.radicals
+        )
 
     sys.stderr.write(f"note: wrote {count} rows to {args.destination}\n")
     return 0

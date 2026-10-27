@@ -121,7 +121,9 @@ struct SentenceCorpus: Identifiable, Sendable {
         )
       }) ?? []
     return Dictionary(
-      uniqueKeysWithValues: rows.map { (HSKLevel(standard: standard, band: $0["band"]), $0["count"]) }
+      uniqueKeysWithValues: rows.map {
+        (HSKLevel(standard: standard, band: $0["band"]), $0["count"])
+      }
     )
   }
 
@@ -147,6 +149,22 @@ struct SentenceCorpus: Identifiable, Sendable {
     return rows.map(Self.sentence)
   }
 
+  /// The sentences written to exemplify `word`, easiest first by their HSK 3.0 (2026) level.
+  nonisolated func examples(for word: String) -> [PracticeSentence] {
+    let rows =
+      (try? database.read { db in
+        try Row.fetchAll(
+          db,
+          sql: """
+            SELECT id, hanzi, numbered_pinyin, translation FROM sentence WHERE target = ?
+            ORDER BY level_newest IS NULL, level_newest, rowid
+            """,
+          arguments: [word]
+        )
+      }) ?? []
+    return rows.map(Self.sentence)
+  }
+
   /// The sentence with `id`, leveled or not, or `nil` when the corpus has none.
   nonisolated func sentence(id: String) -> PracticeSentence? {
     let row = try? database.read { db in
@@ -157,6 +175,79 @@ struct SentenceCorpus: Identifiable, Sendable {
       )
     }
     return row.flatMap(\.self).map(Self.sentence)
+  }
+}
+
+/// A grammar point of the HSK 3.0 outline, with how many of a corpus's sentences use it.
+struct GrammarPoint: Identifiable, Hashable, Sendable {
+  let id: String
+  /// The HSK 3.0 level that introduces the point, 7 standing for levels 7–9.
+  let level: Int
+  let name: String
+  let pattern: String
+  let explanation: String
+  let sentenceCount: Int
+}
+
+extension SentenceCorpus {
+  /// How many grammar points each HSK 3.0 level introduces, for the levels that introduce any.
+  nonisolated func grammarPointCounts() -> [Int: Int] {
+    let rows =
+      (try? database.read { db in
+        try Row.fetchAll(
+          db,
+          sql: "SELECT level, COUNT(*) AS count FROM grammar_point GROUP BY level"
+        )
+      }) ?? []
+    return Dictionary(uniqueKeysWithValues: rows.map { ($0["level"], $0["count"]) })
+  }
+
+  /// The grammar points `level` introduces, in the outline's order, each with how many sentences
+  /// use it.
+  nonisolated func grammarPoints(at level: Int) -> [GrammarPoint] {
+    let rows =
+      (try? database.read { db in
+        try Row.fetchAll(
+          db,
+          sql: """
+            SELECT g.id, g.level, g.name, g.pattern, g.explanation,
+                   COUNT(sg.sentence_id) AS sentence_count
+            FROM grammar_point g LEFT JOIN sentence_grammar sg ON sg.point_id = g.id
+            WHERE g.level = ? GROUP BY g.id ORDER BY g.ordinal
+            """,
+          arguments: [level]
+        )
+      }) ?? []
+    return rows.map { row in
+      GrammarPoint(
+        id: row["id"],
+        level: row["level"],
+        name: row["name"],
+        pattern: row["pattern"],
+        explanation: row["explanation"],
+        sentenceCount: row["sentence_count"]
+      )
+    }
+  }
+
+  /// Up to `limit` of the sentences using `point`, easiest first: lowest HSK 3.0 (2026) level,
+  /// then shortest.
+  nonisolated func examples(of point: GrammarPoint, limit: Int) -> [PracticeSentence] {
+    let rows =
+      (try? database.read { db in
+        try Row.fetchAll(
+          db,
+          sql: """
+            SELECT s.id, s.hanzi, s.numbered_pinyin, s.translation
+            FROM sentence_grammar sg JOIN sentence s ON s.id = sg.sentence_id
+            WHERE sg.point_id = ?
+            ORDER BY s.level_newest IS NULL, s.level_newest, length(s.hanzi), s.rowid
+            LIMIT ?
+            """,
+          arguments: [point.id, limit]
+        )
+      }) ?? []
+    return rows.map(Self.sentence)
   }
 }
 
@@ -175,7 +266,11 @@ struct SentenceLibrary: Sendable {
   /// Opens every bundled corpus, skipping any that won't open. Cheap: no sentence is read until
   /// queried.
   static func load(from bundle: Bundle = .main) -> Self {
-    Self(corpora: SentenceCorpusSource.allCases.compactMap { try? SentenceCorpus.load($0, from: bundle) })
+    Self(
+      corpora: SentenceCorpusSource.allCases.compactMap {
+        try? SentenceCorpus.load($0, from: bundle)
+      }
+    )
   }
 
   /// The loaded corpus with `id`, or `nil` when it didn't ship — how a drilled level resolves

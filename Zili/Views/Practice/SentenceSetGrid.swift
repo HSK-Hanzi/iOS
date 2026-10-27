@@ -5,19 +5,16 @@
 
 import SwiftUI
 
-/// A sentence set a learner can practice: an HSK level within a chosen corpus, their favorited
-/// sentences, or the sentences they've missed in a listening quiz (favorites and misses both span
-/// every corpus). The corpus travels with the level so a drilled set knows which corpus to draw from.
+/// A sentence set a learner keeps: their favorited sentences, or the ones they've missed in a
+/// listening quiz. Both span every corpus.
 enum SentenceSetSelection: Hashable {
-  case level(corpusID: String, level: HSKLevel)
   case favorites
   case missed
 }
 
-/// A grid of the sentence sets a learner can practice — their favorites, then the bands of one HSK
-/// standard in the chosen corpus, mirroring ``CharacterSetGrid`` so the two browsers read as the
-/// same deck of cards. A corpus picker appears only when more than one corpus shipped (Debug, where
-/// the HSK workbook corpus joins the novel one); in Release, with a single corpus, it stays hidden.
+/// The sentence sets a learner keeps — their favorites and the sentences they've missed — on the
+/// same study-card tiles ``CharacterSetGrid`` uses, so the two browsers read as one deck of cards.
+/// Sentences themselves are found through the words they exemplify, on each word's entry.
 struct SentenceSetGrid: View {
   let library: SentenceLibrary
   /// The screen's title, kept concise so the back button carries where the set was reached from.
@@ -29,13 +26,6 @@ struct SentenceSetGrid: View {
 
   @Environment(SentenceMissStore.self)
   private var sentenceMisses
-
-  @State private var corpusID: String
-  @State private var standard = HSKLevel.Standard.newest
-
-  private var corpus: SentenceCorpus? {
-    library.corpus(id: corpusID) ?? library.defaultCorpus
-  }
 
   var body: some View {
     ScrollView {
@@ -52,52 +42,10 @@ struct SentenceSetGrid: View {
         ) {
           selection = .missed
         }
-        if library.corpora.count > 1 {
-          Picker("Corpus", selection: $corpusID) {
-            ForEach(library.corpora) { corpus in
-              Text(corpus.title).tag(corpus.id)
-            }
-          }
-          .pickerStyle(.tabs)
-          .labelsHidden()
-        }
-        Picker("Standard", selection: $standard) {
-          ForEach(HSKLevel.Standard.allCases, id: \.self) { standard in
-            Text(standard.displayName).tag(standard)
-          }
-        }
-        .pickerStyle(.tabs)
-        .labelsHidden()
-        grid
       }
       .padding()
     }
     .navigationTitle(title)
-    .onChange(of: corpusID) { selection = nil }
-    .onChange(of: standard) { selection = nil }
-  }
-
-  private var grid: some View {
-    let counts = corpus?.sentenceCounts(in: standard) ?? [:]
-    return LazyVGrid(columns: [GridItem(.adaptive(minimum: 104), spacing: 12)], spacing: 12) {
-      ForEach(counts.keys.sorted(), id: \.self) { level in
-        let selectionForLevel = SentenceSetSelection.level(
-          corpusID: corpus?.id ?? corpusID,
-          level: level
-        )
-        Button {
-          selection = selectionForLevel
-        } label: {
-          LevelCell(
-            band: level.band,
-            sentenceCount: counts[level] ?? 0,
-            isSelected: selection == selectionForLevel
-          )
-        }
-        .buttonStyle(.plain)
-        .accessibilityIdentifier(AccessibilityID.sentenceSetLevel(level.band))
-      }
-    }
   }
 
   init(
@@ -108,12 +56,11 @@ struct SentenceSetGrid: View {
     self.library = library
     self.title = title
     _selection = selection
-    _corpusID = State(initialValue: library.defaultCorpus?.id ?? "")
   }
 }
 
-/// Resolves a ``SentenceSetSelection`` into the list of its sentences — a corpus band collated
-/// in source order, or the learner's favorites in starred order with a Clear All button. Shared
+/// Resolves a ``SentenceSetSelection`` into the list of its sentences — the learner's favorites in
+/// starred order with a Clear All button, or the sentences they've missed. Shared
 /// by the iOS interstitial's drill-down and the macOS split view's detail column so a set opens
 /// the same way on both.
 struct SentenceSetContent: View {
@@ -128,11 +75,6 @@ struct SentenceSetContent: View {
 
   var body: some View {
     switch selection {
-      case let .level(corpusID, level):
-        SentenceListView(
-          sentences: library.corpus(id: corpusID)?.sentences(in: level) ?? [],
-          title: level.levelName
-        )
       case .favorites:
         SentenceListView(
           sentences: favorites.favoritedIDs.compactMap { library.sentence(id: $0) },
@@ -151,8 +93,7 @@ struct SentenceSetContent: View {
   }
 }
 
-/// The favorites set as a study-card tile: a star above the count of starred sentences, matching
-/// the level cells it sits above so the whole grid reads as one deck.
+/// The favorites set as a study-card tile: a star above the count of starred sentences.
 private struct FavoritesCell: View {
   let sentenceCount: Int
   let isSelected: Bool
@@ -207,41 +148,11 @@ private struct MissedCell: View {
   }
 }
 
-/// One band in the grid: its level number above a sentence count, on the shared ``StudyCardTile``
-/// so it matches the character grid it sits beside.
-private struct LevelCell: View {
-  let band: Int
-  let sentenceCount: Int
-  var isSelected = false
-
-  var body: some View {
-    StudyCardTile(palette: HSKPalette.palette(forBand: band)) {
-      VStack(spacing: 4) {
-        Text("Level \(band, format: .number)")
-          .font(.title3.weight(.semibold))
-          .foregroundStyle(.white)
-          .lineLimit(1)
-          .minimumScaleFactor(0.7)
-        Text("\(sentenceCount) sentences")
-          .font(.caption)
-          .foregroundStyle(.white.opacity(0.85))
-          .lineLimit(1)
-          .minimumScaleFactor(0.7)
-      }
-    }
-    .selectionRing(isSelected)
-    .accessibilityElement(children: .ignore)
-    .accessibilityLabel(Text("HSK level \(band, format: .number)"))
-    .accessibilityValue(Text("\(sentenceCount) sentences"))
-    .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
-  }
-}
-
 #Preview("Sentence sets · from bundle") {
   SentenceSetGridPreview()
 }
 
-/// Loads the real ``SentenceLibrary`` so the grid reflects the shipped corpora and their counts.
+/// Loads the real ``SentenceLibrary`` so the grid's sets resolve against the shipped corpora.
 private struct SentenceSetGridPreview: View {
   @State private var library: SentenceLibrary?
   @State private var selection: SentenceSetSelection?

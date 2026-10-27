@@ -25,7 +25,8 @@ Each source plist uses a self-describing `{ meta, entries }` schema (or a bare e
   the standard library (`argparse`, `plistlib`, `sqlite3`, `pathlib`, `re`, `unicodedata`). The
   SQLite bundled with Python must include the **FTS5** extension — standard on macOS and in the
   pyenv builds — for the dictionary's English full-text index.
-- **`anthropic` for sentence generation only.** `generate_sentences.py` calls the Claude API;
+- **`anthropic` for sentence generation only.** `generate_sentences.py` and `generate_grammar.py`
+  call the Claude API;
   install the SDK (and `pytest` for the tests) into the virtualenv with
   `pip install anthropic pytest`.
 
@@ -99,11 +100,13 @@ generate_db.py strokes ../Data/Open/HanziStrokeOrder.plist HanziStrokeOrder.sqli
 
 ### `characters`
 
-Builds the per-character database, joining readings, etymology, and character frequency into one row
-per character.
+Builds the per-character database, joining readings, etymology, character frequency, and — with
+`--radicals` — each character's radical and residual stroke count into one row per character,
+beside a table of the radicals themselves for the dictionary's radical index.
 
 ```text
 generate_db.py characters <readings.plist> <etymology.plist> <charfreq.plist> <dest.sqlite>
+    [--radicals <radicals.plist>]
 ```
 
 ```sh
@@ -111,21 +114,24 @@ generate_db.py characters \
   ../Data/Open/CharacterReadings.plist \
   ../Data/Open/CharacterEtymology.plist \
   ../Data/Open/CharacterFrequency.plist \
-  Characters.sqlite
+  Characters.sqlite \
+  --radicals ../Data/Open/CharacterRadicals.plist
 ```
 
 ### `sentences`
 
 Builds a sentence corpus's database from a sentence plist, one row per sentence with its level in
-each HSK standard (null where that standard's syllabus doesn't cover the sentence). Rows keep the
-plist's order.
+each HSK standard (null where that standard's syllabus doesn't cover the sentence) and the word it
+was written to exemplify, indexed so a word's entry can list its examples. Rows keep the plist's
+order. With `--grammar`, it also holds the grammar points and, for each, the sentences that use it.
 
 ```text
-generate_db.py sentences <source.plist> <dest.sqlite>
+generate_db.py sentences <source.plist> <dest.sqlite> [--grammar <grammar.plist>]
 ```
 
 ```sh
-generate_db.py sentences ../Data/Open/PracticeSentences.plist PracticeSentences.sqlite
+generate_db.py sentences ../Data/Open/PracticeSentences.plist PracticeSentences.sqlite \
+  --grammar ../Data/Open/GrammarPoints.plist
 ```
 
 ## Supporting scripts
@@ -138,11 +144,18 @@ generate_db.py sentences ../Data/Open/PracticeSentences.plist PracticeSentences.
   also levels the workbook corpus (`HSKSentences.plist`). See the module docstring for the stages;
   this step feeds the pipeline rather than being part of the SQLite build. Requests and results
   are kept in the gitignored `Tools/.cache/`, so a run resumes rather than paying twice.
+- **`generate_grammar.py`** — lists the grammar points of each HSK 3.0 level in
+  `GrammarPoints.plist`, tags the practice sentences with the points they use, and writes example
+  sentences for any point no sentence uses, through the same cache and batches as
+  `generate_sentences.py`, whose `assemble` attaches the tags and checks the new sentences.
+- **`unihan_radicals.py`** — records each CC-CEDICT character's Kangxi radical and residual
+  stroke count in `CharacterRadicals.plist`, from the Unicode Han Database. See the module
+  docstring for the source files and usage.
 - **`sentence_library.py`** — the checks and leveling `generate_sentences.py` applies: pinyin
   against each character's readings and CC-CEDICT's word readings, a sentence's level in each
   standard from its hardest word, and near-copy detection.
 - **`hsk_syllabus_readings.py`** — records in `HSKVocabulary.plist` the reading each HSK syllabus
   gives a word, from the published HSK 2.0 and 3.0 lists, so the app can pick that reading out of
   the word's CC-CEDICT forms. See the module docstring for the sources and usage.
-- **`test_pinyin_keys.py`, `test_sentence_library.py`, `test_hsk_syllabus_readings.py`** — unit
-  tests for the helpers.
+- **`test_pinyin_keys.py`, `test_sentence_library.py`, `test_unihan_radicals.py`,
+  `test_hsk_syllabus_readings.py`** — unit tests for the helpers.

@@ -104,6 +104,24 @@ struct ZiliApp: App {
       .modelContainer(modelContainer)
       .environment(appData)
 
+      Window("Practice Grammar", id: WindowID.practiceGrammar) {
+        PracticeGrammarWindow()
+          .wordPeekOverlay()
+      }
+      .keyboardShortcut("4")
+      .defaultSize(width: 760, height: 700)
+      .modelContainer(modelContainer)
+      .environment(appData)
+
+      Window("Practice Tones", id: WindowID.practiceTones) {
+        PracticeTonesWindow()
+          .wordPeekOverlay()
+      }
+      .keyboardShortcut("5")
+      .defaultSize(width: 760, height: 700)
+      .modelContainer(modelContainer)
+      .environment(appData)
+
       WindowGroup(
         "Recognition Quiz",
         id: WindowID.recognitionQuiz,

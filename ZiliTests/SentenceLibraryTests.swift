@@ -42,6 +42,21 @@ struct `Sentence corpora` {
   }
 
   @Test
+  func `a word's examples are the sentences written for it, easiest first and unleveled last`()
+    throws
+  {
+    let corpus = try SentenceCorpus.fixture([
+      LeveledSentence(id: "hard", levels: [.newest: 3], target: "喝"),
+      LeveledSentence(id: "other", levels: [.newest: 1], target: "吃"),
+      LeveledSentence(id: "unleveled", levels: [:], target: "喝"),
+      LeveledSentence(id: "easy", levels: [.newest: 1], target: "喝"),
+      LeveledSentence(id: "untargeted", levels: [.newest: 1])
+    ])
+    #expect(corpus.examples(for: "喝").map(\.id) == ["easy", "hard", "unleveled"])
+    #expect(corpus.examples(for: "茶").isEmpty)
+  }
+
+  @Test
   func `the library resolves a sentence and a corpus by id, even a sentence no standard levels`()
     throws
   {

@@ -3,6 +3,10 @@
 //  ZiliUITests
 //
 
+// This page asserts on the one result it opens by hand, so it asserts with XCTest directly; the
+// project has no Nimble dependency.
+// swiftlint:disable prefer_nimble
+
 import XCTest
 import XCUITestKit
 
@@ -52,4 +56,36 @@ struct DictionaryPage: Page {
     )
     return WordEntryPage(test: test)
   }
+
+  /// Opens the result for exactly `headword` — its row's text, the label on iOS and the value on
+  /// macOS, leads with it — and waits for the entry.
+  @discardableResult
+  func openResult(_ headword: String) async -> WordEntryPage {
+    let row = test.app.descendants(matching: .any)
+      .matching(identifier: AccessibilityID.dictionaryResultRow)
+      .matching(
+        NSPredicate(
+          format: "label BEGINSWITH %@ OR value BEGINSWITH %@",
+          "\(headword),",
+          "\(headword),"
+        )
+      )
+      .firstMatch
+    XCTAssertTrue(row.wait(), "The result for \(headword).")
+    await test.tapWhenSettled(row)
+    test.expect(AccessibilityID.wordEntry, "The entry for \(headword).")
+    return WordEntryPage(test: test)
+  }
+
+  /// Opens the radical index, chooses the radical numbered `radical`, and opens the first
+  /// character indexed under it.
+  @discardableResult
+  func openFirstCharacter(withRadical radical: String) async -> WordEntryPage {
+    await test.tap(AccessibilityID.dictionaryRadicals, "The radical index button.")
+    await test.tap(AccessibilityID.radicalCell(radical), "The radical numbered \(radical).")
+    await test.tap(AccessibilityID.radicalCharacter, "A character under the radical.")
+    return WordEntryPage(test: test)
+  }
 }
+
+// swiftlint:enable prefer_nimble

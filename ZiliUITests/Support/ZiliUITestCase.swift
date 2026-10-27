@@ -325,6 +325,8 @@ class ZiliUITestCase: XCTestCase {
       static let dictionary = "Dictionary"
       static let practiceCharacters = "Practice Characters"
       static let practiceSentences = "Practice Sentences"
+      static let practiceTones = "Practice Tones"
+      static let practiceGrammar = "Practice Grammar"
       static let recognitionQuiz = "Recognition Quiz"
       static let drawingQuiz = "Drawing Quiz"
       static let listeningQuiz = "Listening Quiz"
@@ -390,7 +392,27 @@ class ZiliUITestCase: XCTestCase {
     #endif
   }
 
-  /// Reaches the Practice Sentences browser (the corpus level grid).
+  /// Reaches the Practice Grammar levels.
+  func goToPracticeGrammar() async {
+    #if os(macOS)
+      app.focusWindow(MacWindow.practiceGrammar, openingWith: "4")
+    #else
+      tapTab(Tab.practice)
+      await tap(AccessibilityID.practiceGrammarCard, "Practice Grammar card.")
+    #endif
+  }
+
+  /// Reaches the Practice Tones grid.
+  func goToPracticeTones() async {
+    #if os(macOS)
+      app.focusWindow(MacWindow.practiceTones, openingWith: "5")
+    #else
+      tapTab(Tab.practice)
+      await tap(AccessibilityID.practiceTonesCard, "Practice Tones card.")
+    #endif
+  }
+
+  /// Reaches the Practice Sentences browser (the Favorites and Missed sets).
   func goToPracticeSentences() async {
     #if os(macOS)
       app.focusWindow(MacWindow.practiceSentences, openingWith: "3")

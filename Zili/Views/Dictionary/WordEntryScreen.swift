@@ -17,37 +17,40 @@ struct WordEntryScreen: View {
 
   var body: some View {
     let graphics = lexicon.strokes.graphics(in: word)
-    return DictionaryEntryView(lookup: lexicon.lookup(word))
-      // The title carries the canonical simplified headword, tagged so VoiceOver announces the
-      // screen in a Chinese voice rather than spelling the glyphs out.
-      .navigationTitle(Text(.spokenHanzi(word, in: .simplified)))
-      .modifier(InlineNavigationTitle())
-      .toolbar {
-        ToolbarItemGroup(placement: .primaryAction) {
-          FavoriteButton(word: word)
-          if word.contains(where: \.isChineseIdeograph) {
-            Button {
-              pronouncer.speak(word)
-            } label: {
-              Label("Pronounce", systemImage: "speaker.wave.2")
-            }
-          }
-          if !graphics.isEmpty {
-            NavigationLink {
-              StrokeOrderScreen(graphics: graphics)
-            } label: {
-              Label("Stroke Order", image: "stroke.order")
-            }
-            .accessibilityIdentifier(AccessibilityID.wordStrokeOrderLink)
-            NavigationLink {
-              StrokePracticeScreen(graphics: graphics)
-            } label: {
-              Label("Practice", image: "practice.grid")
-            }
-            .accessibilityIdentifier(AccessibilityID.wordPracticeLink)
+    return DictionaryEntryView(
+      lookup: lexicon.lookup(word),
+      examples: lexicon.sentences.defaultCorpus?.examples(for: word) ?? []
+    )
+    // The title carries the canonical simplified headword, tagged so VoiceOver announces the
+    // screen in a Chinese voice rather than spelling the glyphs out.
+    .navigationTitle(Text(.spokenHanzi(word, in: .simplified)))
+    .modifier(InlineNavigationTitle())
+    .toolbar {
+      ToolbarItemGroup(placement: .primaryAction) {
+        FavoriteButton(word: word)
+        if word.contains(where: \.isChineseIdeograph) {
+          Button {
+            pronouncer.speak(word)
+          } label: {
+            Label("Pronounce", systemImage: "speaker.wave.2")
           }
         }
+        if !graphics.isEmpty {
+          NavigationLink {
+            StrokeOrderScreen(graphics: graphics)
+          } label: {
+            Label("Stroke Order", image: "stroke.order")
+          }
+          .accessibilityIdentifier(AccessibilityID.wordStrokeOrderLink)
+          NavigationLink {
+            StrokePracticeScreen(graphics: graphics)
+          } label: {
+            Label("Practice", image: "practice.grid")
+          }
+          .accessibilityIdentifier(AccessibilityID.wordPracticeLink)
+        }
       }
+    }
   }
 }
 

@@ -51,6 +51,9 @@ PRICES = {
     "claude-sonnet-5-5": (2.00, 10.00, 0.20),
 }
 BATCH_DISCOUNT = 0.5
+# Seconds a synchronous request may run: long enough for the largest outputs, which the SDK would
+# otherwise refuse to wait for without streaming.
+SYNC_TIMEOUT = 1800
 
 REPO = Path(__file__).resolve().parent.parent
 OPEN = REPO / "Data" / "Open"
@@ -64,6 +67,9 @@ WORKBOOK_GRAMMAR = PROPRIETARY / "WorkbookGrammar.json"
 TARGETS_PER_REQUEST = 5
 SENTENCES_PER_WORD = {1: 12, 2: 12, 3: 12, 4: 8, 5: 8, 6: 8, 7: 5}
 REVIEWS_PER_REQUEST = 25
+# The request kinds whose results are new sentences: words' examples, and grammar points'
+# (``generate_grammar.py examples``).
+GENERATED_KINDS = {"words", "grammar-examples"}
 # Bands whose whole vocabulary is short enough to list in the prompt.
 LISTED_VOCABULARY_BANDS = {1, 2, 3}
 # Bands whose prompts list the workbook grammar to practice.
@@ -279,11 +285,12 @@ class PlannedRequest:
     prompt: str
     schema: dict
     metadata: dict
+    max_tokens: int = 16000
 
     def params(self, effort: str) -> dict:
         return {
             "model": self.model,
-            "max_tokens": 16000,
+            "max_tokens": self.max_tokens,
             "system": self.system,
             "output_config": {
                 "effort": effort,
@@ -492,7 +499,9 @@ def run_sync(client, cache: Cache, planned: list[PlannedRequest], effort: str) -
 
     def run(request: PlannedRequest) -> dict:
         try:
-            message = client.messages.create(**request.params(effort))
+            message = client.with_options(timeout=SYNC_TIMEOUT).messages.create(
+                **request.params(effort)
+            )
             return result_record(request.custom_id, request.model, message, batch=False)
         except anthropic.APIError as error:
             return result_record(request.custom_id, request.model, batch=False, error=str(error))
@@ -626,10 +635,12 @@ def assemble(sources: Sources, cache: Cache) -> Assembly:
     candidates = []
     for custom_id, record in sorted(succeeded.items()):
         request = requests.get(custom_id, {})
-        if request.get("kind") != "words":
+        if request.get("kind") not in GENERATED_KINDS:
             continue
         for sentence in record["output"]["sentences"]:
             entry, reason = generated_entry(sentence, request, sources, near_copies)
+            if not reason and (point := request.get("point")):
+                entry["grammarPoints"] = [point]
             text = library.han_only(sentence["hanzi"])
             if not reason and text in seen_text:
                 reason = "duplicate"
@@ -645,7 +656,21 @@ def assemble(sources: Sources, cache: Cache) -> Assembly:
     reviewed = [c for c in candidates if c["id"] in verdicts]
     rejections["rejected in review"] = sum(1 for c in reviewed if not verdicts[c["id"]]["ok"])
     kept += [c for c in candidates if verdicts.get(c["id"], {"ok": True})["ok"]]
+    attach_grammar_points(kept, requests, succeeded)
     return Assembly(kept, candidates, rejections, len(candidates) - len(reviewed))
+
+
+def attach_grammar_points(kept: list[dict], requests: dict, succeeded: dict) -> None:
+    """Records on each entry the grammar points ``generate_grammar.py tag`` found it uses."""
+    found = {
+        tagged["id"]: tagged["points"]
+        for custom_id, record in succeeded.items()
+        if requests.get(custom_id, {}).get("kind") == "grammar-tag"
+        for tagged in record["output"]["sentences"]
+    }
+    for entry in kept:
+        if points := found.get(entry["id"]):
+            entry["grammarPoints"] = points
 
 
 def existing_entry(entry: dict, sources: Sources) -> dict:
@@ -655,7 +680,7 @@ def existing_entry(entry: dict, sources: Sources) -> dict:
         sentence_tokens = [library.Token(word) for word in entry["words"]]
     else:
         sentence_tokens = library.segment(entry["hanzi"], sources.lexicon, 7)
-    kept = {k: v for k, v in entry.items() if k in ("target", "topic", "grammar")}
+    kept = {k: v for k, v in entry.items() if k in ("target", "topic", "grammarPoints")}
     return {
         "id": entry["id"],
         "hanzi": entry["hanzi"],
@@ -668,7 +693,9 @@ def existing_entry(entry: dict, sources: Sources) -> dict:
 
 
 def generated_entry(sentence: dict, request: dict, sources: Sources, near_copies):
-    """A generated sentence as a corpus entry, with the reason to drop it if there is one."""
+    """A generated sentence as a corpus entry, with the reason to drop it if there is one. A
+    sentence no syllabus levels is dropped, unless it was written for a grammar point — whose word
+    the syllabi may not list — where it serves that point's page while no level lists it."""
     band = request["band"]
     found = library.problems(
         hanzi=sentence["hanzi"],
@@ -684,7 +711,7 @@ def generated_entry(sentence: dict, request: dict, sources: Sources, near_copies
         return None, "near copy of a workbook sentence"
     sentence_tokens = library.tokens(sentence["words"])
     levels = library.levels(sentence_tokens, sources.syllabi)
-    if not levels:
+    if not levels and not request.get("point"):
         return None, "outside every syllabus"
     entry = {
         "id": library.content_id(sentence["hanzi"].strip()),
@@ -693,10 +720,9 @@ def generated_entry(sentence: dict, request: dict, sources: Sources, near_copies
         "translation": sentence["translation"].strip(),
         "words": [token.text for token in sentence_tokens],
         "levels": levels,
-        "target": sentence["target"],
         "band": band,
     }
-    for field in ("topic", "grammar"):
+    for field in ("target", "topic"):
         if value := sentence.get(field, "").strip():
             entry[field] = value
     return entry, None

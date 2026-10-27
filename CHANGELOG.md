@@ -42,13 +42,22 @@ one of the two places.
   clearly. It walks you through the steps in Settings, with screenshots, and
   lets you hear the new voice as soon as it arrives. Choose Remind Me Later to
   be asked again next time, or Don't Remind Me to stop being asked.
-- Practice has far more sentences: examples for every word in the HSK syllabus,
-  from beginner to advanced, so whatever you are studying has sentences to read
-  and hear.
-- Sentences are sorted by the HSK standard you choose, as words already are.
-  Pick HSK 3.0 (2026), HSK 3.0 (2021), or HSK 2.0 above the levels in Practice
-  and in the Listening quiz, and each sentence sits at the level of the hardest
-  word it uses in that standard.
+- Every word in the HSK syllabus has example sentences, shown under its
+  dictionary entry beside the dictionaries' own. Open one to hear it, look up
+  its words, or add it to your favorites.
+- Practice Grammar lists the grammar points of each HSK 3.0 level: choose a
+  level, then a point, to see its pattern and explanation, with example
+  sentences you can hear.
+- Practice Tones lays out the twenty tone pairs of two-syllable words. Choose a
+  pair to see the words of your levels said with it, and play them to hear and
+  imitate.
+- The Dictionary can look a character up by its radical: choose Radicals, then a
+  radical, then the character among those built on it.
+- The Listening quiz draws its sentences from the HSK standard you choose. Pick
+  HSK 3.0 (2026), HSK 3.0 (2021), or HSK 2.0 above the levels, and each sentence
+  sits at the level of the hardest word it uses in that standard.
+- Practice Sentences now holds the sentences you have favorited or missed.
+  Sentences themselves are found under the words they show in use.
 
 ### ACCESSIBILITY
 

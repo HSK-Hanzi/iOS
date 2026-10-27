@@ -115,3 +115,59 @@ struct CharacterLibrary: Sendable {
     let frequencyRanks: Int
   }
 }
+
+/// A Kangxi radical, or the simplified form of one, that characters are indexed under.
+struct Radical: Identifiable, Hashable, Sendable {
+  /// The radical's Kangxi number, with an apostrophe for its simplified form (`"149'"` is 讠).
+  let number: String
+  let glyph: String
+  let strokes: Int
+
+  var id: String { number }
+}
+
+/// The characters indexed under a radical that take the same number of strokes beyond it.
+struct RadicalStrokeGroup: Identifiable, Hashable, Sendable {
+  let residualStrokes: Int
+  let characters: [String]
+
+  var id: Int { residualStrokes }
+}
+
+// MARK: - Radicals
+
+extension CharacterLibrary {
+  /// Every radical some character is indexed under, by stroke count and then Kangxi number.
+  nonisolated func radicals() -> [Radical] {
+    let rows =
+      (try? database.read { db in
+        try Row.fetchAll(
+          db,
+          sql: "SELECT number, glyph, strokes FROM radical ORDER BY strokes, ordinal"
+        )
+      }) ?? []
+    return rows.map { Radical(number: $0["number"], glyph: $0["glyph"], strokes: $0["strokes"]) }
+  }
+
+  /// The characters indexed under `radical`, grouped by the strokes beyond it, fewest first, and
+  /// most common first within a group.
+  nonisolated func characters(withRadical radical: Radical) -> [RadicalStrokeGroup] {
+    let rows =
+      (try? database.read { db in
+        try Row.fetchAll(
+          db,
+          sql: """
+            SELECT character, residual_strokes FROM character WHERE radical = ?
+            ORDER BY residual_strokes, frequency_rank IS NULL, frequency_rank, character
+            """,
+          arguments: [radical.number]
+        )
+      }) ?? []
+    let indexed = rows.map { row -> (residual: Int, character: String) in
+      (row["residual_strokes"], row["character"])
+    }
+    return Dictionary(grouping: indexed, by: \.residual)
+      .sorted { $0.key < $1.key }
+      .map { RadicalStrokeGroup(residualStrokes: $0.key, characters: $0.value.map(\.character)) }
+  }
+}

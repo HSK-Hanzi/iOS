@@ -6,8 +6,8 @@
 #if os(macOS)
   import SwiftUI
 
-  /// The macOS Practice Sentences window: a two-column split view. The level grid is the sidebar;
-  /// choosing a set fills the detail column with that set's sentences, and tapping a sentence
+  /// The macOS Practice Sentences window: a two-column split view. The Favorites and Missed tiles
+  /// are the sidebar; choosing one fills the detail column with that set's sentences, and tapping a sentence
   /// drills its detail onto the detail's own navigation stack — where a word tapped inside the
   /// sentence pushes its full dictionary entry, the way the character window drills words.
   struct SentencePracticeView: View {
@@ -53,8 +53,7 @@
     SentencePracticePreview()
   }
 
-  /// Loads the real ``Lexicon`` so the sidebar's corpora and the sentences they hold are the
-  /// shipped data.
+  /// Loads the real ``Lexicon`` so the sidebar's sets resolve against the shipped sentences.
   private struct SentencePracticePreview: View {
     @State private var lexicon: Lexicon?
 

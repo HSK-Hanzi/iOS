@@ -36,6 +36,8 @@
 
     /// The word tapped in the first Level 1 sentence, 我妈妈做的菜很好吃。
     private static let lookedUpWord = "好吃"
+    /// The word whose first example sentence the looked-up word is peeked in.
+    private static let exampledWord = "zili://word/%E5%A5%BD%E5%90%83"
 
     /// Where a tap turns the flashcard over: the card fills the screen, and its middle is clear of
     /// the quiz's controls.
@@ -80,13 +82,12 @@
       #endif
     }
 
-    /// A word in a Level 1 sentence peeked with its reading and meaning: tapped, or on a Mac
-    /// pointed at.
+    /// A word in one of 好吃's example sentences peeked with its reading and meaning: tapped, or
+    /// on a Mac pointed at.
     private func captureLookUp() async throws {
-      let sentences = await PracticeSentencesPage.open(self)
-      await sentences.openLevel(1)
-      sentences.expectSentenceList()
-      await sentences.openFirstSentence()
+      try follow(link: Self.exampledWord)
+      await WordEntryPage(test: self).openFirstExample()
+      let sentences = PracticeSentencesPage(test: self)
       #if os(macOS)
         sentences.peek(Self.lookedUpWord)
       #else

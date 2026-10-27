@@ -14,7 +14,7 @@ import SwiftUI
 /// every keystroke without holding the data in memory.
 ///
 /// A word opened from outside the app — a widget, a link — becomes the selection, as if the
-/// learner had picked it from the results.
+/// learner had picked it from the results; so does a character found through the radical index.
 struct DictionarySearchView: View {
   let lexicon: Lexicon
 
@@ -24,6 +24,7 @@ struct DictionarySearchView: View {
   @State private var selection: String?
   /// Words pushed above the selected entry — cross-references and looked-up characters.
   @State private var detailPath: [String] = []
+  @State private var isShowingRadicals = false
 
   @AppStorage(Romanization.storageKey)
   private var romanization = Romanization.pinyin
@@ -42,6 +43,30 @@ struct DictionarySearchView: View {
           .textInputAutocapitalization(.never)
         #endif
         .task(id: query) { await runSearch() }
+        .toolbar {
+          ToolbarItem(placement: .primaryAction) {
+            Button {
+              isShowingRadicals = true
+            } label: {
+              Label {
+                Text("Radicals")
+              } icon: {
+                Image("radical.index")
+                  .symbolRenderingMode(.hierarchical)
+              }
+            }
+            .accessibilityIdentifier(AccessibilityID.dictionaryRadicals)
+          }
+          #if !os(visionOS)
+            .visibilityPriority(.high)
+          #endif
+        }
+        .sheet(isPresented: $isShowingRadicals) {
+          RadicalIndexView(characters: lexicon.characters) { character in
+            selection = character
+            isShowingRadicals = false
+          }
+        }
     } detail: {
       WordDetailColumn(lexicon: lexicon, word: selection, path: $detailPath)
     }
