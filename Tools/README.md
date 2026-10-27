@@ -85,7 +85,9 @@ generate_db.py frequency ../Data/Open/SUBTLEX-CH-Words.plist SUBTLEX-CH-Words.sq
 ### `strokes`
 
 Builds the stroke-order database from the Make Me a Hanzi stroke plist, one row per single character
-with its stroke graphic kept as a binary-plist blob.
+with its stroke graphic in a compact binary form: SVG path commands and median points as 16-bit
+quarter-unit coordinates, compressed with raw DEFLATE. `HanziGraphic(encoded:)` in the app decodes
+it, and `generate_db.py`'s `encoded_graphic` documents the layout.
 
 ```text
 generate_db.py strokes <source.plist> <dest.sqlite>

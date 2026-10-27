@@ -23,19 +23,6 @@ struct HanziGraphic: Decodable, Hashable, Sendable {
   init(strokes: [String], medians: [[MedianPoint]]) {
     (self.strokes, self.medians) = (strokes, medians)
   }
-
-  /// Builds a graphic from a raw property-list value, skipping the `Decodable`
-  /// machinery so a whole library can be materialized quickly.
-  init?(propertyList: Any) {
-    guard let entry = propertyList as? [String: Any],
-      let strokes = entry["strokes"] as? [String],
-      let medians = entry["medians"] as? [[[NSNumber]]]
-    else { return nil }
-    self.strokes = strokes
-    self.medians = medians.map { stroke in
-      stroke.compactMap(MedianPoint.init(pair:))
-    }
-  }
 }
 
 /// A single point on a stroke's centerline, in the makemeahanzi grid.
@@ -47,12 +34,6 @@ struct MedianPoint: Decodable, Hashable, Sendable {
 
   init(x: CGFloat, y: CGFloat) {
     (self.x, self.y) = (x, y)
-  }
-
-  /// Interprets makemeahanzi's `[x, y]` pair; fails unless it holds exactly two numbers.
-  init?(pair: [NSNumber]) {
-    guard pair.count == 2 else { return nil }
-    self.init(x: CGFloat(truncating: pair[0]), y: CGFloat(truncating: pair[1]))
   }
 
   init(from decoder: any Decoder) throws {

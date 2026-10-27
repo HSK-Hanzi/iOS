@@ -7,8 +7,9 @@ import Foundation
 import GRDB
 
 /// A character-keyed lookup of ``HanziGraphic`` stroke data, backed by a prebuilt read-only SQLite
-/// database. Each graphic is stored as a binary-plist blob and decoded on demand through the same
-/// parser the source data uses, so the (large) stroke library is never resident in full.
+/// database. Each graphic is stored compressed in a compact binary form (see
+/// ``HanziGraphic/init(encoded:)``) and decoded on demand, so the stroke library is never resident
+/// in full.
 struct StrokeOrderLibrary: Sendable {
   static let resourceName = "HanziStrokeOrder"
 
@@ -57,10 +58,7 @@ struct StrokeOrderLibrary: Sendable {
         arguments: [String(character)]
       )
     }
-    guard let payload,
-      let object = try? PropertyListSerialization.propertyList(from: payload)
-    else { return nil }
-    return HanziGraphic(propertyList: object)
+    return payload.flatMap(\.self).flatMap(HanziGraphic.init(encoded:))
   }
 }
 
