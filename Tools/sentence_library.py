@@ -66,6 +66,28 @@ def normalized_syllable(syllable: str) -> str:
     return syllable if syllable[-1:].isdigit() else f"{syllable}5"
 
 
+# Characters after which a quotation mark opens rather than closes.
+_OPENS_AFTER = set("([{—–-/“‘")
+
+
+def smart_quotes(text: str) -> str:
+    """`text` with typewriter quotes made typographic: an apostrophe inside or at the end of a word
+    becomes ’, and a quotation mark becomes “ or ‘ where it opens a quotation and ” or ’ where it
+    closes one."""
+    out = []
+    for index, character in enumerate(text):
+        before = text[index - 1] if index else ""
+        after = text[index + 1] if index + 1 < len(text) else ""
+        opens = (not before or before.isspace() or before in _OPENS_AFTER) and after.strip() != ""
+        if character == '"':
+            out.append("“" if opens else "”")
+        elif character == "'":
+            out.append("‘" if opens and not before.isalnum() else "’")
+        else:
+            out.append(character)
+    return "".join(out)
+
+
 # MARK: Syllabi
 
 

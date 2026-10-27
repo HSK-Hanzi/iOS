@@ -119,3 +119,18 @@ def test_a_paraphrase_of_a_reference_sentence_is_a_near_copy():
     index = s.NearCopyIndex(["我每天早上都喝一杯绿茶。"])
     assert index.is_near_copy("我每天早上都喝一杯红茶。")
     assert not index.is_near_copy("他晚上不喝咖啡。")
+
+
+@pytest.mark.parametrize(
+    ("typed", "typographic"),
+    [
+        ("Don't forget.", "Don’t forget."),
+        ("The students' books.", "The students’ books."),
+        ('He said "hello" to me.', "He said “hello” to me."),
+        ("'let alone' and 'moreover'", "‘let alone’ and ‘moreover’"),
+        ('("Really?") she asked.', "(“Really?”) she asked."),
+    ],
+)
+def test_typewriter_quotes_become_typographic(typed, typographic):
+    assert s.smart_quotes(typed) == typographic
+

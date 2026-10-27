@@ -123,7 +123,7 @@
         } label: {
           StudyModeCard(
             title: "Practice Grammar",
-            subtitle: "Learn each level's grammar from example sentences.",
+            subtitle: "Learn each level’s grammar from example sentences.",
             icon: .system("text.book.closed"),
             gradient: QuizStyle.listeningGradient,
             glow: QuizStyle.listeningBottom
