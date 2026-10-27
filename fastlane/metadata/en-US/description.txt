@@ -1,20 +1,20 @@
-Mark the HSK words you're learning, then quiz them until they stick.
+Mark the HSK words you’re learning, then quiz them until they stick.
 
-Zili is a study companion for people learning Mandarin Chinese, especially through HSK. It doesn't teach you Chinese; your class or textbook does that. Zili helps you learn what they teach. It’s the helper app that I want to use for my Chinese learning. From HSK 1 to the upper levels, it puts practice that usually takes a handful of separate apps in one place: reading, writing, listening, speaking, and recall.
+Zili is a study companion for people learning Mandarin Chinese, especially through HSK. It doesn’t teach you Chinese; your class or textbook does that. Zili helps you learn what they teach. It’s the helper app that I want to use for my Chinese learning. From HSK 1 to the upper levels, it puts practice that usually takes a handful of separate apps in one place: reading, writing, listening, speaking, and recall.
 
-Pick the syllabus you're studying — HSK 3.0, in its 2026 or 2021 edition, or the six levels of HSK 2.0 — and favorite words and sentences as you meet them. Zili keeps count of what you miss, so the words giving you trouble become a deck of their own, with no bookkeeping on your part.
+Pick the syllabus you’re studying — HSK 3.0, in its 2026 or 2021 edition, or the six levels of HSK 2.0 — and favorite words and sentences as you meet them. Zili keeps count of what you miss, so the words giving you trouble become a deck of their own, with no bookkeeping on your part.
 
 - Flashcards from Chinese to English or back, with or without the reading showing. Grade them from a hardware keyboard if you like.
-- Review your favorites in the order you're closest to forgetting them. Every card you judge sets when it comes back — tomorrow if you didn't know it, further out each time you do.
-- Stroke-order practice and drawing quizzes that mark every stroke for order and direction. Turn on a hint or play the strokes when you're stuck, or squeeze an Apple Pencil Pro.
+- Review your favorites in the order you’re closest to forgetting them. Every card you judge sets when it comes back — tomorrow if you didn’t know it, further out each time you do.
+- Stroke-order practice and drawing quizzes that mark every stroke for order and direction. Turn on a hint or play the strokes when you’re stuck, or squeeze an Apple Pencil Pro.
 - Listening quizzes play a sentence aloud and ask you to type back what you heard.
 - A Speaking quiz listens as you say a word, and checks your tones as well as your syllables.
 - Nearly 80,000 HSK-leveled example sentences written for Zili, each with a translation and read aloud.
 - A built-in CC-CEDICT dictionary with cross-links and word frequency. Tap a word in any sentence or entry to look it up, or point at it to peek.
-- Ask Siri or search Spotlight for a word. Widgets show what's due and bring you a word a day, and a Start Review control sits in Control Center.
+- Ask Siri or search Spotlight for a word. Widgets show what’s due and bring you a word a day, and a Start Review control sits in Control Center.
 
 Zili adapts to how you read and write. Choose Simplified or Traditional characters, and your preferred romanization — Pinyin, Zhuyin (Bopomofo), Wade–Giles, or Gwoyeu Romatzyh.
 
-Zili runs on iPhone, iPad, Mac, and Apple Vision Pro; the drawing quiz isn't available on Vision Pro. The dictionary and quizzes work offline with no account to create, and your favorites, misses, and review schedule sync through your own iCloud. The Speaking quiz downloads Apple's Mandarin speech model the first time you start it, and recognition runs on your device.
+Zili runs on iPhone, iPad, Mac, and Apple Vision Pro; the drawing quiz isn’t available on Vision Pro. The dictionary and quizzes work offline with no account to create, and your favorites, misses, and review schedule sync through your own iCloud. The Speaking quiz downloads Apple’s Mandarin speech model the first time you start it, and recognition runs on your device.
 
 Zili is an independent study aid and is not affiliated with or endorsed by HSK or its administering bodies.

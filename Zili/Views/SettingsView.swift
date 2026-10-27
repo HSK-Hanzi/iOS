@@ -98,7 +98,7 @@ private struct DisplaySection: View {
           Text("Apple Pencil")
         } footer: {
           Text(
-            "Squeezing an Apple Pencil Pro while practicing strokes reaches the stroke pad's controls without lifting the pen. Turning the squeeze off in Settings › Apple Pencil overrides this."
+            "Squeezing an Apple Pencil Pro while practicing strokes reaches the stroke pad’s controls without lifting the pen. Turning the squeeze off in Settings › Apple Pencil overrides this."
           )
         }
       }

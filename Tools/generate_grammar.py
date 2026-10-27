@@ -157,6 +157,13 @@ def list_request(level: int, earlier: list[dict]) -> PlannedRequest:
 
 
 def write_points(points: list[dict]) -> None:
+    points = [
+        {
+            k: sentences.library.smart_quotes(v) if isinstance(v, str) and k != "id" else v
+            for k, v in point.items()
+        }
+        for point in points
+    ]
     document = {
         "meta": {
             "name": "Zili Grammar Points",
