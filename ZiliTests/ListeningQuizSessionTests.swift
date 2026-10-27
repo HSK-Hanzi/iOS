@@ -12,21 +12,18 @@ struct `Listening quiz sessions` {
   private static let deck = [
     PracticeSentence(
       id: "a",
-      level: 1,
       hanzi: "一",
       numberedPinyin: "yi1",
       translation: "one"
     ),
     PracticeSentence(
       id: "b",
-      level: 1,
       hanzi: "二",
       numberedPinyin: "er4",
       translation: "two"
     ),
     PracticeSentence(
       id: "c",
-      level: 1,
       hanzi: "三",
       numberedPinyin: "san1",
       translation: "three"

@@ -53,7 +53,7 @@
       }
       .environment(SentenceFavoritesStore.inMemory())
       .environment(SentenceMissStore.inMemory())
-      .task { library = await SentenceLibrary.load() }
+      .task { library = SentenceLibrary.load() }
     }
   }
 #endif

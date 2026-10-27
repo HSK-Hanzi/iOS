@@ -4,6 +4,7 @@
 //
 
 import Foundation
+import GRDB
 
 /// One bundled corpus of practice sentences — where its data comes from, what it is called, and
 /// whether its license lets it ship.
@@ -17,7 +18,7 @@ enum SentenceCorpusSource: CaseIterable {
     case hsk
   #endif
 
-  /// The bundled plist backing the corpus, without extension.
+  /// The bundled database backing the corpus, without extension.
   var resourceName: String {
     switch self {
       case .practice: "PracticeSentences"
@@ -48,66 +49,121 @@ enum SentenceCorpusSource: CaseIterable {
   }
 }
 
-/// A loaded corpus: its sentences indexed by HSK level, ready to browse or quiz.
+/// A corpus of sentences backed by a prebuilt read-only SQLite database, leveled in every HSK
+/// standard: each sentence sits at the band of its hardest word in a standard, or outside that
+/// standard entirely when its syllabus doesn't cover every word. Only what is asked for is read.
 struct SentenceCorpus: Identifiable, Sendable {
   let source: SentenceCorpusSource
   let title: String
   let isLicensed: Bool
 
-  private let sentencesByLevel: [Int: [PracticeSentence]]
+  private let database: DatabaseQueue
 
   var id: String { source.resourceName }
 
-  /// The levels that have at least one sentence, ascending — the bands a learner can drill.
-  nonisolated var levels: [Int] {
-    sentencesByLevel.keys.sorted()
-  }
-
-  /// Every sentence in the corpus, level order then source order.
-  nonisolated var allSentences: [PracticeSentence] {
-    levels.flatMap { sentencesByLevel[$0] ?? [] }
-  }
-
+  /// How many sentences the corpus holds, leveled or not.
   nonisolated var sentenceCount: Int {
-    sentencesByLevel.values.reduce(0) { $0 + $1.count }
+    (try? database.read { try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM sentence") ?? 0 }) ?? 0
   }
 
-  init(source: SentenceCorpusSource, sentences: [PracticeSentence]) {
+  init(source: SentenceCorpusSource, database: DatabaseQueue) {
     self.source = source
     title = source.title
     isLicensed = source.isLicensed
-    sentencesByLevel = Dictionary(grouping: sentences, by: \.level)
+    self.database = database
   }
 
-  /// Parses the corpus's bundled plist off the main thread.
-  static func load(_ source: SentenceCorpusSource, from bundle: Bundle = .main) async throws -> Self
-  {
-    guard let url = bundle.url(forResource: source.resourceName, withExtension: "plist") else {
+  /// Opens the corpus's bundled database read-only. No sentence is read until queried.
+  static func load(_ source: SentenceCorpusSource, from bundle: Bundle = .main) throws -> Self {
+    guard let url = bundle.url(forResource: source.resourceName, withExtension: "sqlite") else {
       throw DictionaryLoadingError.resourceMissing(name: source.resourceName)
     }
-    return try await Task.detached(priority: .userInitiated) {
-      let data = try Data(contentsOf: url)
-      guard
-        let root = try PropertyListSerialization
-          .propertyList(from: data) as? [String: Any],
-        let entries = root["entries"] as? [Any]
-      else { throw DictionaryLoadingError.malformedData }
+    var configuration = Configuration()
+    configuration.readonly = true
+    do {
       return Self(
         source: source,
-        sentences: entries.compactMap(PracticeSentence.init(propertyList:))
+        database: try DatabaseQueue(path: url.path, configuration: configuration)
       )
-    }.value
+    } catch {
+      throw DictionaryLoadingError.unreadable(name: source.resourceName)
+    }
   }
 
-  /// The sentences graded for `level`, in source order.
-  nonisolated func sentences(in level: Int) -> [PracticeSentence] {
-    sentencesByLevel[level] ?? []
+  private static func levelColumn(_ standard: HSKLevel.Standard) -> String {
+    switch standard {
+      case .newest: "level_newest"
+      case .new: "level_new"
+      case .old: "level_old"
+    }
+  }
+
+  private static func sentence(_ row: Row) -> PracticeSentence {
+    PracticeSentence(
+      id: row["id"],
+      hanzi: row["hanzi"],
+      numberedPinyin: row["numbered_pinyin"],
+      translation: row["translation"]
+    )
+  }
+
+  /// How many sentences each band of `standard` holds, for the bands that hold any.
+  nonisolated func sentenceCounts(in standard: HSKLevel.Standard) -> [HSKLevel: Int] {
+    let column = Self.levelColumn(standard)
+    let rows =
+      (try? database.read { db in
+        try Row.fetchAll(
+          db,
+          sql: """
+            SELECT \(column) AS band, COUNT(*) AS count FROM sentence
+            WHERE \(column) IS NOT NULL GROUP BY \(column)
+            """
+        )
+      }) ?? []
+    return Dictionary(
+      uniqueKeysWithValues: rows.map { (HSKLevel(standard: standard, band: $0["band"]), $0["count"]) }
+    )
+  }
+
+  /// The bands of `standard` that hold at least one sentence, ascending.
+  nonisolated func levels(in standard: HSKLevel.Standard) -> [HSKLevel] {
+    sentenceCounts(in: standard).keys.sorted()
+  }
+
+  /// The sentences at `level`, in the corpus's own order.
+  nonisolated func sentences(in level: HSKLevel) -> [PracticeSentence] {
+    let column = Self.levelColumn(level.standard)
+    let rows =
+      (try? database.read { db in
+        try Row.fetchAll(
+          db,
+          sql: """
+            SELECT id, hanzi, numbered_pinyin, translation FROM sentence
+            WHERE \(column) = ? ORDER BY rowid
+            """,
+          arguments: [level.band]
+        )
+      }) ?? []
+    return rows.map(Self.sentence)
+  }
+
+  /// The sentence with `id`, leveled or not, or `nil` when the corpus has none.
+  nonisolated func sentence(id: String) -> PracticeSentence? {
+    let row = try? database.read { db in
+      try Row.fetchOne(
+        db,
+        sql: "SELECT id, hanzi, numbered_pinyin, translation FROM sentence WHERE id = ?",
+        arguments: [id]
+      )
+    }
+    return row.flatMap(\.self).map(Self.sentence)
   }
 }
 
 /// Every practice-sentence corpus the running build actually shipped with — always the novel
-/// corpus, plus the HSK corpus in Debug builds. A corpus whose plist is missing or unreadable is
-/// left out rather than raised as an error, so the Practice tab renders whatever data is present.
+/// corpus, plus the HSK corpus in Debug builds. A corpus whose database is missing or unreadable
+/// is left out rather than raised as an error, so the Practice tab renders whatever data is
+/// present.
 struct SentenceLibrary: Sendable {
   let corpora: [SentenceCorpus]
 
@@ -116,24 +172,10 @@ struct SentenceLibrary: Sendable {
     corpora.first
   }
 
-  /// Loads every bundled corpus concurrently, skipping any that won't open.
-  static func load(from bundle: Bundle = .main) async -> Self {
-    let corpora = await withTaskGroup(of: (Int, SentenceCorpus)?.self) { group in
-      for (order, source) in SentenceCorpusSource.allCases.enumerated() {
-        group.addTask {
-          guard let corpus = try? await SentenceCorpus.load(source, from: bundle) else {
-            return nil
-          }
-          return (order, corpus)
-        }
-      }
-      var loaded = [(Int, SentenceCorpus)]()
-      for await corpus in group where corpus != nil {
-        loaded.append(corpus!)
-      }
-      return loaded.sorted { $0.0 < $1.0 }.map(\.1)
-    }
-    return Self(corpora: corpora)
+  /// Opens every bundled corpus, skipping any that won't open. Cheap: no sentence is read until
+  /// queried.
+  static func load(from bundle: Bundle = .main) -> Self {
+    Self(corpora: SentenceCorpusSource.allCases.compactMap { try? SentenceCorpus.load($0, from: bundle) })
   }
 
   /// The loaded corpus with `id`, or `nil` when it didn't ship — how a drilled level resolves
@@ -144,9 +186,6 @@ struct SentenceLibrary: Sendable {
 
   /// The sentence with `id`, searched across every loaded corpus — how a favorite resolves.
   nonisolated func sentence(id: String) -> PracticeSentence? {
-    for corpus in corpora {
-      if let match = corpus.allSentences.first(where: { $0.id == id }) { return match }
-    }
-    return nil
+    corpora.lazy.compactMap { $0.sentence(id: id) }.first
   }
 }

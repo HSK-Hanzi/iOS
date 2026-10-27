@@ -7,47 +7,6 @@ import Testing
 
 @testable import Zili
 
-struct `Practice sentence plists` {
-  private static var complete: [String: Any] {
-    [
-      "id": "s1",
-      "level": 3,
-      "hanzi": "我想喝茶",
-      "numberedPinyin": "wo3 xiang3 he1 cha2",
-      "translation": "I want to drink tea"
-    ]
-  }
-
-  @Test
-  func `a complete record decodes every field`() throws {
-    let sentence = try #require(PracticeSentence(propertyList: Self.complete))
-    #expect(sentence.id == "s1")
-    #expect(sentence.level == 3)
-    #expect(sentence.hanzi == "我想喝茶")
-    #expect(sentence.numberedPinyin == "wo3 xiang3 he1 cha2")
-    #expect(sentence.translation == "I want to drink tea")
-  }
-
-  @Test(arguments: ["id", "level", "hanzi", "numberedPinyin", "translation"])
-  func `a record missing any required key decodes to nil`(droppedKey: String) {
-    var record = Self.complete
-    record.removeValue(forKey: droppedKey)
-    #expect(PracticeSentence(propertyList: record) == nil)
-  }
-
-  @Test
-  func `a level of the wrong type is rejected`() {
-    var record = Self.complete
-    record["level"] = "3"
-    #expect(PracticeSentence(propertyList: record) == nil)
-  }
-
-  @Test
-  func `a non-dictionary value is rejected`() {
-    #expect(PracticeSentence(propertyList: "not a record") == nil)
-  }
-}
-
 struct `Dictionary sense plists` {
   @Test
   func `a bare gloss string decodes with empty structure`() throws {

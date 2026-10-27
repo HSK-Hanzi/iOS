@@ -99,7 +99,7 @@ private struct SentenceDetailPreview: View {
   var body: some View {
     NavigationStack {
       Group {
-        if let lexicon, let sentence = lexicon.sentences.defaultCorpus?.allSentences.first {
+        if let lexicon, let sentence = Self.firstSentence(in: lexicon.sentences) {
           SentenceDetailView(sentence: sentence)
             .environment(\.wordResolver, WordResolver(lexicon: lexicon))
         } else {
@@ -110,5 +110,12 @@ private struct SentenceDetailPreview: View {
     .environment(SentenceFavoritesStore.inMemory())
     .environment(SentenceMissStore.inMemory())
     .task { lexicon = try? await Lexicon.load() }
+  }
+
+  private static func firstSentence(in library: SentenceLibrary) -> PracticeSentence? {
+    guard let corpus = library.defaultCorpus,
+      let level = corpus.levels(in: .newest).first
+    else { return nil }
+    return corpus.sentences(in: level).first
   }
 }

@@ -23,3 +23,4 @@ Tools/__pycache__/
 fastlane/.env
 fastlane/.env.*
 !fastlane/.env.example
+Tools/.cache/

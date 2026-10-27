@@ -9,7 +9,7 @@ Pick the syllabus you're studying — HSK 3.0, in its 2026 or 2021 edition, or t
 - Stroke-order practice and drawing quizzes that mark every stroke for order and direction. Turn on a hint or play the strokes when you're stuck, or squeeze an Apple Pencil Pro.
 - Listening quizzes play a sentence aloud and ask you to type back what you heard.
 - A Speaking quiz listens as you say a word, and checks your tones as well as your syllables.
-- More than 2,400 HSK-leveled practice sentences written for Zili, each with a translation and read aloud.
+- Nearly 80,000 HSK-leveled example sentences written for Zili, each with a translation and read aloud.
 - A built-in CC-CEDICT dictionary with cross-links and word frequency. Tap a word in any sentence or entry to look it up, or point at it to peek.
 - Ask Siri or search Spotlight for a word. Widgets show what's due and bring you a word a day, and a Start Review control sits in Control Center.
 

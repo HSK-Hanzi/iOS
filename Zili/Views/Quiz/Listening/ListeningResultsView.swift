@@ -137,21 +137,18 @@ struct ListeningResultsView: View {
   let session = ListeningQuizSession(deck: [
     PracticeSentence(
       id: "1",
-      level: 1,
       hanzi: "我想喝茶。",
       numberedPinyin: "wo3 xiang3 he1 cha2",
       translation: "I want to drink tea."
     ),
     PracticeSentence(
       id: "2",
-      level: 1,
       hanzi: "他是我的朋友。",
       numberedPinyin: "ta1 shi4 wo3 de5 peng2 you5",
       translation: "He is my friend."
     ),
     PracticeSentence(
       id: "3",
-      level: 1,
       hanzi: "今天天气很好。",
       numberedPinyin: "jin1 tian1 tian1 qi4 hen3 hao3",
       translation: "The weather is nice today."

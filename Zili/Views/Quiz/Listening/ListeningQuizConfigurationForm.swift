@@ -5,8 +5,8 @@
 
 import SwiftUI
 
-/// The listening quiz's setup fields: the sentences the learner will hear — a corpus's levels, or
-/// their favorites — and how many. Dealing the deck is the form's own job: it resolves the chosen
+/// The listening quiz's setup fields: the sentences the learner will hear — a corpus's levels in
+/// one HSK standard, or their favorites — and how many. Dealing the deck is the form's own job: it resolves the chosen
 /// source into sentences and hands the finished ``ListeningQuizSession`` to `start`. A `cancel`
 /// handler adds a button beside Start, for a form presented modally.
 struct ListeningQuizConfigurationForm: View {
@@ -23,7 +23,8 @@ struct ListeningQuizConfigurationForm: View {
 
   @State private var kind: SourceKind
   @State private var corpusID: String
-  @State private var levels: Set<Int>
+  @State private var standard = HSKLevel.Standard.newest
+  @State private var levels: Set<HSKLevel>
   @State private var sort = QuizDeckSort.random
   @State private var deckSize: Int? = 20
 
@@ -36,6 +37,8 @@ struct ListeningQuizConfigurationForm: View {
     } start: {
       QuizStartControls(cancel: cancel, isDisabled: sentenceCount == 0, start: dealDeck)
     }
+    .onChange(of: standard) { selectFirstLevel() }
+    .onChange(of: corpusID) { selectFirstLevel() }
   }
 
   private var sourceSection: some View {
@@ -57,6 +60,12 @@ struct ListeningQuizConfigurationForm: View {
             }
             .pickerStyle(.menu)
           }
+          Picker("Standard", selection: $standard) {
+            ForEach(HSKLevel.Standard.allCases, id: \.self) { standard in
+              Text(standard.displayName).tag(standard)
+            }
+          }
+          .pickerStyle(.menu)
           SentenceLevelPicker(levels: $levels, available: availableLevels)
         case .favorites:
           if favorites.favoritedIDs.isEmpty {
@@ -78,9 +87,10 @@ struct ListeningQuizConfigurationForm: View {
     }
   }
 
-  /// The levels the chosen corpus has, ascending — the bands the learner picks among.
-  private var availableLevels: [Int] {
-    (library.corpus(id: corpusID) ?? library.defaultCorpus)?.levels ?? []
+  /// The levels the chosen corpus has in the chosen standard, ascending — the bands the learner
+  /// picks among.
+  private var availableLevels: [HSKLevel] {
+    (library.corpus(id: corpusID) ?? library.defaultCorpus)?.levels(in: standard) ?? []
   }
 
   private var source: SentenceQuizSource {
@@ -98,11 +108,7 @@ struct ListeningQuizConfigurationForm: View {
   }
 
   private var sentenceCount: Int {
-    SentenceQuizDeckBuilder.sentences(
-      for: source,
-      in: library,
-      favoriteIDs: favorites.favoritedIDs
-    ).count
+    SentenceQuizDeckBuilder.count(for: source, in: library, favoriteIDs: favorites.favoritedIDs)
   }
 
   init(
@@ -116,7 +122,11 @@ struct ListeningQuizConfigurationForm: View {
     let corpus = library.defaultCorpus
     _kind = State(initialValue: .hskLevels)
     _corpusID = State(initialValue: corpus?.id ?? "")
-    _levels = State(initialValue: Set(corpus?.levels.first.map { [$0] } ?? []))
+    _levels = State(initialValue: Set(corpus?.levels(in: .newest).first.map { [$0] } ?? []))
+  }
+
+  private func selectFirstLevel() {
+    levels = Set(availableLevels.first.map { [$0] } ?? [])
   }
 
   private func dealDeck() {
@@ -138,30 +148,30 @@ struct ListeningQuizConfigurationForm: View {
   }
 }
 
-/// Picks one or more sentence levels as tappable chips in their level colors, mirroring the
-/// character quiz's ``CharacterSetPickerView`` but over the bare band numbers a corpus indexes by.
+/// Picks one or more sentence levels of one standard as tappable chips in their level colors,
+/// mirroring the character quiz's ``CharacterSetPickerView``.
 private struct SentenceLevelPicker: View {
-  @Binding var levels: Set<Int>
-  let available: [Int]
+  @Binding var levels: Set<HSKLevel>
+  let available: [HSKLevel]
 
   var body: some View {
     LazyVGrid(columns: [GridItem(.adaptive(minimum: 56), spacing: 12)], spacing: 12) {
-      ForEach(available, id: \.self) { band in
+      ForEach(available, id: \.self) { level in
         SentenceLevelChip(
-          band: band,
-          isSelected: levels.contains(band),
-          toggle: { toggle(band) }
+          band: level.band,
+          isSelected: levels.contains(level),
+          toggle: { toggle(level) }
         )
       }
     }
     .padding(.vertical, 4)
   }
 
-  private func toggle(_ band: Int) {
-    if levels.contains(band) {
-      levels.remove(band)
+  private func toggle(_ level: HSKLevel) {
+    if levels.contains(level) {
+      levels.remove(level)
     } else {
-      levels.insert(band)
+      levels.insert(level)
     }
   }
 }
@@ -224,6 +234,6 @@ private struct ListeningConfigurationFormPreview: View {
     }
     .environment(SentenceFavoritesStore.inMemory())
     .environment(SentenceMissStore.inMemory())
-    .task { library = await SentenceLibrary.load() }
+    .task { library = SentenceLibrary.load() }
   }
 }

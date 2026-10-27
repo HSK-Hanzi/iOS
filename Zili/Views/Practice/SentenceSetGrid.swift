@@ -5,19 +5,19 @@
 
 import SwiftUI
 
-/// A sentence set a learner can practice: a level within a chosen corpus, their favorited
+/// A sentence set a learner can practice: an HSK level within a chosen corpus, their favorited
 /// sentences, or the sentences they've missed in a listening quiz (favorites and misses both span
 /// every corpus). The corpus travels with the level so a drilled set knows which corpus to draw from.
 enum SentenceSetSelection: Hashable {
-  case level(corpusID: String, level: Int)
+  case level(corpusID: String, level: HSKLevel)
   case favorites
   case missed
 }
 
-/// A grid of the sentence sets a learner can practice — their favorites, then the HSK bands of the
-/// chosen corpus, mirroring ``CharacterSetGrid`` so the two browsers read as the same deck of
-/// cards. A corpus picker appears only when more than one corpus shipped (Debug, where the HSK
-/// workbook corpus joins the novel one); in Release, with a single corpus, it stays hidden.
+/// A grid of the sentence sets a learner can practice — their favorites, then the bands of one HSK
+/// standard in the chosen corpus, mirroring ``CharacterSetGrid`` so the two browsers read as the
+/// same deck of cards. A corpus picker appears only when more than one corpus shipped (Debug, where
+/// the HSK workbook corpus joins the novel one); in Release, with a single corpus, it stays hidden.
 struct SentenceSetGrid: View {
   let library: SentenceLibrary
   /// The screen's title, kept concise so the back button carries where the set was reached from.
@@ -31,6 +31,7 @@ struct SentenceSetGrid: View {
   private var sentenceMisses
 
   @State private var corpusID: String
+  @State private var standard = HSKLevel.Standard.newest
 
   private var corpus: SentenceCorpus? {
     library.corpus(id: corpusID) ?? library.defaultCorpus
@@ -60,17 +61,26 @@ struct SentenceSetGrid: View {
           .pickerStyle(.tabs)
           .labelsHidden()
         }
+        Picker("Standard", selection: $standard) {
+          ForEach(HSKLevel.Standard.allCases, id: \.self) { standard in
+            Text(standard.displayName).tag(standard)
+          }
+        }
+        .pickerStyle(.tabs)
+        .labelsHidden()
         grid
       }
       .padding()
     }
     .navigationTitle(title)
     .onChange(of: corpusID) { selection = nil }
+    .onChange(of: standard) { selection = nil }
   }
 
   private var grid: some View {
-    LazyVGrid(columns: [GridItem(.adaptive(minimum: 104), spacing: 12)], spacing: 12) {
-      ForEach(corpus?.levels ?? [], id: \.self) { level in
+    let counts = corpus?.sentenceCounts(in: standard) ?? [:]
+    return LazyVGrid(columns: [GridItem(.adaptive(minimum: 104), spacing: 12)], spacing: 12) {
+      ForEach(counts.keys.sorted(), id: \.self) { level in
         let selectionForLevel = SentenceSetSelection.level(
           corpusID: corpus?.id ?? corpusID,
           level: level
@@ -79,13 +89,13 @@ struct SentenceSetGrid: View {
           selection = selectionForLevel
         } label: {
           LevelCell(
-            band: level,
-            sentenceCount: corpus?.sentences(in: level).count ?? 0,
+            band: level.band,
+            sentenceCount: counts[level] ?? 0,
             isSelected: selection == selectionForLevel
           )
         }
         .buttonStyle(.plain)
-        .accessibilityIdentifier(AccessibilityID.sentenceSetLevel(level))
+        .accessibilityIdentifier(AccessibilityID.sentenceSetLevel(level.band))
       }
     }
   }
@@ -121,7 +131,7 @@ struct SentenceSetContent: View {
       case let .level(corpusID, level):
         SentenceListView(
           sentences: library.corpus(id: corpusID)?.sentences(in: level) ?? [],
-          title: String(localized: "Level \(level)")
+          title: level.levelName
         )
       case .favorites:
         SentenceListView(
@@ -248,6 +258,6 @@ private struct SentenceSetGridPreview: View {
     }
     .environment(SentenceFavoritesStore.inMemory())
     .environment(SentenceMissStore.inMemory())
-    .task { library = await SentenceLibrary.load() }
+    .task { library = SentenceLibrary.load() }
   }
 }
