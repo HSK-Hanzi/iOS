@@ -7,7 +7,7 @@ import XCTest
 import XCUITestKit
 
 /// Looking a word up: search the whole lexicon, then open a result's full entry — plus the
-/// empty-search and no-results states that book-end it.
+/// empty-search and no-results states that book-end it, and finding a character by its radical.
 ///
 /// This flow is the proof-of-concept for the ``Page`` layer: it drives the app through
 /// ``DictionaryPage`` rather than raw accessibility identifiers. The remaining flows still call
@@ -35,5 +35,14 @@ final class DictionarySearchUITests: ZiliUITestCase {
     dictionary.search("zzzzzzzz")
 
     dictionary.expectNoResults()
+  }
+
+  func testRadicalIndexOpensACharacter() async throws {
+    launch()
+    let dictionary = DictionaryPage.open(self)
+
+    // 人 is radical 9, listed among the two-stroke radicals near the top of the index.
+    let entry = await dictionary.openFirstCharacter(withRadical: "9")
+    entry.expectVisible()
   }
 }

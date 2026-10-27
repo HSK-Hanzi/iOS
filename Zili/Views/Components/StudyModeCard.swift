@@ -105,7 +105,7 @@ struct StudyModeCard: View {
     )
     StudyModeCard(
       title: "Practice Sentences",
-      subtitle: "Read whole sentences by level.",
+      subtitle: "Your favorite and missed sentences.",
       icon: .system("text.quote"),
       gradient: QuizStyle.answerGradient,
       glow: QuizStyle.answerBottom

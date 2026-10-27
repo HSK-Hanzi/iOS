@@ -79,9 +79,9 @@ struct CharacterSetGrid: View {
         Button {
           selection = .level(level)
         } label: {
-          LevelCell(
+          LevelTile(
             band: level.band,
-            wordCount: lexicon.words(in: level).count,
+            caption: Text("\(lexicon.words(in: level).count) words"),
             isSelected: selection == .level(level)
           )
         }
@@ -152,36 +152,6 @@ private struct MissedCell: View {
     .buttonStyle(.plain)
     .accessibilityIdentifier(AccessibilityID.characterSetMissed)
     .accessibilityAddTraits(isSelected ? .isSelected : [])
-  }
-}
-
-/// One band in the grid: its level number above a word count, on the shared ``StudyCardTile``
-/// so it matches the word cells it drills into.
-private struct LevelCell: View {
-  let band: Int
-  let wordCount: Int
-  var isSelected = false
-
-  var body: some View {
-    StudyCardTile(palette: HSKPalette.palette(forBand: band)) {
-      VStack(spacing: 4) {
-        Text("Level \(band, format: .number)")
-          .font(.title3.weight(.semibold))
-          .foregroundStyle(.white)
-          .lineLimit(1)
-          .minimumScaleFactor(0.7)
-        Text("\(wordCount) words")
-          .font(.caption)
-          .foregroundStyle(.white.opacity(0.85))
-          .lineLimit(1)
-          .minimumScaleFactor(0.7)
-      }
-    }
-    .selectionRing(isSelected)
-    .accessibilityElement(children: .ignore)
-    .accessibilityLabel(Text("HSK level \(band, format: .number)"))
-    .accessibilityValue(Text("\(wordCount) words"))
-    .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
   }
 }
 

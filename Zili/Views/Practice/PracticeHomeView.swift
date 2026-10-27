@@ -6,8 +6,9 @@
 #if !os(macOS)
   import SwiftUI
 
-  /// The root of the Practice tab: two cards choosing what to drill — **Practice Characters**
-  /// (the syllabus browser) and **Practice Sentences** (the sentence browser) — in the same
+  /// The root of the Practice tab: cards choosing what to drill — **Practice Characters** (the
+  /// syllabus browser), **Practice Grammar** (the grammar points by level), **Practice Tones** (the
+  /// tone-pair grid), and **Practice Sentences** (the learner's kept sentences) — in the same
   /// gradient cards the Quiz tab wears. Owning one navigation stack here lets both branches drill
   /// onto the same path, and installs the word-lookup environment so a tapped word — whether in a
   /// character entry or inside a sentence — opens the same peek and full entry everywhere.
@@ -21,52 +22,28 @@
 
     var body: some View {
       NavigationStack(path: $path) {
-        menu
-          .navigationTitle("Practice")
-          .navigationDestination(for: PracticeRoute.self) { route in
-            destination(for: route)
+        // Where every card fits, the cards share the screen; where they don't — a phone, or a
+        // large text size — they keep their own height and scroll.
+        ViewThatFits(in: .vertical) {
+          PracticeModeCards { path.append($0) }
+            .scenePadding()
+          ScrollView {
+            PracticeModeCards { path.append($0) }
+              .scenePadding()
           }
-          .navigationDestination(for: PracticeSentence.self) { sentence in
-            SentenceDetailView(sentence: sentence)
-          }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .quizAmbientBackground(QuizStyle.ambientGradient)
+        .navigationTitle("Practice")
+        .navigationDestination(for: PracticeRoute.self) { route in
+          destination(for: route)
+        }
+        .navigationDestination(for: PracticeSentence.self) { sentence in
+          SentenceDetailView(sentence: sentence)
+        }
       }
       .environment(\.wordResolver, WordResolver(lexicon: lexicon))
       .environment(\.selectWord, WordSelectionAction { path.append(PracticeRoute.word($0)) })
-    }
-
-    private var menu: some View {
-      VStack(spacing: 20) {
-        Button {
-          path.append(PracticeRoute.characters)
-        } label: {
-          StudyModeCard(
-            title: "Practice Characters",
-            subtitle: "Browse the syllabus and drill words.",
-            icon: .system("square.grid.2x2"),
-            gradient: QuizStyle.promptGradient,
-            glow: QuizStyle.promptBottom
-          )
-        }
-        .buttonStyle(.plain)
-        .accessibilityIdentifier(AccessibilityID.practiceCharactersCard)
-
-        Button {
-          path.append(PracticeRoute.sentences)
-        } label: {
-          StudyModeCard(
-            title: "Practice Sentences",
-            subtitle: "Read whole sentences by level.",
-            icon: .system("text.quote"),
-            gradient: QuizStyle.answerGradient,
-            glow: QuizStyle.answerBottom
-          )
-        }
-        .buttonStyle(.plain)
-        .accessibilityIdentifier(AccessibilityID.practiceSentencesCard)
-      }
-      .scenePadding()
-      .frame(maxWidth: .infinity, maxHeight: .infinity)
-      .quizAmbientBackground(QuizStyle.ambientGradient)
     }
 
     @ViewBuilder
@@ -86,6 +63,26 @@
           )
         case .word(let word):
           WordEntryScreen(lexicon: lexicon, word: word)
+        case .grammar:
+          if let corpus = lexicon.sentences.defaultCorpus {
+            PracticeGrammarView(corpus: corpus, selection: pushBinding { .grammarLevel($0) })
+          }
+        case .grammarLevel(let level):
+          if let corpus = lexicon.sentences.defaultCorpus {
+            GrammarLevelView(
+              corpus: corpus,
+              level: level,
+              selection: pushBinding { .grammarPoint($0) }
+            )
+          }
+        case .grammarPoint(let point):
+          if let corpus = lexicon.sentences.defaultCorpus {
+            GrammarPointView(corpus: corpus, point: point)
+          }
+        case .tones:
+          PracticeTonesView(lexicon: lexicon, selection: pushBinding { .tonePair($0) })
+        case .tonePair(let selection):
+          TonePairWordsView(lexicon: lexicon, selection: selection)
         case .sentences:
           SentenceSetGrid(library: lexicon.sentences, selection: pushBinding { .sentenceSet($0) })
         case .sentenceSet(let selection):
@@ -98,6 +95,71 @@
     private func pushBinding<Value>(_ route: @escaping (Value) -> PracticeRoute) -> Binding<Value?>
     {
       Binding(get: { nil }, set: { if let value = $0 { path.append(route(value)) } })
+    }
+  }
+
+  /// The kinds of practice, one card each, that ``PracticeHomeView`` offers.
+  private struct PracticeModeCards: View {
+    let open: (PracticeRoute) -> Void
+
+    var body: some View {
+      VStack(spacing: 20) {
+        Button {
+          open(.characters)
+        } label: {
+          StudyModeCard(
+            title: "Practice Characters",
+            subtitle: "Browse the syllabus and drill words.",
+            icon: .system("square.grid.2x2"),
+            gradient: QuizStyle.promptGradient,
+            glow: QuizStyle.promptBottom
+          )
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier(AccessibilityID.practiceCharactersCard)
+
+        Button {
+          open(.grammar)
+        } label: {
+          StudyModeCard(
+            title: "Practice Grammar",
+            subtitle: "Learn each level's grammar from example sentences.",
+            icon: .system("text.book.closed"),
+            gradient: QuizStyle.listeningGradient,
+            glow: QuizStyle.listeningBottom
+          )
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier(AccessibilityID.practiceGrammarCard)
+
+        Button {
+          open(.tones)
+        } label: {
+          StudyModeCard(
+            title: "Practice Tones",
+            subtitle: "Hear and imitate the tones of two-syllable words.",
+            icon: .system("waveform"),
+            gradient: QuizStyle.speakingGradient,
+            glow: QuizStyle.speakingBottom
+          )
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier(AccessibilityID.practiceTonesCard)
+
+        Button {
+          open(.sentences)
+        } label: {
+          StudyModeCard(
+            title: "Practice Sentences",
+            subtitle: "Your favorite and missed sentences.",
+            icon: .system("text.quote"),
+            gradient: QuizStyle.answerGradient,
+            glow: QuizStyle.answerBottom
+          )
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier(AccessibilityID.practiceSentencesCard)
+      }
     }
   }
 
@@ -153,6 +215,11 @@
     case characters
     case characterSet(StudySet)
     case word(String)
+    case grammar
+    case grammarLevel(Int)
+    case grammarPoint(GrammarPoint)
+    case tones
+    case tonePair(TonePairSelection)
     case sentences
     case sentenceSet(SentenceSetSelection)
   }

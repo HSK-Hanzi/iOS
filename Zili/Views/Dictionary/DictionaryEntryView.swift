@@ -26,13 +26,16 @@ extension EnvironmentValues {
 
 /// A complete dictionary entry for a single word: a header with its script forms, reading,
 /// and syllabus/frequency badges, followed by its senses from every loaded dictionary —
-/// each with part-of-speech labels, example sentences, and tappable cross-references.
+/// each with part-of-speech labels, example sentences, and tappable cross-references — and
+/// then Zili's own example sentences for the word.
 struct DictionaryEntryView: View {
   /// Caps the entry's line length for readability, so definitions and example sentences don't
   /// run edge-to-edge in a wide detail column on iPad or Mac.
   private static let readableWidth: CGFloat = 680
 
   let lookup: WordLookup
+  /// Example sentences written for the word, easiest first.
+  var examples: [PracticeSentence] = []
 
   var body: some View {
     ScrollView {
@@ -49,6 +52,9 @@ struct DictionaryEntryView: View {
           ForEach(populatedResults, id: \.metadata.identifier) { result in
             DictionarySectionView(result: result)
           }
+        }
+        if !examples.isEmpty {
+          ExamplesSectionView(sentences: examples)
         }
       }
       .padding()
@@ -69,6 +75,31 @@ struct DictionaryEntryView: View {
       described[word].languageIdentifier = ChineseScript.simplified.languageIdentifier
     }
     return described
+  }
+}
+
+// MARK: - Examples
+
+/// The word's example sentences as a collapsible section beside the dictionaries', remembering
+/// whether it is expanded the same way they do.
+private struct ExamplesSectionView: View {
+  let sentences: [PracticeSentence]
+
+  @AppStorage("dictionarySection.expanded.examples")
+  private var isExpanded = true
+
+  var body: some View {
+    DisclosureGroup(isExpanded: $isExpanded) {
+      VStack(alignment: .leading, spacing: 12) {
+        ForEach(sentences) { SentenceExampleRow(sentence: $0) }
+      }
+      .padding(.top, 4)
+    } label: {
+      Text("Examples")
+        .font(.headline)
+        .foregroundStyle(.secondary)
+    }
+    .tint(.secondary)
   }
 }
 

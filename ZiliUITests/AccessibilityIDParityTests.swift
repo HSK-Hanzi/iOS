@@ -42,14 +42,14 @@ final class AccessibilityIDParityTests: XCTestCase {
 
   func testParameterizedIdentifiersAreNamespacedAndDistinct() {
     let level = AccessibilityID.characterSetLevel("Level 1")
-    let band = AccessibilityID.sentenceSetLevel(1)
+    let pair = AccessibilityID.tonePairCell(3, 4)
 
     XCTAssertTrue(level.hasPrefix("characterSet.level."), "A character-set tile keeps its prefix.")
-    XCTAssertTrue(band.hasPrefix("sentenceSet.level."), "A sentence-set tile keeps its prefix.")
-    XCTAssertNotEqual(level, band, "The two parameterized families don't collide.")
+    XCTAssertTrue(pair.hasPrefix("tonePair.cell."), "A tone-pair cell keeps its prefix.")
+    XCTAssertNotEqual(level, pair, "The two parameterized families don't collide.")
 
     XCTAssertFalse(
-      AccessibilityID.all.contains(level),
+      AccessibilityID.all.contains(level) || AccessibilityID.all.contains(pair),
       "A parameterized identifier is distinct from every fixed one."
     )
   }

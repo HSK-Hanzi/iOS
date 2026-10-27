@@ -39,14 +39,35 @@ final class WordPronouncer {
 
   private let synthesizer = AVSpeechSynthesizer()
 
+  private static func utterance(of text: String, pace: Pace) -> AVSpeechUtterance {
+    let utterance = AVSpeechUtterance(string: text)
+    utterance.voice = bestVoice
+    utterance.rate = pace.rate
+    return utterance
+  }
+
   /// Pronounces `text` in Mandarin at `pace`, interrupting any utterance still being spoken.
   func speak(_ text: String, pace: Pace = .normal) {
     activatePlaybackSession()
     synthesizer.stopSpeaking(at: .immediate)
-    let utterance = AVSpeechUtterance(string: text)
-    utterance.voice = Self.bestVoice
-    utterance.rate = pace.rate
-    synthesizer.speak(utterance)
+    synthesizer.speak(Self.utterance(of: text, pace: pace))
+  }
+
+  /// Pronounces each of `texts` in turn with `pause` after each, interrupting any utterance still
+  /// being spoken.
+  func speakInTurn(_ texts: [String], pause: TimeInterval, pace: Pace = .normal) {
+    activatePlaybackSession()
+    synthesizer.stopSpeaking(at: .immediate)
+    for text in texts {
+      let utterance = Self.utterance(of: text, pace: pace)
+      utterance.postUtteranceDelay = pause
+      synthesizer.speak(utterance)
+    }
+  }
+
+  /// Stops speaking, dropping anything still waiting its turn.
+  func stop() {
+    synthesizer.stopSpeaking(at: .immediate)
   }
 
   /// Routes speech to playback so it sounds even when the device is on silent. A no-op off iOS,

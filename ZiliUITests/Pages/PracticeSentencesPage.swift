@@ -8,9 +8,8 @@
 import XCTest
 import XCUITestKit
 
-/// Practice Sentences: the corpus level grid and the built-in Favorites and Missed sets. Drilling a
-/// level lists its sentence rows, and a row opens that sentence's detail; an empty set drills into
-/// its empty state.
+/// Practice Sentences: the learner's Favorites and Missed sets, each drilling into its sentence rows
+/// or its empty state, and the open sentence's detail, whose words can be looked up.
 struct PracticeSentencesPage: Page {
   #if os(macOS)
     /// How long the pointer rests on a word before its peek is drawn and settled.
@@ -19,28 +18,16 @@ struct PracticeSentencesPage: Page {
 
   let test: ZiliUITestCase
 
-  /// Reaches the sentence corpora (its Practice card on iOS, its window on macOS).
+  /// Reaches the Favorites and Missed sets (its Practice card on iOS, its window on macOS).
   @discardableResult
   static func open(_ test: ZiliUITestCase) async -> Self {
     await test.goToPracticeSentences()
     return Self(test: test)
   }
 
-  /// Opens the corpus level in `band` (1-based) and lists its sentences.
-  func openLevel(_ band: Int) async {
-    await test.tap(AccessibilityID.sentenceSetLevel(band), "The corpus level \(band).")
-  }
-
   /// Drills into the built-in Missed set.
   func openMissed() async {
     await test.tap(AccessibilityID.sentenceSetMissed, "The Missed set.")
-  }
-
-  /// Opens the first sentence row and waits for its detail.
-  @discardableResult
-  func openFirstSentence() async -> XCUIElement {
-    await test.tap(AccessibilityID.sentenceRow, "A sentence row.")
-    return test.expect(AccessibilityID.sentenceDetail, "The sentence's detail.")
   }
 
   /// Taps `word` in the open sentence and waits for its peek, with its reading and meaning.
@@ -66,12 +53,6 @@ struct PracticeSentencesPage: Page {
     let element = test.app.descendants(matching: .any)[word].firstMatch
     XCTAssertTrue(element.wait(), "\(word) in the sentence.")
     return element
-  }
-
-  /// Asserts the level's sentence list appeared.
-  @discardableResult
-  func expectSentenceList() -> XCUIElement {
-    test.expect(AccessibilityID.sentenceRow, "The level's sentence list.")
   }
 
   /// Switches VoiceOver on for the rest of the test and walks it forward `stops` times from

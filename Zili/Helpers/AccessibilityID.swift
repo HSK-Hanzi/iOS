@@ -16,6 +16,8 @@ enum AccessibilityID {
   static let dictionaryResults = "dictionary.results"
   static let dictionaryResultRow = "dictionary.resultRow"
   static let dictionaryEmptyState = "dictionary.emptyState"
+  static let dictionaryRadicals = "dictionary.radicals"
+  static let radicalCharacter = "radical.character"
   static let wordEntry = "word.entry"
   static let wordFavoriteToggle = "word.favoriteToggle"
   static let wordStrokeOrderLink = "word.strokeOrderLink"
@@ -24,6 +26,8 @@ enum AccessibilityID {
   // Practice
   static let practiceCharactersCard = "practice.charactersCard"
   static let practiceSentencesCard = "practice.sentencesCard"
+  static let practiceTonesCard = "practice.tonesCard"
+  static let practiceGrammarCard = "practice.grammarCard"
   static let characterSetFavorites = "characterSet.favorites"
   static let characterSetMissed = "characterSet.missed"
   static let characterSetClearAll = "characterSet.clearAll"
@@ -39,6 +43,13 @@ enum AccessibilityID {
   static let sentenceListEmptyState = "sentence.emptyState"
   static let sentenceDetail = "sentence.detail"
   static let sentenceFavoriteToggle = "sentence.favoriteToggle"
+
+  // Practice grammar
+  static let grammarPoint = "grammar.point"
+
+  // Practice tones
+  static let tonePairPlayAll = "tonePair.playAll"
+  static let tonePairWord = "tonePair.word"
   static let wordPeekOpenEntry = "wordPeek.openEntry"
 
   // Quiz (shared)
@@ -101,6 +112,14 @@ enum AccessibilityID {
   /// The grid tile / list row for one HSK level, suffixed with the level's name.
   static func characterSetLevel(_ level: String) -> String { "characterSet.level.\(level)" }
 
-  /// The sentence-set grid tile for one corpus level, suffixed with the band number.
-  static func sentenceSetLevel(_ band: Int) -> String { "sentenceSet.level.\(band)" }
+  /// The grammar grid's tile for one HSK 3.0 level, suffixed with the level number.
+  static func grammarLevel(_ level: Int) -> String { "grammar.level.\(level)" }
+
+  /// The radical index's tile for one radical, suffixed with its Kangxi number (`149'` for 讠).
+  static func radicalCell(_ number: String) -> String { "radical.cell.\(number)" }
+
+  /// The tone grid's cell for one pair, suffixed with its two tone numbers (5 is neutral).
+  static func tonePairCell(_ pair: TonePair) -> String {
+    "tonePair.cell.\(pair.first.rawValue)\(pair.second.rawValue)"
+  }
 }

@@ -66,7 +66,7 @@ struct ListeningQuizConfigurationForm: View {
             }
           }
           .pickerStyle(.menu)
-          SentenceLevelPicker(levels: $levels, available: availableLevels)
+          LevelChipPicker(levels: $levels, available: availableLevels)
         case .favorites:
           if favorites.favoritedIDs.isEmpty {
             Text("Star sentences to build a favorites deck.")
@@ -145,73 +145,6 @@ struct ListeningQuizConfigurationForm: View {
     case hskLevels
     case favorites
     case missed
-  }
-}
-
-/// Picks one or more sentence levels of one standard as tappable chips in their level colors,
-/// mirroring the character quiz's ``CharacterSetPickerView``.
-private struct SentenceLevelPicker: View {
-  @Binding var levels: Set<HSKLevel>
-  let available: [HSKLevel]
-
-  var body: some View {
-    LazyVGrid(columns: [GridItem(.adaptive(minimum: 56), spacing: 12)], spacing: 12) {
-      ForEach(available, id: \.self) { level in
-        SentenceLevelChip(
-          band: level.band,
-          isSelected: levels.contains(level),
-          toggle: { toggle(level) }
-        )
-      }
-    }
-    .padding(.vertical, 4)
-  }
-
-  private func toggle(_ level: HSKLevel) {
-    if levels.contains(level) {
-      levels.remove(level)
-    } else {
-      levels.insert(level)
-    }
-  }
-}
-
-/// A single tappable level chip in its band's color: a soft wash of the hue when off, the full
-/// level gradient when it belongs to the selection.
-private struct SentenceLevelChip: View {
-  let band: Int
-  let isSelected: Bool
-  let toggle: () -> Void
-
-  @Environment(\.self)
-  private var environment
-
-  var body: some View {
-    let palette = HSKPalette.palette(forBand: band).resolved(in: environment)
-    return Button(action: toggle) {
-      Text(band, format: .number)
-        .font(.headline)
-        .foregroundStyle(isSelected ? Color.white : palette.tint)
-        .frame(maxWidth: .infinity, minHeight: 44)
-        .background(fill(palette), in: .rect(cornerRadius: 10))
-        .overlay {
-          RoundedRectangle(cornerRadius: 10)
-            .strokeBorder(
-              palette.tint.opacity(isSelected ? 0 : 0.35),
-              lineWidth: isSelected ? 0 : 1
-            )
-        }
-        .contentShape(.rect)
-    }
-    .buttonStyle(.plain)
-    .accessibilityLabel(Text("HSK level \(band, format: .number)"))
-    .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
-  }
-
-  private func fill(_ palette: LevelPalette.Resolved) -> AnyShapeStyle {
-    isSelected
-      ? AnyShapeStyle(palette.promptGradient)
-      : AnyShapeStyle(palette.tint.opacity(0.16))
   }
 }
 

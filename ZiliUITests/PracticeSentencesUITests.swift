@@ -10,18 +10,19 @@
 import XCTest
 import XCUITestKit
 
-/// Browsing the sentence corpora: drilling a corpus level down to a single sentence's detail, the
-/// empty Missed set a learner sees before they've missed anything, and the path VoiceOver takes
-/// through a sentence.
+/// Reaching sentences: a word's example opening that sentence's detail, the empty Missed set a
+/// learner sees before they've missed anything, and the path VoiceOver takes through a sentence.
 final class PracticeSentencesUITests: ZiliUITestCase {
-  func testBrowseLevelToSentenceDetail() async throws {
-    launch()
-    let sentences = await PracticeSentencesPage.open(self)
+  /// A word whose first example sentence holds a word of more than one character (什么).
+  private static let exampledWord = "喝"
+  private static let exampledWordLink = "zili://word/%E5%96%9D"
 
-    // Opening a corpus level lists its sentences; opening a row drills to that sentence's detail.
-    await sentences.openLevel(1)
-    sentences.expectSentenceList()
-    await sentences.openFirstSentence()
+  func testWordEntryOpensAnExampleSentence() async throws {
+    launch()
+    let entry = try await openExampledWord()
+
+    // The entry lists the word's example sentences, and one opens to that sentence's detail.
+    await entry.openFirstExample()
   }
 
   func testMissedSentencesAreEmptyWithoutMisses() async throws {
@@ -49,13 +50,12 @@ final class PracticeSentencesUITests: ZiliUITestCase {
   #if !os(macOS)
     func testVoiceOverMovesThroughASentenceByWord() async throws {
       launch()
-      let sentences = await PracticeSentencesPage.open(self)
-      await sentences.openLevel(1)
-      await sentences.openFirstSentence()
+      try await openExampledWord().openFirstExample()
+      let sentences = PracticeSentencesPage(test: self)
 
       let utterances = try sentences.utterancesWalkingForward(stops: 16)
       let firstWord = try XCTUnwrap(
-        utterances.firstIndex(where: \.beginsWithHanzi),
+        utterances.firstIndex { $0.beginsWithHanzi && !$0.isBackButton },
         "VoiceOver reaches the sentence's Hanzi."
       )
       let words = utterances[firstWord...].prefix(while: \.beginsWithHanzi)
@@ -79,6 +79,22 @@ final class PracticeSentencesUITests: ZiliUITestCase {
   #endif
 }
 
+extension PracticeSentencesUITests {
+  /// Opens the exampled word's entry: by its link on iOS and visionOS, where typing a search raises
+  /// a keyboard that scrolls the exact result out of reach, and by searching on macOS, where the
+  /// test runner can't open a link.
+  fileprivate func openExampledWord() async throws -> WordEntryPage {
+    #if os(macOS)
+      let dictionary = DictionaryPage.open(self)
+      dictionary.search(Self.exampledWord)
+      return await dictionary.openResult(Self.exampledWord)
+    #else
+      try follow(link: Self.exampledWordLink)
+      return WordEntryPage(test: self)
+    #endif
+  }
+}
+
 extension String {
   /// Whether this utterance opens with Hanzi, which marks it as one of the sentence's words rather
   /// than a control, its reading, or its translation.
@@ -91,6 +107,10 @@ extension String {
     }
     .count
   }
+
+  /// Whether this utterance is a back button, which is titled with the word the sentence was opened
+  /// from and so opens with Hanzi without being one of the sentence's words.
+  fileprivate var isBackButton: Bool { hasSuffix("Back button") }
 
   /// Whether this utterance opens with a Latin letter — a reading or a translation, not Hanzi.
   fileprivate var beginsWithLatinLetter: Bool {
