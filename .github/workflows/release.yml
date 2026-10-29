@@ -9,6 +9,10 @@ name: Release
 # version ends up pointing at the newer build; the older one stays on App Store Connect, since a
 # build can be expired but never deleted. A tag push is a deploy, not bookkeeping.
 #
+# The project is the version's source. The verify lane refuses a tag that differs from the app's
+# MARKETING_VERSION or names a commit on neither main nor a release/ branch, and the build stamps
+# only the build number, one past the highest App Store Connect holds.
+#
 # Nothing here re-runs the test suites: tag a commit CI has already passed. The one test it does
 # run is CloudKitSchemaTests, strictly, after checking Production still matches
 # CloudKit/schema.ckdb: a model that schema doesn't cover would never sync from the build being
@@ -29,7 +33,7 @@ concurrency:
 
 jobs:
   cloudkit:
-    uses: RISCfuture/XCUITestKit/.github/workflows/cloudkit-schema.yml@1.1.0
+    uses: RISCfuture/XCUITestKit/.github/workflows/cloudkit-schema.yml@1.2.0
     with:
       runner: xcode-27
       team-id: 2NFSK2WB24
@@ -57,7 +61,7 @@ jobs:
 
   release:
     needs: cloudkit
-    uses: RISCfuture/XCUITestKit/.github/workflows/ios-release.yml@1.0.0
+    uses: RISCfuture/XCUITestKit/.github/workflows/ios-release.yml@1.2.0
     with:
       platforms: '["iOS","macOS","visionOS"]'
       version: ${{ inputs.version || github.ref_name }}
@@ -65,7 +69,7 @@ jobs:
       # The shared release workflow names no default image, leaving each app to say which one it
       # ships from.
       runner: xcode-27
-      verify-lane: ci_verify_release_notes
+      verify-lane: ci_verify_release
       finish-lane: ci_finish_release
       # A Release build reads only the open-licensed data — INCLUDE_LICENSED_DICTIONARIES is set in
       # the Debug configuration alone — so Data/Proprietary stays absent and needs no key. Data/Open

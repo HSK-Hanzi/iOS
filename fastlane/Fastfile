@@ -38,6 +38,7 @@ default_platform :ios
 APP_IDENTIFIER = "codes.tim.Zili"
 SCHEME = "Zili"
 XCODEPROJ = "Zili.xcodeproj"
+REPO_ROOT = File.expand_path("..", __dir__)
 
 # Where archives and dSYMs land, so a CI run can collect them as artifacts.
 OUTPUT_DIRECTORY = "build"
@@ -63,11 +64,64 @@ PLATFORMS = {
                   connect: "VISION_OS" }
 }.freeze
 
-# The Sentry project the release lanes upload dSYMs and sources to. `sentry-cli` reads
-# SENTRY_AUTH_TOKEN from the environment itself; `.sentryclirc` is committed and so holds only the
-# project's identity.
-SENTRY_ORG = "timcodes"
-SENTRY_PROJECT = "zili"
+# Which Sentry project a release uploads its debug symbols to, read from the committed .sentryclirc
+# that the app target's "Upload Debug Symbols to Sentry" build phase relies on, so the two cannot
+# drift. sentry-cli would read that file itself, but only from its own working directory, and `sh`
+# does not run from the repository root — so the values are read here and passed on the command line,
+# where no working directory can affect them.
+def sentry_defaults
+  path = File.join(REPO_ROOT, ".sentryclirc")
+  File.read(path).scan(/^\s*(org|project)\s*=\s*(\S+)\s*$/).to_h
+rescue Errno::ENOENT
+  {}
+end
+
+# The app's marketing version as the project declares it. The project is the version's only source:
+# a release ships the version it was committed with, and the release lanes stamp the build number
+# alone.
+def project_marketing_version
+  project = Xcodeproj::Project.open(File.join(REPO_ROOT, XCODEPROJ))
+  target = project.targets.find { it.name == SCHEME }
+  versions = target.build_configurations.map { it.build_settings["MARKETING_VERSION"] }.uniq
+  unless versions.one?
+    UI.user_error!("#{SCHEME}'s configurations disagree on MARKETING_VERSION: #{versions.join(", ")}.")
+  end
+
+  versions.first
+end
+
+# Refuses to release a version the project doesn't declare. A tag is a request to ship what its
+# commit says, so a tag naming any other version was pushed onto the wrong commit.
+def verify_project_version(version)
+  declared = project_marketing_version
+  return if declared == version
+
+  UI.user_error!("This release is #{version}, but #{SCHEME}'s MARKETING_VERSION is #{declared}. " \
+                 "Tag the commit that advances the version, or advance it before tagging.")
+end
+
+# The branches a release may be cut from: main, or a release/X.Y branch carrying a hotfix.
+RELEASE_BRANCH_REFS = %w[refs/remotes/origin/main refs/remotes/origin/release/].freeze
+
+# Refuses to release a commit that is on neither main nor a release branch, such as one left behind
+# by a rewritten history or pushed only to a topic branch. The checkout CI hands the verify lane holds
+# the tagged commit alone, so the branches are fetched first; what they share with it is all the
+# history the containment check walks.
+def verify_release_branch
+  sh("git", "-C", REPO_ROOT, "fetch", "--quiet", "--no-tags", "origin",
+     "+refs/heads/main:refs/remotes/origin/main",
+     "+refs/heads/release/*:refs/remotes/origin/release/*", log: false)
+  output, status = Open3.capture2("git", "-C", REPO_ROOT, "for-each-ref", "--contains", "HEAD",
+                                  "--format=%(refname:lstrip=3)", *RELEASE_BRANCH_REFS)
+  UI.user_error!("Couldn't list the branches holding HEAD.") unless status.success?
+
+  branches = output.split
+  if branches.empty?
+    UI.user_error!("#{`git -C #{REPO_ROOT.shellescape} rev-parse --short HEAD`.strip} is on neither " \
+                   "main nor a release/ branch, so it is not a commit to release.")
+  end
+  UI.message("Releasing from #{branches.join(", ")}.")
+end
 
 # Signing credentials live in a private repository, everything in it encrypted under one
 # MATCH_PASSWORD: the Apple Distribution certificate (managed by _match_) and the App Store Connect
@@ -293,8 +347,8 @@ RELEASE_NOTES_LIMIT = 4000
 
 # One version's release notes, rendered as App Store Connect wants them — the store field shows
 # whatever it is given verbatim, so the script strips the Markdown the changelog is written in.
-# Raises when the changelog has no section for the version, which is the failure `ci_verify_release
-# _notes` exists to reach before anything is built.
+# Raises when the changelog has no section for the version, which is one of the failures
+# `ci_verify_release` exists to reach before anything is built.
 def release_notes(version, locale: nil)
   script = File.expand_path("../Scripts/release-notes.sh", __dir__)
   # Not fastlane's `sh`: it reports a failure by printing the Ruby line that called it, so a missing
@@ -320,7 +374,7 @@ end
 # Connect rather than from the changelog so a mistyped heading cannot publish the app into a
 # territory it does not sell in — it just goes unused.
 #
-# An empty rendering is never written. `ci_verify_release_notes` should have caught that before the
+# An empty rendering is never written. `ci_verify_release` should have caught that before the
 # build, but replacing a release's notes with blankness is bad enough to be worth refusing twice.
 def write_release_notes(store_version, version:, name:)
   written = store_version.get_app_store_version_localizations.filter_map do |localization|
@@ -554,8 +608,10 @@ platform :ios do
   desc "Build and upload to TestFlight"
   lane :beta do
     ensure_signing
-    increment_build_number xcodeproj: XCODEPROJ
-    build_app scheme: SCHEME, export_method: "app-store", output_directory: OUTPUT_DIRECTORY
+    build_app scheme:           SCHEME,
+              export_method:    "app-store",
+              output_directory: OUTPUT_DIRECTORY,
+              xcargs:           "CURRENT_PROJECT_VERSION=#{resolve_next_build_number}"
     upload_to_testflight
     upload_debug_symbols
   end
@@ -563,8 +619,10 @@ platform :ios do
   desc "Build and upload to App Store"
   lane :release do
     ensure_signing
-    increment_build_number xcodeproj: XCODEPROJ
-    build_app scheme: SCHEME, export_method: "app-store", output_directory: OUTPUT_DIRECTORY
+    build_app scheme:           SCHEME,
+              export_method:    "app-store",
+              output_directory: OUTPUT_DIRECTORY,
+              xcargs:           "CURRENT_PROJECT_VERSION=#{resolve_next_build_number}"
     upload_to_app_store skip_metadata:     false,
                         skip_screenshots:  false,
                         submit_for_review: false
@@ -573,17 +631,7 @@ platform :ios do
 
   desc "Resolve the next build number and write it where CI can read it"
   lane :ci_next_build_number do
-    ensure_api_key
-
-    # App Store Connect is the authority, not the project file: the checked-in build number drifts
-    # behind whatever was last uploaded, and every platform of a release shares one number.
-    latest = PLATFORMS.each_value.map do |platform|
-      latest_testflight_build_number(app_identifier:       APP_IDENTIFIER,
-                                     platform:             platform[:deliver],
-                                     initial_build_number: 0)
-    end.max
-
-    next_build_number = latest + 1
+    next_build_number = resolve_next_build_number
     UI.success("Next build number: #{next_build_number}")
 
     # Only CI needs the value in a file to hand to the next job; a local run just wants to see it.
@@ -598,6 +646,7 @@ platform :ios do
                      "This app ships #{PLATFORMS.keys.join(', ')}.")
     end
 
+    verify_project_version(options.fetch(:version))
     setup_ci # No-op off CI; elsewhere it keeps match out of the login keychain.
     ensure_signing(match_platform:       platform.fetch(:match),
                    additional_cert_types: platform.fetch(:additional_cert_types, []))
@@ -615,16 +664,16 @@ platform :ios do
       sdk:              platform[:sdk],
       export_method:    "app-store",
       output_directory: OUTPUT_DIRECTORY,
-      # Passing the version on the command line rather than writing it into the project keeps a
-      # release from leaving a commit behind, and stamps every target in the archive alike.
+      # The build number is passed on the command line rather than written into the project, which
+      # keeps a release from leaving a commit behind and stamps every target in the archive alike.
+      # The marketing version is the project's own.
       #
       # The archive signs automatically, exactly as it does in Xcode: `-allowProvisioningUpdates`
       # plus the API key lets it resolve a profile, and the certificate comes from the certificates
       # repository. The export cannot do the same — cloud signing is refused for distribution — so it
       # consumes the stored match profiles instead, which build_app puts into its export options from
       # match's mapping. Hence automatic signing here and managed profiles there.
-      xcargs:           "MARKETING_VERSION=#{options.fetch(:version)} " \
-                        "CURRENT_PROJECT_VERSION=#{options.fetch(:build)} " \
+      xcargs:           "CURRENT_PROJECT_VERSION=#{options.fetch(:build)} " \
                         "-allowProvisioningUpdates #{authentication_args}"
     )
 
@@ -640,9 +689,11 @@ platform :ios do
     upload_debug_symbols
   end
 
-  desc "Refuse to start a release whose notes are missing, empty, or too long (CI)"
-  lane :ci_verify_release_notes do |options|
+  desc "Refuse to start a release the project, branch, or changelog doesn't back (CI)"
+  lane :ci_verify_release do |options|
     version = options.fetch(:version)
+    verify_project_version(version)
+    verify_release_branch
 
     # Only the default section is checked. Every locale falls back to it, so if it is present and
     # fits, no locale can be empty — which lets this run with no App Store Connect credentials, and
@@ -712,6 +763,19 @@ platform :ios do
     end
   end
 
+  # The build number to ship next: one past the highest App Store Connect holds for any platform.
+  # App Store Connect is the authority, not the project file: the checked-in build number drifts
+  # behind whatever was last uploaded, and every platform of a release shares one number.
+  private_lane :resolve_next_build_number do
+    ensure_api_key
+
+    PLATFORMS.each_value.map do |platform|
+      latest_testflight_build_number(app_identifier:       APP_IDENTIFIER,
+                                     platform:             platform[:deliver],
+                                     initial_build_number: 0)
+    end.max + 1
+  end
+
   # Loads the App Store Connect API key. Kept out of `before_all` so `screenshots`, which runs
   # entirely against local simulators, needs no credentials at all.
   private_lane :ensure_api_key do
@@ -776,10 +840,17 @@ platform :ios do
       next
     end
 
+    org, project = sentry_defaults.values_at("org", "project")
+    if org.nil? || project.nil?
+      UI.important("No .sentryclirc naming an organization and project; skipping the Sentry " \
+                   "upload of #{dsym_path}.")
+      next
+    end
+
     begin
       sh("sentry-cli", "debug-files", "upload",
-         "--org", SENTRY_ORG,
-         "--project", SENTRY_PROJECT,
+         "--org", org,
+         "--project", project,
          "--include-sources",
          dsym_path)
     rescue StandardError => error
