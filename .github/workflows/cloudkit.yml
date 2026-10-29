@@ -6,9 +6,9 @@ name: CloudKit
 # unit suite's CloudKitSchemaTests: a warning there, and a failure in the release workflow.
 on:
   push:
-    branches: [main]
+    branches: [main, "release/**"]
   pull_request:
-    branches: [main]
+    branches: [main, "release/**"]
   schedule:
     - cron: "17 9 * * 1"
   workflow_dispatch:
@@ -19,7 +19,7 @@ concurrency:
 
 jobs:
   schema:
-    uses: RISCfuture/XCUITestKit/.github/workflows/cloudkit-schema.yml@1.1.0
+    uses: RISCfuture/XCUITestKit/.github/workflows/cloudkit-schema.yml@1.2.0
     with:
       runner: xcode-27
       team-id: 2NFSK2WB24
