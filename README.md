@@ -70,10 +70,8 @@ runtime rather than parsing large plists into memory.
 the listing's media from `promo/`, through the **Promo** test plan: run
 `pnpm install` there once, then `fastlane screenshots`,
 `fastlane mac_screenshots`, `fastlane preview` or `fastlane creative_assets`.
-They build with Xcode 27.1 or later, which the iPhone Duo simulator needs; set
-`DUO_XCODE` in `fastlane/.env` if it isn't the release candidate in
-`/Applications`. `promo/storyboard.json` and `promo/brand.css` set how they
-look.
+They build with the selected Xcode, which must be 27.1 or later for the iPhone
+Duo simulator. `promo/storyboard.json` and `promo/brand.css` set how they look.
 
 ### Crash reporting
 

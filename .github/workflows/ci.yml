@@ -41,12 +41,12 @@ jobs:
       # with. Nothing installs a standalone Swift on top of it: pointing TOOLCHAINS at one leaves
       # that toolchain's clang unable to reach the linker, and SwiftPM then fails to resolve the
       # package dependencies at all — before a line of the app is compiled.
-      - uses: maxim-lobanov/setup-xcode@v1
+      - uses: maxim-lobanov/setup-xcode@v1.7.0
         with:
           xcode-version: latest-stable
 
       - name: Check out repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7.0.1
         with:
           submodules: false
 
@@ -63,7 +63,7 @@ jobs:
         run: echo "xcode=$(xcodebuild -version | tr '\n' '-')" >> "$GITHUB_OUTPUT"
 
       - name: Cache SwiftPM dependencies
-        uses: actions/cache@v6
+        uses: actions/cache@v6.1.0
         with:
           path: ~/Library/Caches/org.swift.swiftpm
           key: spm-${{ runner.os }}-${{ hashFiles('**/Package.resolved') }}
@@ -75,7 +75,7 @@ jobs:
       # dependency graph or toolchain must never be reused. Only Build and SourcePackages are kept:
       # the index store is regenerated each run rather than restored stale.
       - name: Cache Xcode build products
-        uses: actions/cache@v6
+        uses: actions/cache@v6.1.0
         with:
           path: |
             ${{ runner.temp }}/dd-test/Build
@@ -120,7 +120,7 @@ jobs:
 
       - name: Upload test results
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: test-results-${{ matrix.plan }}-${{ matrix.platform.name }}
           path: TestResults-${{ matrix.plan }}-${{ matrix.platform.name }}.xcresult
@@ -134,12 +134,12 @@ jobs:
       # with. Nothing installs a standalone Swift on top of it: pointing TOOLCHAINS at one leaves
       # that toolchain's clang unable to reach the linker, and SwiftPM then fails to resolve the
       # package dependencies at all — before a line of the app is compiled.
-      - uses: maxim-lobanov/setup-xcode@v1
+      - uses: maxim-lobanov/setup-xcode@v1.7.0
         with:
           xcode-version: latest-stable
 
       - name: Check out repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7.0.1
         with:
           submodules: false
 
@@ -156,7 +156,7 @@ jobs:
         run: echo "xcode=$(xcodebuild -version | tr '\n' '-')" >> "$GITHUB_OUTPUT"
 
       - name: Cache SwiftPM dependencies
-        uses: actions/cache@v6
+        uses: actions/cache@v6.1.0
         with:
           path: ~/Library/Caches/org.swift.swiftpm
           key: spm-${{ runner.os }}-${{ hashFiles('**/Package.resolved') }}
@@ -168,7 +168,7 @@ jobs:
       # dependency graph or toolchain must never be reused. Only Build and SourcePackages are kept:
       # the index store is regenerated each run rather than restored stale.
       - name: Cache Xcode build products
-        uses: actions/cache@v6
+        uses: actions/cache@v6.1.0
         with:
           path: |
             ${{ runner.temp }}/docs-dd/Build
