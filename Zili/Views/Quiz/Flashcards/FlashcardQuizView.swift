@@ -121,6 +121,7 @@ private struct RunningQuizView: View {
         Spacer()
 
         JudgementControls(onJudge: judge)
+          .avoidingFold(movingAlong: .horizontal)
           #if os(visionOS)
             // A tidy, bounded row that floats just forward of the card on its own plane — rather
             // than spreading the buttons across the full width of the window.

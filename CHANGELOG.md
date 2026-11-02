@@ -16,6 +16,8 @@ one of the two places.
 - On iPhone Duo, the writing pad moves off the fold when you bend the phone:
   below it in tabletop pose, with the character to write above, or beside it
   when you hold the phone like a book.
+- Held like a book, iPhone Duo keeps the drawing round’s and the flashcards’
+  buttons off the fold too, beside the character and its paper.
 
 ### FIXES
 

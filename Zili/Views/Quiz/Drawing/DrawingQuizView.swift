@@ -89,8 +89,9 @@ private struct DrawingRoundView: View {
           sheetLayout {
             CharacterHeader(card: card)
             WritingPad(graphic: graphic, verdict: phase.verdict, onComplete: grade)
-              .avoidingFold()
+              .avoidingFold(movingAlong: .vertical)
           }
+          .avoidingFold(movingAlong: .horizontal)
           .transition(.blurReplace)
         }
       }
@@ -103,6 +104,7 @@ private struct DrawingRoundView: View {
         onSkip: { session.mark(.skipped) },
         onNext: { session.mark($0) }
       )
+      .avoidingFold(movingAlong: .horizontal)
     }
     .padding(20)
     .frame(maxWidth: .infinity, maxHeight: .infinity)
