@@ -63,15 +63,36 @@ struct `Stroke test progress` {
     #expect(model.strokes.isEmpty)
     #expect(model.verdicts.isEmpty)
   }
+
+  @Test
+  func `a canvas resized mid-character keeps the verdicts its strokes were drawn with`() {
+    var completions = 0
+    let model = StrokeTestModel(graphic: PreviewHanzi.person, canvasSide: canvasSide) { _ in
+      completions += 1
+    }
+    let resizedSide = canvasSide * 2
+    model.add(strokePoints: tracedStrokes(of: PreviewHanzi.person)[0])
+
+    model.canvasSide = resizedSide
+    #expect(model.verdicts == [.correct])
+
+    let resizedStrokes = tracedStrokes(of: PreviewHanzi.person, onCanvasOfSide: resizedSide)
+    model.add(strokePoints: resizedStrokes[1])
+    #expect(model.verdicts == [.correct, .correct])
+    #expect(completions == 1)
+  }
 }
 
 /// A canvas nothing like the size of the source grid, so the strokes drawn on it have to be
 /// scaled back into the evaluator's space rather than passing through untouched.
 private let canvasSide: CGFloat = 350
-private let canvasRect = CGRect(origin: .zero, size: CGSize(width: canvasSide, height: canvasSide))
 
-/// The character's own medians, laid out on that canvas — a perfect trace.
+/// The character's own medians, laid out on a canvas — a perfect trace.
 @MainActor
-private func tracedStrokes(of graphic: HanziGraphic) -> [[CGPoint]] {
-  graphic.medians.map { HanziGeometry.points($0, in: canvasRect) }
+private func tracedStrokes(
+  of graphic: HanziGraphic,
+  onCanvasOfSide side: CGFloat = canvasSide
+) -> [[CGPoint]] {
+  let canvasRect = CGRect(origin: .zero, size: CGSize(width: side, height: side))
+  return graphic.medians.map { HanziGeometry.points($0, in: canvasRect) }
 }

@@ -9,6 +9,14 @@ here and as plain text on the store, where the field shows whatever it is given
 verbatim: a line that only makes sense with its formatting will read badly in
 one of the two places.
 
+## 2.0.1
+
+### FIXES
+
+- Strokes you’ve drawn stay where you drew them when the writing pad changes
+  size, as it does when you rotate, open or fold iPhone Duo, or resize Split
+  View. They used to be redrawn at the wrong scale and graded again.
+
 ## 2.0
 
 Zili 2.0 requires iOS 27, iPadOS 27, macOS 27, or visionOS 27.

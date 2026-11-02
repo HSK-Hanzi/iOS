@@ -87,7 +87,8 @@ struct `Glyph geometry` {
   }
 
   /// A point placed on a canvas returns to matching space regardless of the canvas size, so the
-  /// same grid point yields the same matching coordinate whether drawn at 512 or 1024.
+  /// same grid point yields the same matching coordinate whether drawn at 512 or 1024, and comes
+  /// back to where it was drawn.
   @Test
   func `a canvas point round-trips into resolution-independent matching space`() {
     let grid = MedianPoint(x: 400, y: 300)
@@ -97,6 +98,7 @@ struct `Glyph geometry` {
       let rect = CGRect(x: 0, y: 0, width: side, height: side)
       let canvas = HanziGeometry.points([grid], in: rect)
       #expect(HanziGeometry.matchingPoints(fromCanvas: canvas, in: rect) == [matched])
+      #expect(HanziGeometry.canvasPoints(fromMatching: [matched], in: rect) == canvas)
     }
   }
 }

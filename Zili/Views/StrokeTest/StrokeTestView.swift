@@ -90,13 +90,15 @@ struct StrokeTestView: View {
   private var inkLayer: some View {
     Canvas { context, size in
       let penWidth = size.width * Self.penWidthFraction
+      let canvasRect = CGRect(origin: .zero, size: size)
       for (stroke, verdict) in zip(model.strokes, model.verdicts) {
+        let points = HanziGeometry.canvasPoints(fromMatching: stroke.points, in: canvasRect)
         context.stroke(
-          path(through: stroke.points),
+          path(through: points),
           with: .color(color(for: verdict)),
           style: penStyle(penWidth)
         )
-        if differentiateWithoutColor, let anchor = stroke.points.last {
+        if differentiateWithoutColor, let anchor = points.last {
           drawVerdictGlyph(verdict, at: anchor, penWidth: penWidth, in: &context)
         }
       }
@@ -385,12 +387,12 @@ private struct ShadowGlyph: View {
 @MainActor
 @Observable
 final class StrokeTestModel {
-  /// The side of the square canvas the strokes were drawn on, needed to carry them into the
-  /// evaluator's grid. Zero until the view has been laid out.
-  var canvasSide: CGFloat = 0 {
-    didSet { reevaluate() }
-  }
+  /// The side of the square canvas strokes are drawn on, needed to carry them into matching
+  /// space. Zero until the view has been laid out.
+  var canvasSide: CGFloat = 0
 
+  /// The strokes drawn so far, in matching space, so a canvas that changes size mid-character
+  /// leaves them and their verdicts as they were drawn.
   private(set) var strokes: [UserStroke] = []
   private(set) var verdicts: [StrokeVerdict] = []
 
@@ -422,9 +424,13 @@ final class StrokeTestModel {
     graphic.medians.map { HanziGeometry.points($0, in: HanziGeometry.gridRect) }
   }
 
-  /// Records a finished stroke and scores it.
+  /// Records a stroke finished on the canvas and scores it. A canvas not yet laid out has no
+  /// scale to carry the stroke into matching space, so the stroke is dropped.
   func add(strokePoints points: [CGPoint]) {
-    strokes.append(UserStroke(points: points))
+    guard canvasSide > 0 else { return }
+    strokes.append(
+      UserStroke(points: HanziGeometry.matchingPoints(fromCanvas: points, in: canvasRect))
+    )
     reevaluate()
   }
 
@@ -452,11 +458,7 @@ final class StrokeTestModel {
   }
 
   private func reevaluate() {
-    guard canvasSide > 0 else { return }
-    let placed = strokes.map {
-      UserStroke(points: HanziGeometry.matchingPoints(fromCanvas: $0.points, in: canvasRect))
-    }
-    let result = evaluator.evaluate(placed)
+    let result = evaluator.evaluate(strokes)
     verdicts = result.verdicts
     if result.isComplete, !hasCompleted {
       hasCompleted = true

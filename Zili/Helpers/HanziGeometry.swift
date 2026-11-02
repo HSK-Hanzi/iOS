@@ -61,6 +61,13 @@ enum HanziGeometry {
     return points.map { $0.applying(canvasToGrid) }
   }
 
+  /// Carries points in matching space onto a `rect`-sized canvas.
+  nonisolated static func canvasPoints(fromMatching points: [CGPoint], in rect: CGRect) -> [CGPoint]
+  {
+    let gridToCanvas = transform(in: gridRect).inverted().concatenating(transform(in: rect))
+    return points.map { $0.applying(gridToCanvas) }
+  }
+
   /// Flip, scale, and center the source grid onto `rect`.
   nonisolated private static func transform(in rect: CGRect) -> CGAffineTransform {
     let scale = scale(in: rect)

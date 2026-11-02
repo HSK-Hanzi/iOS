@@ -5,7 +5,7 @@
 
 import CoreGraphics
 
-/// A single stroke drawn by the user, as an ordered polyline in canvas space.
+/// A single stroke drawn by the user, as an ordered polyline in matching space.
 struct UserStroke: Hashable, Sendable {
   let points: [CGPoint]
 }
