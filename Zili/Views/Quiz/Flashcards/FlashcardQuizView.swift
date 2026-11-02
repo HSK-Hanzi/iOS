@@ -63,6 +63,7 @@ private struct RunningQuizView: View {
   @State private var isThrowing = false
   @State private var cardSize = CGSize.zero
   @State private var topBarBottom: CGFloat = 0
+  @State private var safeAreaInsets = EdgeInsets()
 
   /// Which side the top card shows. It belongs to the stage rather than to the card so the
   /// keyboard can turn it, and is returned to the prompt only once a judged card has finished
@@ -85,7 +86,7 @@ private struct RunningQuizView: View {
           peek: session.peek,
           front: faces.front,
           back: faces.back,
-          contentInsets: EdgeInsets(top: topBarBottom, leading: 0, bottom: 0, trailing: 0),
+          contentInsets: cardContentInsets,
           drag: drag,
           size: cardSize,
           isThrowing: isThrowing,
@@ -136,6 +137,11 @@ private struct RunningQuizView: View {
     } action: {
       cardSize = $0
     }
+    .onGeometryChange(for: EdgeInsets.self) {
+      $0.safeAreaInsets
+    } action: {
+      safeAreaInsets = $0
+    }
     #if os(visionOS)
       .toolbar {
         ToolbarItem(placement: .principal) {
@@ -155,6 +161,17 @@ private struct RunningQuizView: View {
     .onKeyPress(.rightArrow) { judgeByKey(.correct) }
     .onKeyPress(.leftArrow) { judgeByKey(.needsReview) }
     .onKeyPress(.upArrow) { judgeByKey(.skipped) }
+  }
+
+  /// Keeps the card's content clear of the floating top bar, and of whatever the safe area holds
+  /// beside the full-bleed card, such as vertical bars on the iPhone Duo's outer display.
+  private var cardContentInsets: EdgeInsets {
+    EdgeInsets(
+      top: topBarBottom,
+      leading: safeAreaInsets.leading,
+      bottom: 0,
+      trailing: safeAreaInsets.trailing
+    )
   }
 
   /// Somewhere for the stage's key handlers to hold focus. It is invisible and never hit-tested,

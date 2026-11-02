@@ -25,6 +25,8 @@ one of the two places.
 - In landscape on iPhone Duo’s outer display, the drawing round puts the
   character beside the paper, leaving room to write, and the pad’s Hint, Undo
   and Clear buttons fit.
+- Flashcard text no longer runs under the bars along the side of iPhone Duo’s
+  outer display.
 
 ## 2.0
 
