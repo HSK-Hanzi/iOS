@@ -18,6 +18,8 @@ one of the two places.
   when you hold the phone like a book.
 - Held like a book, iPhone Duo keeps the drawing round’s and the flashcards’
   buttons off the fold too, beside the character and its paper.
+- Word grids on iPhone Duo’s inner display set an even number of columns, so the
+  fold falls between two of them.
 
 ### FIXES
 

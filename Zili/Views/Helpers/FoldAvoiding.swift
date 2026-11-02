@@ -18,6 +18,23 @@ extension View {
   }
 }
 
+extension GeometryProxy {
+  /// The vertical fold of an iPhone Duo crossing the view, folded or flat, in the view's own
+  /// coordinate space, so a layout split around it holds still as the device folds and unfolds.
+  /// Always `nil` on other devices.
+  nonisolated var verticalFold: CGRect? {
+    #if os(iOS)
+      if #available(iOS 27.1, *) {
+        let bounds = CGRect(origin: .zero, size: size)
+        return reservedRegions(kind: .division, options: .includeInactive).map(\.frame).first {
+          $0.isVerticalFold && $0.intersects(bounds)
+        }
+      }
+    #endif
+    return nil
+  }
+}
+
 extension CGRect {
   /// Whether a fold of this shape runs top to bottom.
   fileprivate var isVerticalFold: Bool { height > width }

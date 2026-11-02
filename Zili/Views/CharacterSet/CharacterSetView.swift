@@ -11,6 +11,9 @@ import SwiftUI
 /// destructive toolbar button empties the set, and when ``onUnstar`` is supplied a cell can be
 /// swiped to drop that one word.
 struct CharacterSetView: View {
+  private static let minimumCellWidth: CGFloat = 84
+  private static let cellSpacing: CGFloat = 12
+
   let lexicon: Lexicon
   let source: QuizDeckSource
   /// The screen's title. Kept concise (e.g. “Level 1”) so the navigation back button carries
@@ -27,6 +30,13 @@ struct CharacterSetView: View {
   private let words: [String]
 
   @State private var isConfirmingClear = false
+
+  /// Where a vertical fold crossing the grid runs, in the global coordinate space, or `nil`
+  /// without one.
+  @State private var foldMidX: CGFloat?
+  /// The horizontal span the grid may fill, in the global coordinate space: its frame together
+  /// with whatever room ``foldCentering`` adds beside it, so moving the grid doesn't move it.
+  @State private var gridSpan: ClosedRange<CGFloat>?
 
   var body: some View {
     Group {
@@ -59,10 +69,7 @@ struct CharacterSetView: View {
 
   private var grid: some View {
     ScrollView {
-      LazyVGrid(
-        columns: [GridItem(.adaptive(minimum: 84), spacing: 12)],
-        spacing: 12
-      ) {
+      LazyVGrid(columns: columns, spacing: Self.cellSpacing) {
         ForEach(words, id: \.self) { word in
           Button {
             selection = word
@@ -79,8 +86,48 @@ struct CharacterSetView: View {
           .modifier(UnstarOnSwipe(word: word, onUnstar: onUnstar))
         }
       }
+      .onGeometryChange(for: CGRect.self) {
+        $0.frame(in: .global)
+      } action: {
+        gridSpan = span(around: $0)
+      }
       .padding()
+      .padding(.leading, foldCentering?.leading ?? 0)
+      .padding(.trailing, foldCentering?.trailing ?? 0)
     }
+    .onGeometryChange(for: CGFloat?.self) { geometry in
+      geometry.verticalFold.map { $0.midX + geometry.frame(in: .global).minX }
+    } action: {
+      foldMidX = $0
+    }
+  }
+
+  /// The room to add beside the grid to centre it on a vertical fold crossing it, or `nil` without
+  /// one. Centred and given an even column count, the grid keeps the fold between two columns.
+  private var foldCentering: FoldCentering? {
+    guard let foldMidX, let gridSpan, gridSpan.contains(foldMidX) else { return nil }
+    return FoldCentering(centring: gridSpan, on: foldMidX)
+  }
+
+  /// The most columns of the minimum width that fit the centred grid, rounded down to an even
+  /// count, while a fold crosses it; `nil` otherwise, or when fewer than two columns fit.
+  private var evenColumnCount: Int? {
+    guard let foldCentering, let gridSpan else { return nil }
+    let width =
+      gridSpan.upperBound - gridSpan.lowerBound - foldCentering.leading
+      - foldCentering.trailing
+    let fitting = Int((width + Self.cellSpacing) / (Self.minimumCellWidth + Self.cellSpacing))
+    return fitting >= 2 ? fitting - fitting % 2 : nil
+  }
+
+  private var columns: [GridItem] {
+    guard let evenColumnCount else {
+      return [GridItem(.adaptive(minimum: Self.minimumCellWidth), spacing: Self.cellSpacing)]
+    }
+    return Array(
+      repeating: GridItem(.flexible(), spacing: Self.cellSpacing),
+      count: evenColumnCount
+    )
   }
 
   /// - Parameters:
@@ -113,6 +160,26 @@ struct CharacterSetView: View {
     _selection = selection
     let headwords = source.headwords(in: lexicon)
     words = preservesSourceOrder ? headwords : headwords.sortedByChineseCollation()
+  }
+
+  /// The span the grid at `frame` may fill: the frame and the centring room currently beside it.
+  private func span(around frame: CGRect) -> ClosedRange<CGFloat> {
+    let leading = frame.minX - (foldCentering?.leading ?? 0)
+    let trailing = frame.maxX + (foldCentering?.trailing ?? 0)
+    return leading...trailing
+  }
+}
+
+/// The room beside a grid that centres it on a vertical fold: the side with more room past the
+/// fold gives up the difference.
+private struct FoldCentering {
+  let leading: CGFloat
+  let trailing: CGFloat
+
+  /// Centres `span` on `foldMidX`, both measured along the same axis.
+  init(centring span: ClosedRange<CGFloat>, on foldMidX: CGFloat) {
+    let lopsidedness = (span.upperBound - foldMidX) - (foldMidX - span.lowerBound)
+    (leading, trailing) = (max(-lopsidedness, 0), max(lopsidedness, 0))
   }
 }
 
