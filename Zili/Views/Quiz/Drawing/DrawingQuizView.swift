@@ -73,6 +73,8 @@ private struct DrawingRoundView: View {
   private var session
   @Environment(\.dismiss)
   private var dismiss
+  @Environment(\.verticalSizeClass)
+  private var verticalSizeClass
 
   @State private var phase = DrawingPhase.prompt
 
@@ -84,7 +86,7 @@ private struct DrawingRoundView: View {
         if phase == .prompt {
           CharacterPrompt(card: card)
         } else {
-          VStack(spacing: 20) {
+          sheetLayout {
             CharacterHeader(card: card)
             WritingPad(graphic: graphic, verdict: phase.verdict, onComplete: grade)
               .avoidingFold()
@@ -93,7 +95,7 @@ private struct DrawingRoundView: View {
         }
       }
       .frame(maxWidth: .infinity, maxHeight: .infinity)
-      .padding(.vertical, 24)
+      .padding(.vertical, verticalSizeClass == .compact ? 0 : 24)
 
       DrawingControls(
         phase: phase,
@@ -106,6 +108,13 @@ private struct DrawingRoundView: View {
     .frame(maxWidth: .infinity, maxHeight: .infinity)
     .quizAmbientBackground(QuizStyle.promptGradient)
     .animation(.smooth, value: phase)
+  }
+
+  /// The character above its paper, or beside it on a board too short to stack the two without
+  /// shrinking the paper past writing on.
+  private var sheetLayout: AnyLayout {
+    verticalSizeClass == .compact
+      ? AnyLayout(HStackLayout(spacing: 20)) : AnyLayout(VStackLayout(spacing: 20))
   }
 
   private func grade(_ result: StrokeTestResult) {
@@ -199,7 +208,8 @@ private struct WritingPad: View {
       .allowsHitTesting(verdict == nil)
       .overlay { badge }
       .shadow(color: .black.opacity(0.25), radius: 20, y: 10)
-      .frame(maxWidth: 460)
+      .frame(maxWidth: 460, maxHeight: 460)
+      .aspectRatio(1, contentMode: .fit)
   }
 
   @ViewBuilder private var badge: some View {

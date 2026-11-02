@@ -51,7 +51,12 @@ struct StrokeTestView: View {
 
   var body: some View {
     canvas
-      .overlay(alignment: .bottomTrailing) { controls }
+      .overlay(alignment: .bottomTrailing) {
+        ViewThatFits(in: .horizontal) {
+          controls
+          controls.controlSize(.small)
+        }
+      }
       .onAppear { readDrawingInputKinds() }
       .onChange(of: scenePhase) { readDrawingInputKinds() }
       .onChange(of: graphic) {

@@ -22,6 +22,9 @@ one of the two places.
 - Strokes you’ve drawn stay where you drew them when the writing pad changes
   size, as it does when you rotate, open or fold iPhone Duo, or resize Split
   View. They used to be redrawn at the wrong scale and graded again.
+- In landscape on iPhone Duo’s outer display, the drawing round puts the
+  character beside the paper, leaving room to write, and the pad’s Hint, Undo
+  and Clear buttons fit.
 
 ## 2.0
 
