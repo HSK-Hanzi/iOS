@@ -501,14 +501,18 @@ class ZiliUITestCase: XCTestCase {
     }
   #endif
 
-  /// Asserts a quiz configuration form came up, by its Start button. A visionOS window is too short
-  /// for the taller forms, and a form leaves a row it hasn't scrolled to out of the accessibility
-  /// tree, so there a Start that doesn't turn up is scrolled to instead.
+  /// Asserts a quiz configuration form came up, by its Start button. A visionOS window or the iPhone
+  /// Duo's outer display is too short for the taller forms, and a form leaves a row it hasn't
+  /// scrolled to out of the accessibility tree, so a Start that doesn't turn up is scrolled to.
   private func expectConfigurationForm() {
     let start = el(AccessibilityID.quizStartButton)
     #if os(visionOS)
       if !start.wait() {
         scrollForm(toward: start)
+      }
+    #elseif os(iOS)
+      if !start.wait() {
+        app.scrollToElement(start)
       }
     #endif
     XCTAssertTrue(start.wait(), "The quiz configuration form.")
