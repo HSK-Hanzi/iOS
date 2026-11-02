@@ -16,6 +16,7 @@ struct StrokePracticeScreen: View {
     CharacterCarousel(graphics: graphics, showsCharacterLabel: false) { graphic, isActive in
       StrokeTestView(graphic: graphic, isActive: isActive)
     }
+    .avoidingFold()
     .navigationTitle("Practice")
     .modifier(InlineNavigationTitle())
   }

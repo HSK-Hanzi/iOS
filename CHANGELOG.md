@@ -11,6 +11,12 @@ one of the two places.
 
 ## 2.0.1
 
+### NEW
+
+- On iPhone Duo, the writing pad moves off the fold when you bend the phone:
+  below it in tabletop pose, with the character to write above, or beside it
+  when you hold the phone like a book.
+
 ### FIXES
 
 - Strokes you’ve drawn stay where you drew them when the writing pad changes

@@ -80,19 +80,20 @@ private struct DrawingRoundView: View {
     VStack(spacing: 24) {
       QuizTopBar(index: session.currentIndex, total: session.total) { dismiss() }
 
-      Spacer(minLength: 0)
-
-      if phase == .prompt {
-        CharacterPrompt(card: card)
-      } else {
-        VStack(spacing: 20) {
-          CharacterHeader(card: card)
-          WritingPad(graphic: graphic, verdict: phase.verdict, onComplete: grade)
+      ZStack {
+        if phase == .prompt {
+          CharacterPrompt(card: card)
+        } else {
+          VStack(spacing: 20) {
+            CharacterHeader(card: card)
+            WritingPad(graphic: graphic, verdict: phase.verdict, onComplete: grade)
+              .avoidingFold()
+          }
+          .transition(.blurReplace)
         }
-        .transition(.blurReplace)
       }
-
-      Spacer(minLength: 0)
+      .frame(maxWidth: .infinity, maxHeight: .infinity)
+      .padding(.vertical, 24)
 
       DrawingControls(
         phase: phase,
