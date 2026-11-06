@@ -49,25 +49,19 @@
     }
   }
 
-  #Preview("From bundle") {
-    SentencePracticePreview()
-  }
-
   /// Loads the real ``Lexicon`` so the sidebar's sets resolve against the shipped sentences.
-  private struct SentencePracticePreview: View {
-    @State private var lexicon: Lexicon?
+  #Preview("From bundle") {
+    @Previewable @State var lexicon: Lexicon?
 
-    var body: some View {
-      Group {
-        if let lexicon {
-          SentencePracticeView(lexicon: lexicon)
-        } else {
-          ProgressView()
-        }
+    Group {
+      if let lexicon {
+        SentencePracticeView(lexicon: lexicon)
+      } else {
+        ProgressView()
       }
-      .environment(SentenceFavoritesStore.inMemory())
-      .environment(SentenceMissStore.inMemory())
-      .task { lexicon = try? await Lexicon.load() }
     }
+    .environment(SentenceFavoritesStore.inMemory())
+    .environment(SentenceMissStore.inMemory())
+    .task { lexicon = try? await Lexicon.load() }
   }
 #endif

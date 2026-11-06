@@ -153,25 +153,19 @@ extension TonePair {
   }
 }
 
-#Preview("Tones · from bundle") {
-  PracticeTonesPreview()
-}
-
 /// Loads the real ``Lexicon`` so the grid counts the shipped syllabus.
-private struct PracticeTonesPreview: View {
-  @State private var lexicon: Lexicon?
-  @State private var selection: TonePairSelection?
+#Preview("Tones · from bundle") {
+  @Previewable @State var lexicon: Lexicon?
+  @Previewable @State var selection: TonePairSelection?
 
-  var body: some View {
-    NavigationStack {
-      Group {
-        if let lexicon {
-          PracticeTonesView(lexicon: lexicon, selection: $selection)
-        } else {
-          ProgressView()
-        }
+  NavigationStack {
+    Group {
+      if let lexicon {
+        PracticeTonesView(lexicon: lexicon, selection: $selection)
+      } else {
+        ProgressView()
       }
     }
-    .task { lexicon = try? await Lexicon.load() }
   }
+  .task { lexicon = try? await Lexicon.load() }
 }

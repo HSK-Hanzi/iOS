@@ -72,19 +72,13 @@ private struct LevelChip: View {
   }
 }
 
-#Preview {
-  LevelChipPickerPreview()
-}
-
 /// Holds the selection the picker toggles, starting with one level chosen.
-private struct LevelChipPickerPreview: View {
-  @State private var levels: Set<HSKLevel> = [HSKLevel(standard: .newest, band: 2)]
+#Preview {
+  @Previewable @State var levels: Set<HSKLevel> = [HSKLevel(standard: .newest, band: 2)]
 
-  var body: some View {
-    LevelChipPicker(
-      levels: $levels,
-      available: (1...7).map { HSKLevel(standard: .newest, band: $0) }
-    )
-    .padding()
-  }
+  LevelChipPicker(
+    levels: $levels,
+    available: (1...7).map { HSKLevel(standard: .newest, band: $0) }
+  )
+  .padding()
 }

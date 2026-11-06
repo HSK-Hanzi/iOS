@@ -224,27 +224,21 @@
     case sentenceSet(SentenceSetSelection)
   }
 
-  #Preview("Practice · from bundle") {
-    PracticeHomePreview()
-  }
-
   /// Loads the real ``Lexicon`` so both branches drill against the shipped syllabus and corpora.
-  private struct PracticeHomePreview: View {
-    @State private var lexicon: Lexicon?
+  #Preview("Practice · from bundle") {
+    @Previewable @State var lexicon: Lexicon?
 
-    var body: some View {
-      Group {
-        if let lexicon {
-          PracticeHomeView(lexicon: lexicon)
-        } else {
-          ProgressView()
-        }
+    Group {
+      if let lexicon {
+        PracticeHomeView(lexicon: lexicon)
+      } else {
+        ProgressView()
       }
-      .environment(FavoritesStore.inMemory())
-      .environment(SentenceFavoritesStore.inMemory())
-      .environment(WordMissStore.inMemory())
-      .environment(SentenceMissStore.inMemory())
-      .task { lexicon = try? await Lexicon.load() }
     }
+    .environment(FavoritesStore.inMemory())
+    .environment(SentenceFavoritesStore.inMemory())
+    .environment(WordMissStore.inMemory())
+    .environment(SentenceMissStore.inMemory())
+    .task { lexicon = try? await Lexicon.load() }
   }
 #endif

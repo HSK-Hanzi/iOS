@@ -119,28 +119,22 @@
     let id = UUID()
   }
 
-  #Preview("Quiz modes · from bundle") {
-    QuizHomePreview()
-  }
-
   /// Loads the real ``Lexicon`` so each mode pushes a configuration screen over the shipped data.
-  private struct QuizHomePreview: View {
-    @State private var lexicon: Lexicon?
+  #Preview("Quiz modes · from bundle") {
+    @Previewable @State var lexicon: Lexicon?
 
-    var body: some View {
-      Group {
-        if let lexicon {
-          QuizHomeView(lexicon: lexicon)
-        } else {
-          ProgressView()
-        }
+    Group {
+      if let lexicon {
+        QuizHomeView(lexicon: lexicon)
+      } else {
+        ProgressView()
       }
-      .environment(FavoritesStore.inMemory())
-      .environment(WordMissStore.inMemory())
-      .environment(SentenceMissStore.inMemory())
-      .environment(ReviewScheduleStore.inMemory())
-      .environment(AppRouter())
-      .task { lexicon = try? await Lexicon.load() }
     }
+    .environment(FavoritesStore.inMemory())
+    .environment(WordMissStore.inMemory())
+    .environment(SentenceMissStore.inMemory())
+    .environment(ReviewScheduleStore.inMemory())
+    .environment(AppRouter())
+    .task { lexicon = try? await Lexicon.load() }
   }
 #endif

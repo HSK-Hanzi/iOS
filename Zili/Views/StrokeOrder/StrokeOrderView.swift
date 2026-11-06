@@ -110,8 +110,27 @@ struct StrokeOrderView: View {
     .padding()
 }
 
+/// Loads the real library from the app bundle and animates each character in a word —
+/// exercises ``StrokeOrderLibrary/load(from:)`` alongside the view.
 #Preview("Word · 你好 (from bundle)") {
-  StrokeOrderWordPreview(word: "你好")
+  @Previewable @State var library: StrokeOrderLibrary?
+
+  let word = "你好"
+
+  Group {
+    if let library {
+      HStack(spacing: 12) {
+        ForEach(Array(library.graphics(in: word).enumerated()), id: \.offset) { _, entry in
+          StrokeOrderView(graphic: entry.graphic)
+            .frame(width: 96, height: 96)
+        }
+      }
+    } else {
+      ProgressView()
+    }
+  }
+  .padding()
+  .task { library = try? StrokeOrderLibrary.load() }
 }
 
 #Preview("Styled · dark") {
@@ -124,31 +143,6 @@ struct StrokeOrderView: View {
   .padding()
   .background(.black)
   .preferredColorScheme(.dark)
-}
-
-/// Loads the real library from the app bundle and animates each character in a word —
-/// exercises ``StrokeOrderLibrary/load(from:)`` alongside the view.
-private struct StrokeOrderWordPreview: View {
-  let word: String
-
-  @State private var library: StrokeOrderLibrary?
-
-  var body: some View {
-    Group {
-      if let library {
-        HStack(spacing: 12) {
-          ForEach(Array(library.graphics(in: word).enumerated()), id: \.offset) { _, entry in
-            StrokeOrderView(graphic: entry.graphic)
-              .frame(width: 96, height: 96)
-          }
-        }
-      } else {
-        ProgressView()
-      }
-    }
-    .padding()
-    .task { library = try? StrokeOrderLibrary.load() }
-  }
 }
 
 /// Real stroke data for a couple of characters, so previews stay self-contained and fast.

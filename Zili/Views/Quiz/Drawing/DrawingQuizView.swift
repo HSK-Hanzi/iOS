@@ -280,29 +280,23 @@ private struct DrawingControls: View {
   }
 }
 
-#Preview("Prompt · 永") {
-  DrawingQuizPreview()
-}
-
 /// Loads the real ``Lexicon`` so the pad draws the shipped stroke data, over a short deck.
-private struct DrawingQuizPreview: View {
-  private static let deck = [
+#Preview("Prompt · 永") {
+  @Previewable @State var lexicon: Lexicon?
+
+  let deck = [
     QuizCard(word: "永", hanzi: "永", reading: "yǒng", definition: "forever"),
     QuizCard(word: "人", hanzi: "人", reading: "rén", definition: "person")
   ]
 
-  @State private var lexicon: Lexicon?
-
-  var body: some View {
-    NavigationStack {
-      if let lexicon {
-        DrawingQuizView(lexicon: lexicon)
-          .environment(QuizSession(deck: Self.deck))
-      } else {
-        ProgressView()
-      }
+  NavigationStack {
+    if let lexicon {
+      DrawingQuizView(lexicon: lexicon)
+        .environment(QuizSession(deck: deck))
+    } else {
+      ProgressView()
     }
-    .environment(FavoritesStore.inMemory())
-    .task { lexicon = try? await Lexicon.load() }
   }
+  .environment(FavoritesStore.inMemory())
+  .task { lexicon = try? await Lexicon.load() }
 }

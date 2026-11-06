@@ -108,32 +108,26 @@ struct FlashcardQuizConfigurationForm: View {
   }
 }
 
-#Preview("From bundle") {
-  FlashcardConfigurationFormPreview()
-}
-
 /// Loads the real ``Lexicon`` so the level picker and word counts reflect the shipped data.
-private struct FlashcardConfigurationFormPreview: View {
-  @State private var lexicon: Lexicon?
-  @State private var configuration = FlashcardQuizConfiguration(
+#Preview("From bundle") {
+  @Previewable @State var lexicon: Lexicon?
+  @Previewable @State var configuration = FlashcardQuizConfiguration(
     source: .hskLevels([HSKLevel(standard: .new, band: 1)])
   )
 
-  var body: some View {
-    Group {
-      if let lexicon {
-        FlashcardQuizConfigurationForm(
-          lexicon: lexicon,
-          configuration: configuration,
-          cancel: {},
-          start: { _ in }
-        )
-      } else {
-        ProgressView()
-      }
+  Group {
+    if let lexicon {
+      FlashcardQuizConfigurationForm(
+        lexicon: lexicon,
+        configuration: configuration,
+        cancel: {},
+        start: { _ in }
+      )
+    } else {
+      ProgressView()
     }
-    .environment(WordMissStore.inMemory())
-    .environment(ReviewScheduleStore.inMemory())
-    .task { lexicon = try? await Lexicon.load() }
   }
+  .environment(WordMissStore.inMemory())
+  .environment(ReviewScheduleStore.inMemory())
+  .task { lexicon = try? await Lexicon.load() }
 }

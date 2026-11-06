@@ -121,72 +121,54 @@ struct GrammarPointView: View {
   }
 }
 
+/// Loads the real sentence corpus so the tiles count the shipped grammar points.
 #Preview("Grammar · from bundle") {
-  PracticeGrammarPreview()
-}
+  @Previewable @State var corpus: SentenceCorpus?
+  @Previewable @State var selection: Int?
 
-#Preview("Level 3 · from bundle") {
-  GrammarLevelPreview()
-}
-
-#Preview("A point · from bundle") {
-  GrammarPointPreview()
+  NavigationStack {
+    Group {
+      if let corpus {
+        PracticeGrammarView(corpus: corpus, selection: $selection)
+      } else {
+        ProgressView()
+      }
+    }
+  }
+  .task { corpus = SentenceLibrary.load().defaultCorpus }
 }
 
 /// Loads the real sentence corpus so the list holds the shipped level-3 points.
-private struct GrammarLevelPreview: View {
-  @State private var corpus: SentenceCorpus?
-  @State private var selection: GrammarPoint?
+#Preview("Level 3 · from bundle") {
+  @Previewable @State var corpus: SentenceCorpus?
+  @Previewable @State var selection: GrammarPoint?
 
-  var body: some View {
-    NavigationStack {
-      Group {
-        if let corpus {
-          GrammarLevelView(corpus: corpus, level: 3, selection: $selection)
-        } else {
-          ProgressView()
-        }
+  NavigationStack {
+    Group {
+      if let corpus {
+        GrammarLevelView(corpus: corpus, level: 3, selection: $selection)
+      } else {
+        ProgressView()
       }
     }
-    .task { corpus = SentenceLibrary.load().defaultCorpus }
   }
+  .task { corpus = SentenceLibrary.load().defaultCorpus }
 }
 
 /// Loads the real sentence corpus and shows its first level-3 point with its examples.
-private struct GrammarPointPreview: View {
-  @State private var corpus: SentenceCorpus?
+#Preview("A point · from bundle") {
+  @Previewable @State var corpus: SentenceCorpus?
 
-  var body: some View {
-    NavigationStack {
-      Group {
-        if let corpus, let point = corpus.grammarPoints(at: 3).first {
-          GrammarPointView(corpus: corpus, point: point)
-        } else {
-          ProgressView()
-        }
+  NavigationStack {
+    Group {
+      if let corpus, let point = corpus.grammarPoints(at: 3).first {
+        GrammarPointView(corpus: corpus, point: point)
+      } else {
+        ProgressView()
       }
     }
-    .environment(SentenceFavoritesStore.inMemory())
-    .environment(SentenceMissStore.inMemory())
-    .task { corpus = SentenceLibrary.load().defaultCorpus }
   }
-}
-
-/// Loads the real sentence corpus so the tiles count the shipped grammar points.
-private struct PracticeGrammarPreview: View {
-  @State private var corpus: SentenceCorpus?
-  @State private var selection: Int?
-
-  var body: some View {
-    NavigationStack {
-      Group {
-        if let corpus {
-          PracticeGrammarView(corpus: corpus, selection: $selection)
-        } else {
-          ProgressView()
-        }
-      }
-    }
-    .task { corpus = SentenceLibrary.load().defaultCorpus }
-  }
+  .environment(SentenceFavoritesStore.inMemory())
+  .environment(SentenceMissStore.inMemory())
+  .task { corpus = SentenceLibrary.load().defaultCorpus }
 }

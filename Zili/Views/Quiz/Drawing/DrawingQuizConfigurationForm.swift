@@ -81,23 +81,17 @@ struct DrawingQuizConfigurationForm: View {
   }
 }
 
-#Preview("From bundle") {
-  DrawingConfigurationFormPreview()
-}
-
 /// Loads the real ``Lexicon`` so the level picker and character counts reflect the shipped data.
-private struct DrawingConfigurationFormPreview: View {
-  @State private var lexicon: Lexicon?
+#Preview("From bundle") {
+  @Previewable @State var lexicon: Lexicon?
 
-  var body: some View {
-    Group {
-      if let lexicon {
-        DrawingQuizConfigurationForm(lexicon: lexicon, cancel: {}, start: { _ in })
-      } else {
-        ProgressView()
-      }
+  Group {
+    if let lexicon {
+      DrawingQuizConfigurationForm(lexicon: lexicon, cancel: {}, start: { _ in })
+    } else {
+      ProgressView()
     }
-    .environment(WordMissStore.inMemory())
-    .task { lexicon = try? await Lexicon.load() }
   }
+  .environment(WordMissStore.inMemory())
+  .task { lexicon = try? await Lexicon.load() }
 }

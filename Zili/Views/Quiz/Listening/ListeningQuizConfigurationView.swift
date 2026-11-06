@@ -34,26 +34,20 @@
     }
   }
 
-  #Preview("From bundle") {
-    ListeningConfigurationPreview()
-  }
-
   /// Loads the real ``SentenceLibrary`` so the level picker and sentence counts reflect the shipped
   /// corpora.
-  private struct ListeningConfigurationPreview: View {
-    @State private var library: SentenceLibrary?
+  #Preview("From bundle") {
+    @Previewable @State var library: SentenceLibrary?
 
-    var body: some View {
-      NavigationStack {
-        if let library {
-          ListeningQuizConfigurationView(library: library)
-        } else {
-          ProgressView()
-        }
+    NavigationStack {
+      if let library {
+        ListeningQuizConfigurationView(library: library)
+      } else {
+        ProgressView()
       }
-      .environment(SentenceFavoritesStore.inMemory())
-      .environment(SentenceMissStore.inMemory())
-      .task { library = SentenceLibrary.load() }
     }
+    .environment(SentenceFavoritesStore.inMemory())
+    .environment(SentenceMissStore.inMemory())
+    .task { library = SentenceLibrary.load() }
   }
 #endif

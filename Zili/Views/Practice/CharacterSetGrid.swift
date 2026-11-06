@@ -155,28 +155,22 @@ private struct MissedCell: View {
   }
 }
 
-#Preview("Character sets · from bundle") {
-  CharacterSetGridPreview()
-}
-
 /// Loads the real ``Lexicon`` so the grid reflects the shipped syllabus and word counts, with a
 /// selection binding so the preview exercises the selected-cell ring.
-private struct CharacterSetGridPreview: View {
-  @State private var lexicon: Lexicon?
-  @State private var selection: StudySet?
+#Preview("Character sets · from bundle") {
+  @Previewable @State var lexicon: Lexicon?
+  @Previewable @State var selection: StudySet?
 
-  var body: some View {
-    NavigationStack {
-      Group {
-        if let lexicon {
-          CharacterSetGrid(lexicon: lexicon, selection: $selection)
-        } else {
-          ProgressView()
-        }
+  NavigationStack {
+    Group {
+      if let lexicon {
+        CharacterSetGrid(lexicon: lexicon, selection: $selection)
+      } else {
+        ProgressView()
       }
     }
-    .environment(FavoritesStore.inMemory())
-    .environment(WordMissStore.inMemory())
-    .task { lexicon = try? await Lexicon.load() }
   }
+  .environment(FavoritesStore.inMemory())
+  .environment(WordMissStore.inMemory())
+  .task { lexicon = try? await Lexicon.load() }
 }

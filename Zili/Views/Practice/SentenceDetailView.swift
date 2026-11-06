@@ -87,35 +87,26 @@ private struct SentenceFavoriteButton: View {
   }
 }
 
-#Preview("Sentence · from bundle") {
-  SentenceDetailPreview()
-}
-
 /// Loads the real ``Lexicon`` so the detail exercises tappable words against the shipped
 /// dictionary, and takes the first shipped sentence as its subject.
-private struct SentenceDetailPreview: View {
-  @State private var lexicon: Lexicon?
+#Preview("Sentence · from bundle") {
+  @Previewable @State var lexicon: Lexicon?
 
-  var body: some View {
-    NavigationStack {
-      Group {
-        if let lexicon, let sentence = Self.firstSentence(in: lexicon.sentences) {
-          SentenceDetailView(sentence: sentence)
-            .environment(\.wordResolver, WordResolver(lexicon: lexicon))
-        } else {
-          ProgressView()
-        }
+  NavigationStack {
+    Group {
+      if let lexicon,
+        let corpus = lexicon.sentences.defaultCorpus,
+        let level = corpus.levels(in: .newest).first,
+        let sentence = corpus.sentences(in: level).first
+      {
+        SentenceDetailView(sentence: sentence)
+          .environment(\.wordResolver, WordResolver(lexicon: lexicon))
+      } else {
+        ProgressView()
       }
     }
-    .environment(SentenceFavoritesStore.inMemory())
-    .environment(SentenceMissStore.inMemory())
-    .task { lexicon = try? await Lexicon.load() }
   }
-
-  private static func firstSentence(in library: SentenceLibrary) -> PracticeSentence? {
-    guard let corpus = library.defaultCorpus,
-      let level = corpus.levels(in: .newest).first
-    else { return nil }
-    return corpus.sentences(in: level).first
-  }
+  .environment(SentenceFavoritesStore.inMemory())
+  .environment(SentenceMissStore.inMemory())
+  .task { lexicon = try? await Lexicon.load() }
 }

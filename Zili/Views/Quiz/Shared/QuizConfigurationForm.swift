@@ -217,38 +217,32 @@ struct QuizStartControls: View {
   }
 }
 
-#Preview("Sections") {
-  QuizConfigurationSectionsPreview()
-}
-
 /// Hosts the shared configuration sections in a grouped form so each piece — the word source,
 /// the deck-size picker, and the start controls — previews together.
-private struct QuizConfigurationSectionsPreview: View {
-  private static let levels = (1...6).map { HSKLevel(standard: .new, band: $0) }
+#Preview("Sections") {
+  @Previewable @State var source = QuizDeckSource.hskLevels([HSKLevel(standard: .new, band: 1)])
+  @Previewable @State var savedLevels: Set<HSKLevel> = [HSKLevel(standard: .new, band: 1)]
+  @Previewable @State var sort = QuizDeckSort.random
+  @Previewable @State var deckSize: Int? = 20
 
-  @State private var source = QuizDeckSource.hskLevels([HSKLevel(standard: .new, band: 1)])
-  @State private var savedLevels: Set<HSKLevel> = [HSKLevel(standard: .new, band: 1)]
-  @State private var sort = QuizDeckSort.random
-  @State private var deckSize: Int? = 20
+  let levels = (1...6).map { HSKLevel(standard: .new, band: $0) }
 
-  var body: some View {
-    Form {
-      QuizSourceSection(
-        available: Self.levels,
-        source: $source,
-        savedLevels: $savedLevels,
-        sort: $sort,
-        missedWords: ["好", "谢谢"],
-        countLabel: Text("\(150) words selected.")
-      )
-      Section("Deck") {
-        QuizDeckSizePicker(title: "Cards", deckSize: $deckSize)
-      }
-      Section {
-        QuizStartControls(cancel: {}, isDisabled: false, start: {})
-      }
+  Form {
+    QuizSourceSection(
+      available: levels,
+      source: $source,
+      savedLevels: $savedLevels,
+      sort: $sort,
+      missedWords: ["好", "谢谢"],
+      countLabel: Text("\(150) words selected.")
+    )
+    Section("Deck") {
+      QuizDeckSizePicker(title: "Cards", deckSize: $deckSize)
     }
-    .formStyle(.grouped)
-    .environment(FavoritesStore.inMemory())
+    Section {
+      QuizStartControls(cancel: {}, isDisabled: false, start: {})
+    }
   }
+  .formStyle(.grouped)
+  .environment(FavoritesStore.inMemory())
 }

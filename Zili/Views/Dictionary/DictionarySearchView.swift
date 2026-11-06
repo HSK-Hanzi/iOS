@@ -203,27 +203,21 @@ private struct SearchPlaceholder: View {
   }
 }
 
-#Preview("Search · from bundle") {
-  DictionarySearchPreview()
-}
-
 /// Loads the real ``Lexicon`` from the bundle so the preview exercises prefix and full-text
 /// search against the shipped databases, including licensed dictionaries in Debug builds.
-private struct DictionarySearchPreview: View {
-  @State private var lexicon: Lexicon?
+#Preview("Search · from bundle") {
+  @Previewable @State var lexicon: Lexicon?
 
-  var body: some View {
-    Group {
-      if let lexicon {
-        DictionarySearchView(lexicon: lexicon)
-          .environment(AppRouter())
-          .environment(FavoritesStore.inMemory())
-      } else {
-        ProgressView()
-      }
+  Group {
+    if let lexicon {
+      DictionarySearchView(lexicon: lexicon)
+        .environment(AppRouter())
+        .environment(FavoritesStore.inMemory())
+    } else {
+      ProgressView()
     }
-    .task { lexicon = try? await Lexicon.load() }
   }
+  .task { lexicon = try? await Lexicon.load() }
 }
 
 #Preview("Results · favorite marks") {

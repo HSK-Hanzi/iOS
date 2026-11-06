@@ -140,22 +140,16 @@ private struct StrokeCountHeader: View {
   }
 }
 
-#Preview("Radicals · from bundle") {
-  RadicalIndexPreview()
-}
-
 /// Loads the real character database so the index lists the shipped radicals.
-private struct RadicalIndexPreview: View {
-  @State private var characters: CharacterLibrary?
+#Preview("Radicals · from bundle") {
+  @Previewable @State var characters: CharacterLibrary?
 
-  var body: some View {
-    Group {
-      if let characters {
-        RadicalIndexView(characters: characters) { _ in }
-      } else {
-        ProgressView()
-      }
+  Group {
+    if let characters {
+      RadicalIndexView(characters: characters) { _ in }
+    } else {
+      ProgressView()
     }
-    .task { characters = try? CharacterLibrary.load() }
   }
+  .task { characters = try? CharacterLibrary.load() }
 }

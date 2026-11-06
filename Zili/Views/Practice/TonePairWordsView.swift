@@ -99,30 +99,24 @@ private struct TonePairWordRow: View {
   }
 }
 
-#Preview("ǎ + à · from bundle") {
-  TonePairWordsPreview()
-}
-
 /// Loads the real ``Lexicon`` so the list holds the shipped syllabus's low-then-falling words.
-private struct TonePairWordsPreview: View {
-  @State private var lexicon: Lexicon?
+#Preview("ǎ + à · from bundle") {
+  @Previewable @State var lexicon: Lexicon?
 
-  var body: some View {
-    NavigationStack {
-      Group {
-        if let lexicon {
-          TonePairWordsView(
-            lexicon: lexicon,
-            selection: TonePairSelection(
-              pair: TonePair(first: .low, second: .falling),
-              levels: [HSKLevel(standard: .newest, band: 1), HSKLevel(standard: .newest, band: 2)]
-            )
+  NavigationStack {
+    Group {
+      if let lexicon {
+        TonePairWordsView(
+          lexicon: lexicon,
+          selection: TonePairSelection(
+            pair: TonePair(first: .low, second: .falling),
+            levels: [HSKLevel(standard: .newest, band: 1), HSKLevel(standard: .newest, band: 2)]
           )
-        } else {
-          ProgressView()
-        }
+        )
+      } else {
+        ProgressView()
       }
     }
-    .task { lexicon = try? await Lexicon.load() }
   }
+  .task { lexicon = try? await Lexicon.load() }
 }

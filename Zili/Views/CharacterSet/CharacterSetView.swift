@@ -249,37 +249,28 @@ private struct WordCell: View {
   }
 }
 
-#Preview("Level 1") {
-  CharacterSetPreview(
-    source: .hskLevels([HSKLevel(standard: .new, band: 1)]),
-    title: HSKLevel(standard: .new, band: 1).levelName
-  )
-}
-
 /// Loads the real ``Lexicon`` from the bundle and hosts the grid in a throwaway stack so
 /// the preview exercises real words, sorting, and the tap-to-definition push.
-private struct CharacterSetPreview: View {
-  let source: QuizDeckSource
-  let title: String
+#Preview("Level 1") {
+  @Previewable @State var lexicon: Lexicon?
+  @Previewable @State var selection: String?
 
-  @State private var lexicon: Lexicon?
-  @State private var selection: String?
+  let source = QuizDeckSource.hskLevels([HSKLevel(standard: .new, band: 1)])
+  let title = HSKLevel(standard: .new, band: 1).levelName
 
-  var body: some View {
-    NavigationStack {
-      Group {
-        if let lexicon {
-          CharacterSetView(lexicon: lexicon, source: source, title: title, selection: $selection)
-            .navigationDestination(item: $selection) { word in
-              DictionaryEntryView(lookup: lexicon.lookup(word))
-                .navigationTitle(word)
-            }
-        } else {
-          ProgressView()
-        }
+  NavigationStack {
+    Group {
+      if let lexicon {
+        CharacterSetView(lexicon: lexicon, source: source, title: title, selection: $selection)
+          .navigationDestination(item: $selection) { word in
+            DictionaryEntryView(lookup: lexicon.lookup(word))
+              .navigationTitle(word)
+          }
+      } else {
+        ProgressView()
       }
     }
-    .environment(WordMissStore.inMemory())
-    .task { lexicon = try? await Lexicon.load() }
   }
+  .environment(WordMissStore.inMemory())
+  .task { lexicon = try? await Lexicon.load() }
 }

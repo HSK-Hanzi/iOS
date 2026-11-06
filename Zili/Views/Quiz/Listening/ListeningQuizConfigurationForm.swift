@@ -148,25 +148,19 @@ struct ListeningQuizConfigurationForm: View {
   }
 }
 
-#Preview("From bundle") {
-  ListeningConfigurationFormPreview()
-}
-
 /// Loads the real ``SentenceLibrary`` so the level picker and sentence counts reflect the shipped
 /// corpora.
-private struct ListeningConfigurationFormPreview: View {
-  @State private var library: SentenceLibrary?
+#Preview("From bundle") {
+  @Previewable @State var library: SentenceLibrary?
 
-  var body: some View {
-    Group {
-      if let library {
-        ListeningQuizConfigurationForm(library: library, cancel: {}, start: { _ in })
-      } else {
-        ProgressView()
-      }
+  Group {
+    if let library {
+      ListeningQuizConfigurationForm(library: library, cancel: {}, start: { _ in })
+    } else {
+      ProgressView()
     }
-    .environment(SentenceFavoritesStore.inMemory())
-    .environment(SentenceMissStore.inMemory())
-    .task { library = SentenceLibrary.load() }
   }
+  .environment(SentenceFavoritesStore.inMemory())
+  .environment(SentenceMissStore.inMemory())
+  .task { library = SentenceLibrary.load() }
 }

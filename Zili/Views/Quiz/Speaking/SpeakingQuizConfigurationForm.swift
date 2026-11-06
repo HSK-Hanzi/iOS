@@ -79,23 +79,17 @@ struct SpeakingQuizConfigurationForm: View {
   }
 }
 
-#Preview("From bundle") {
-  SpeakingConfigurationFormPreview()
-}
-
 /// Loads the real ``Lexicon`` so the level picker and word counts reflect the shipped data.
-private struct SpeakingConfigurationFormPreview: View {
-  @State private var lexicon: Lexicon?
+#Preview("From bundle") {
+  @Previewable @State var lexicon: Lexicon?
 
-  var body: some View {
-    Group {
-      if let lexicon {
-        SpeakingQuizConfigurationForm(lexicon: lexicon, cancel: {}, start: { _ in })
-      } else {
-        ProgressView()
-      }
+  Group {
+    if let lexicon {
+      SpeakingQuizConfigurationForm(lexicon: lexicon, cancel: {}, start: { _ in })
+    } else {
+      ProgressView()
     }
-    .environment(WordMissStore.inMemory())
-    .task { lexicon = try? await Lexicon.load() }
   }
+  .environment(WordMissStore.inMemory())
+  .task { lexicon = try? await Lexicon.load() }
 }

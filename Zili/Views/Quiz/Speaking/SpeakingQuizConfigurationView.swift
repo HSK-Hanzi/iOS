@@ -34,25 +34,19 @@
     }
   }
 
-  #Preview("From bundle") {
-    SpeakingConfigurationPreview()
-  }
-
   /// Loads the real ``Lexicon`` so the level picker and word counts reflect the shipped data.
-  private struct SpeakingConfigurationPreview: View {
-    @State private var lexicon: Lexicon?
+  #Preview("From bundle") {
+    @Previewable @State var lexicon: Lexicon?
 
-    var body: some View {
-      NavigationStack {
-        if let lexicon {
-          SpeakingQuizConfigurationView(lexicon: lexicon)
-        } else {
-          ProgressView()
-        }
+    NavigationStack {
+      if let lexicon {
+        SpeakingQuizConfigurationView(lexicon: lexicon)
+      } else {
+        ProgressView()
       }
-      .environment(FavoritesStore.inMemory())
-      .environment(WordMissStore.inMemory())
-      .task { lexicon = try? await Lexicon.load() }
     }
+    .environment(FavoritesStore.inMemory())
+    .environment(WordMissStore.inMemory())
+    .task { lexicon = try? await Lexicon.load() }
   }
 #endif

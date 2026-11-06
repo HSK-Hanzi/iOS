@@ -148,27 +148,21 @@ private struct MissedCell: View {
   }
 }
 
-#Preview("Sentence sets · from bundle") {
-  SentenceSetGridPreview()
-}
-
 /// Loads the real ``SentenceLibrary`` so the grid's sets resolve against the shipped corpora.
-private struct SentenceSetGridPreview: View {
-  @State private var library: SentenceLibrary?
-  @State private var selection: SentenceSetSelection?
+#Preview("Sentence sets · from bundle") {
+  @Previewable @State var library: SentenceLibrary?
+  @Previewable @State var selection: SentenceSetSelection?
 
-  var body: some View {
-    NavigationStack {
-      Group {
-        if let library {
-          SentenceSetGrid(library: library, selection: $selection)
-        } else {
-          ProgressView()
-        }
+  NavigationStack {
+    Group {
+      if let library {
+        SentenceSetGrid(library: library, selection: $selection)
+      } else {
+        ProgressView()
       }
     }
-    .environment(SentenceFavoritesStore.inMemory())
-    .environment(SentenceMissStore.inMemory())
-    .task { library = SentenceLibrary.load() }
   }
+  .environment(SentenceFavoritesStore.inMemory())
+  .environment(SentenceMissStore.inMemory())
+  .task { library = SentenceLibrary.load() }
 }

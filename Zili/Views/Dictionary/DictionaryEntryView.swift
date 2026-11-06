@@ -293,29 +293,23 @@ private extension UserDefaults {
   .environment(WordMissStore.inMemory())
 }
 
-#Preview("好 · from bundle") {
-  BundleEntryPreview(word: "好")
-}
-
 /// Loads the real ``Lexicon`` from the app bundle and shows an entry — exercises the view
 /// against the shipped data, including licensed dictionaries in Debug builds.
-private struct BundleEntryPreview: View {
-  let word: String
+#Preview("好 · from bundle") {
+  @Previewable @State var lookup: WordLookup?
 
-  @State private var lookup: WordLookup?
+  let word = "好"
 
-  var body: some View {
-    Group {
-      if let lookup {
-        DictionaryEntryView(lookup: lookup)
-      } else {
-        ProgressView()
-      }
+  Group {
+    if let lookup {
+      DictionaryEntryView(lookup: lookup)
+    } else {
+      ProgressView()
     }
-    .environment(\.selectWord, WordSelectionAction { print("select \($0)") })
-    .environment(WordMissStore.inMemory())
-    .task { lookup = try? await Lexicon.load().lookup(word) }
   }
+  .environment(\.selectWord, WordSelectionAction { print("select \($0)") })
+  .environment(WordMissStore.inMemory())
+  .task { lookup = try? await Lexicon.load().lookup(word) }
 }
 
 private extension WordMissStore {

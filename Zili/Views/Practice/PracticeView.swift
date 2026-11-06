@@ -168,24 +168,18 @@ private struct WordColumn: View {
   }
 }
 
-#Preview("Practice · from bundle") {
-  PracticeViewPreview()
-}
-
 /// Loads the real ``Lexicon`` so the tab exercises the full drill-down against the shipped data.
-private struct PracticeViewPreview: View {
-  @State private var lexicon: Lexicon?
+#Preview("Practice · from bundle") {
+  @Previewable @State var lexicon: Lexicon?
 
-  var body: some View {
-    Group {
-      if let lexicon {
-        PracticeView(lexicon: lexicon)
-      } else {
-        ProgressView()
-      }
+  Group {
+    if let lexicon {
+      PracticeView(lexicon: lexicon)
+    } else {
+      ProgressView()
     }
-    .environment(FavoritesStore.inMemory())
-    .environment(WordMissStore.inMemory())
-    .task { lexicon = try? await Lexicon.load() }
   }
+  .environment(FavoritesStore.inMemory())
+  .environment(WordMissStore.inMemory())
+  .task { lexicon = try? await Lexicon.load() }
 }
