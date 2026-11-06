@@ -5,12 +5,19 @@
 
 import SwiftUI
 
-/// Runs a listening quiz from the shared ``ListeningQuizSession``: each sentence is played aloud,
-/// the learner types what they hear, and the typed Hanzi is graded against the sentence — ignoring
-/// punctuation and spacing — before the sentence, its reading, and its translation are revealed.
-/// Each round is keyed to its sentence, so the next one always enters on a fresh, replayed prompt.
+/// Runs a deck of sentences to hear and type back from the shared ``SentenceQuizSession``: each
+/// sentence is played aloud, the learner types what they hear, and the typed Hanzi is graded
+/// against the sentence — ignoring punctuation and spacing — before the sentence, its reading, and
+/// its translation are revealed. Each round is keyed to its sentence, so the next one always enters
+/// on a fresh, replayed prompt. A quiz ends on its graded results; practice, which lets a sentence
+/// typed wrong be tried again, on a plain note offering to go through the deck again.
 struct ListeningQuizView: View {
-  @Environment(ListeningQuizSession.self)
+  var purpose = StudyPurpose.quiz
+
+  /// Puts practice away, from the close button or once the deck is done. A quiz dismisses itself.
+  var onPracticeDone: () -> Void = {}
+
+  @Environment(SentenceQuizSession.self)
   private var session
   @Environment(\.dismiss)
   private var dismiss
@@ -18,9 +25,18 @@ struct ListeningQuizView: View {
   var body: some View {
     Group {
       if session.isFinished {
-        ListeningResultsView(onDone: doneAction)
+        switch purpose {
+          case .quiz:
+            SentenceResultsView(onDone: doneAction)
+          case .practice:
+            PracticeFinishedView(
+              message: "You’ve heard every sentence in the deck.",
+              onRestart: session.restart,
+              onDone: onPracticeDone
+            )
+        }
       } else if let sentence = session.current {
-        ListeningRoundView(sentence: sentence)
+        ListeningRoundView(sentence: sentence, purpose: purpose, onClose: close)
           .id(sentence.id)
       } else {
         QuizEmptyDeckView(description: "The selected levels have no sentences to hear.")
@@ -29,6 +45,10 @@ struct ListeningQuizView: View {
     #if os(iOS)
       .toolbar(.hidden, for: .navigationBar)
     #endif
+  }
+
+  private var close: () -> Void {
+    purpose == .quiz ? { dismiss() } : onPracticeDone
   }
 
   /// On the Mac the quiz owns its window and the results stay up until it is closed; on iOS the
@@ -50,14 +70,15 @@ private enum ListeningPhase: Hashable {
 
 /// One sentence's round on the listening stage: a play button and a text field while the learner
 /// listens and types, then the graded verdict over the sentence, its reading, and its translation.
-/// Each phase swaps the middle of the stage and what its controls do.
+/// Each phase swaps the middle of the stage and what its controls do. In practice, a sentence typed
+/// wrong can be heard and typed again.
 private struct ListeningRoundView: View {
   let sentence: PracticeSentence
+  let purpose: StudyPurpose
+  let onClose: () -> Void
 
-  @Environment(ListeningQuizSession.self)
+  @Environment(SentenceQuizSession.self)
   private var session
-  @Environment(\.dismiss)
-  private var dismiss
 
   @AppStorage(Romanization.storageKey)
   private var romanization = Romanization.pinyin
@@ -70,7 +91,7 @@ private struct ListeningRoundView: View {
   var body: some View {
     VStack(spacing: 24) {
       #if !os(visionOS)
-        QuizTopBar(index: session.currentIndex, total: session.total) { dismiss() }
+        QuizTopBar(index: session.currentIndex, total: session.total, onClose: onClose)
       #endif
 
       Spacer(minLength: 0)
@@ -104,7 +125,7 @@ private struct ListeningRoundView: View {
           QuizProgress(index: session.currentIndex, total: session.total)
         }
         ToolbarItem(placement: .cancellationAction) {
-          Button("Close quiz", systemImage: "xmark") { dismiss() }
+          Button("Close", systemImage: "xmark", action: onClose)
           .accessibilityIdentifier(AccessibilityID.quizCloseButton)
         }
       }
@@ -126,6 +147,14 @@ private struct ListeningRoundView: View {
         case .reveal(let correct):
           HStack(spacing: 14) {
             QuizJudgementButton(title: "Replay", systemImage: "speaker.wave.2", action: replay)
+            if purpose == .practice, !correct {
+              QuizJudgementButton(
+                title: "Try Again",
+                systemImage: "arrow.counterclockwise",
+                action: tryAgain
+              )
+              .accessibilityIdentifier(AccessibilityID.practiceTryAgain)
+            }
             QuizJudgementButton(
               title: "Next",
               systemImage: "arrow.right",
@@ -138,11 +167,18 @@ private struct ListeningRoundView: View {
           }
       }
     }
-    .frame(maxWidth: 360)
+    .frame(maxWidth: 440)
   }
 
   private func replay() {
     pronouncer.speak(sentence.hanzi, pace: .slow)
+  }
+
+  /// Clears the answer and plays the sentence again, for another go at typing it.
+  private func tryAgain() {
+    typed = ""
+    phase = .listening
+    pronouncer.speak(sentence.hanzi)
   }
 
   private func check() {
@@ -288,7 +324,7 @@ private struct RevealView: View {
 #Preview("Listening round") {
   ListeningQuizView()
     .environment(
-      ListeningQuizSession(deck: [
+      SentenceQuizSession(deck: [
         PracticeSentence(
           id: "1",
           hanzi: "我想喝茶。",

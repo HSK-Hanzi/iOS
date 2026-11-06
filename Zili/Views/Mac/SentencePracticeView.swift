@@ -6,7 +6,7 @@
 #if os(macOS)
   import SwiftUI
 
-  /// The macOS Practice Sentences window: a two-column split view. The Favorites and Missed tiles
+  /// The macOS Reading Sentences window: a two-column split view. The Favorites and Missed tiles
   /// are the sidebar; choosing one fills the detail column with that set's sentences, and tapping a sentence
   /// drills its detail onto the detail's own navigation stack — where a word tapped inside the
   /// sentence pushes its full dictionary entry, the way the character window drills words.

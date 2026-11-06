@@ -1,17 +1,19 @@
 //
-//  SpeakingQuizConfigurationForm.swift
+//  WordQuizConfigurationForm.swift
 //  Zili
 //
 
 import SwiftUI
 
-/// The setup fields for saying words aloud, in the speaking quiz or speaking practice: the words
-/// the learner will say, and how many. Dealing the deck is the form's own job — it hands the
-/// finished ``QuizSession`` to `start`, wired by its ``Purpose``. A `cancel` handler adds a button
-/// beside Start, for a form presented modally.
-struct SpeakingQuizConfigurationForm: View {
+/// The setup fields for a deck of words, to say or to pick out by ear: the words — levels, the
+/// learner's favorites, or those missed in `mode` — and how many. Dealing the deck is the form's own
+/// job: it hands the finished ``QuizSession`` to `start`, recording each word answered wrong as a
+/// miss in `mode` for a quiz and nothing for practice. A `cancel` handler adds a button beside
+/// Start, for a form presented modally.
+struct WordQuizConfigurationForm: View {
   let lexicon: Lexicon
-  let purpose: Purpose
+  let mode: WordQuizMode
+  let purpose: StudyPurpose
 
   let cancel: (() -> Void)?
   let start: (QuizSession) -> Void
@@ -34,7 +36,7 @@ struct SpeakingQuizConfigurationForm: View {
         source: $source,
         savedLevels: $savedLevels,
         sort: $sort,
-        missedWords: wordMisses.wordsMissed(in: .speaking),
+        missedWords: wordMisses.wordsMissed(in: mode),
         countLabel: Text("\(wordCount) words selected.")
       )
       Section("Deck") {
@@ -62,11 +64,13 @@ struct SpeakingQuizConfigurationForm: View {
 
   init(
     lexicon: Lexicon,
-    purpose: Purpose = .quiz,
+    mode: WordQuizMode,
+    purpose: StudyPurpose = .quiz,
     cancel: (() -> Void)? = nil,
     start: @escaping (QuizSession) -> Void
   ) {
     self.lexicon = lexicon
+    self.mode = mode
     self.purpose = purpose
     self.cancel = cancel
     self.start = start
@@ -85,24 +89,9 @@ struct SpeakingQuizConfigurationForm: View {
     )
     switch purpose {
       case .quiz:
-        start(QuizSession(deck: deck, onMiss: { wordMisses.recordMiss($0, mode: .speaking) }))
+        start(QuizSession(deck: deck, onMiss: { wordMisses.recordMiss($0, mode: mode) }))
       case .practice:
         start(QuizSession(deck: deck))
-    }
-  }
-
-  /// What the words are dealt for: a quiz, which records each word said wrong as a speaking miss,
-  /// or practice, which records nothing — a word said straight after hearing it says little about
-  /// whether it's known.
-  enum Purpose {
-    case quiz
-    case practice
-
-    var startTitle: LocalizedStringKey {
-      switch self {
-        case .quiz: "Start Quiz"
-        case .practice: "Start Practice"
-      }
     }
   }
 }
@@ -113,7 +102,7 @@ struct SpeakingQuizConfigurationForm: View {
 
   Group {
     if let lexicon {
-      SpeakingQuizConfigurationForm(lexicon: lexicon, cancel: {}, start: { _ in })
+      WordQuizConfigurationForm(lexicon: lexicon, mode: .speaking, cancel: {}, start: { _ in })
     } else {
       ProgressView()
     }

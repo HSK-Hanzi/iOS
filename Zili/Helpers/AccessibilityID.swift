@@ -29,6 +29,9 @@ enum AccessibilityID {
   static let practiceTonesCard = "practice.tonesCard"
   static let practiceGrammarCard = "practice.grammarCard"
   static let practiceSpeakingCard = "practice.speakingCard"
+  static let practiceListeningCharactersCard = "practice.listeningCharactersCard"
+  static let practiceListeningSentencesCard = "practice.listeningSentencesCard"
+  static let practiceSpeakingSentencesCard = "practice.speakingSentencesCard"
   static let characterSetFavorites = "characterSet.favorites"
   static let characterSetMissed = "characterSet.missed"
   static let characterSetClearAll = "characterSet.clearAll"
@@ -58,6 +61,8 @@ enum AccessibilityID {
   static let quizDrawingCard = "quiz.drawingCard"
   static let quizListeningCard = "quiz.listeningCard"
   static let quizSpeakingCard = "quiz.speakingCard"
+  static let quizListeningCharactersCard = "quiz.listeningCharactersCard"
+  static let quizSpeakingSentencesCard = "quiz.speakingSentencesCard"
   static let quizStartButton = "quiz.startButton"
   static let quizSetPicker = "quiz.setPicker"
   static let quizSortPicker = "quiz.sortPicker"
@@ -76,19 +81,21 @@ enum AccessibilityID {
   static let listeningAnswerField = "listening.answerField"
   static let listeningSubmit = "listening.submit"
   static let listeningReplay = "listening.replay"
+  static let listeningChoice = "listening.choice"
+  static let listeningPicked = "listening.picked"
 
   // Speaking quiz
   static let speakingSayIt = "speaking.sayIt"
   static let speakingHeard = "speaking.heard"
-  static let speakingCorrect = "speaking.correct"
-  static let speakingNeedsReview = "speaking.needsReview"
+  static let verdictCorrect = "verdict.correct"
+  static let verdictNeedsReview = "verdict.needsReview"
   static let speakingUnavailable = "speaking.unavailable"
   static let speakingRetry = "speaking.retry"
 
-  // Speaking practice
-  static let speakingPracticeTryAgain = "speakingPractice.tryAgain"
-  static let speakingPracticeFinished = "speakingPractice.finished"
-  static let speakingPracticeAgain = "speakingPractice.again"
+  // Practice
+  static let practiceTryAgain = "practice.tryAgain"
+  static let practiceFinished = "practice.finished"
+  static let practiceAgain = "practice.again"
 
   // Stroke practice pad
   static let strokeTestCanvas = "strokeTest.canvas"
@@ -120,6 +127,10 @@ enum AccessibilityID {
 
   /// The grammar grid's tile for one HSK 3.0 level, suffixed with the level number.
   static func grammarLevel(_ level: Int) -> String { "grammar.level.\(level)" }
+
+  /// A tab's card for one skill with several modes, namespaced by the tab (`practice` or `quiz`)
+  /// and suffixed with the skill's name.
+  static func skillCard(_ skill: String, in tab: String) -> String { "\(tab).skill.\(skill)" }
 
   /// The radical index's tile for one radical, suffixed with its Kangxi number (`149'` for 讠).
   static func radicalCell(_ number: String) -> String { "radical.cell.\(number)" }

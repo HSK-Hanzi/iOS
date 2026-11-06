@@ -10,7 +10,9 @@ import Synchronization
 ///
 /// Held as view state so the underlying `AVSpeechSynthesizer` outlives each utterance;
 /// requesting new speech cuts off any still in progress. On iOS the audio session is set to
-/// playback before speaking, so a listening quiz is still heard with the ringer switched off.
+/// playback before speaking, so a listening quiz is still heard with the ringer switched off — or,
+/// for a pronouncer that shares the microphone, to playing and recording, so listening can start
+/// the moment speech ends.
 @MainActor
 final class WordPronouncer {
   nonisolated private static let language = "zh-CN"
@@ -41,12 +43,16 @@ final class WordPronouncer {
 
   private let synthesizer = AVSpeechSynthesizer()
   private let completions = UtteranceCompletions()
+  private let sharesMicrophone: Bool
 
   /// The utterance ``say(_:pace:)`` is awaiting, so cancelling it stops only that utterance and not
   /// whatever has started speaking since.
   private var awaited: ObjectIdentifier?
 
-  init() {
+  /// A pronouncer for a screen that `sharesMicrophone` with a ``MandarinSpeechListener``, hearing
+  /// the learner between its utterances, or for one that only speaks.
+  init(sharesMicrophone: Bool = false) {
+    self.sharesMicrophone = sharesMicrophone
     synthesizer.delegate = completions
   }
 
@@ -59,7 +65,7 @@ final class WordPronouncer {
 
   /// Pronounces `text` in Mandarin at `pace`, interrupting any utterance still being spoken.
   func speak(_ text: String, pace: Pace = .normal) {
-    activatePlaybackSession()
+    activateAudioSession()
     stop()
     synthesizer.speak(Self.utterance(of: text, pace: pace))
   }
@@ -68,7 +74,7 @@ final class WordPronouncer {
   /// returns once it has been said — or cut off, by other speech or by cancelling the task.
   func say(_ text: String, pace: Pace = .normal) async {
     guard !Task.isCancelled else { return }
-    activatePlaybackSession()
+    activateAudioSession()
     stop()
     let utterance = Self.utterance(of: text, pace: pace)
     let id = ObjectIdentifier(utterance)
@@ -86,7 +92,7 @@ final class WordPronouncer {
   /// Pronounces each of `texts` in turn with `pause` after each, interrupting any utterance still
   /// being spoken.
   func speakInTurn(_ texts: [String], pause: TimeInterval, pace: Pace = .normal) {
-    activatePlaybackSession()
+    activateAudioSession()
     stop()
     for text in texts {
       let utterance = Self.utterance(of: text, pace: pace)
@@ -99,6 +105,14 @@ final class WordPronouncer {
   func stop() {
     awaited = nil
     synthesizer.stopSpeaking(at: .immediate)
+  }
+
+  private func activateAudioSession() {
+    if sharesMicrophone {
+      MandarinSpeechListener.activateRecordingSession()
+    } else {
+      activatePlaybackSession()
+    }
   }
 
   /// Routes speech to playback so it sounds even when the device is on silent. A no-op off iOS,

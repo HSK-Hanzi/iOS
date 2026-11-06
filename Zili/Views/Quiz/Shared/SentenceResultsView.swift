@@ -1,21 +1,21 @@
 //
-//  ListeningResultsView.swift
+//  SentenceResultsView.swift
 //  Zili
 //
 
 import SwiftUI
 
-/// The end-of-deck summary for a listening quiz: a vermilion seal (印章) with the session's grade
-/// character, the accuracy beneath, and how many sentences were heard correctly. Auto-graded, so —
+/// The end-of-deck summary for a quiz on sentences: a vermilion seal (印章) with the session's grade
+/// character, the accuracy beneath, and how many sentences were answered correctly. Auto-graded, so —
 /// unlike the recognition and drawing summaries — it splits the deck only into right and wrong,
-/// and offers a re-drill of the misses. Reads the finished ``ListeningQuizSession`` from the
+/// and offers a re-drill of the misses. Reads the finished ``SentenceQuizSession`` from the
 /// environment; re-drilling mutates it in place.
-struct ListeningResultsView: View {
+struct SentenceResultsView: View {
   /// Dismisses the finished quiz. A quiz that owns its window has nowhere to go and passes `nil`,
   /// leaving the results up until the window is closed.
   let onDone: (() -> Void)?
 
-  @Environment(ListeningQuizSession.self)
+  @Environment(SentenceQuizSession.self)
   private var session
   @Environment(\.accessibilityReduceMotion)
   private var reduceMotion
@@ -134,7 +134,7 @@ struct ListeningResultsView: View {
 }
 
 #Preview("Listening results") {
-  let session = ListeningQuizSession(deck: [
+  let session = SentenceQuizSession(deck: [
     PracticeSentence(
       id: "1",
       hanzi: "我想喝茶。",
@@ -157,6 +157,6 @@ struct ListeningResultsView: View {
   session.mark(correct: true)
   session.mark(correct: true)
   session.mark(correct: false)
-  return ListeningResultsView(onDone: {})
+  return SentenceResultsView(onDone: {})
     .environment(session)
 }

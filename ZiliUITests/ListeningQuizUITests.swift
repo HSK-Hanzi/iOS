@@ -6,9 +6,10 @@
 import XCTest
 import XCUITestKit
 
-/// Running a listening quiz end to end: hear a sentence, type an answer, and have it auto-graded.
-/// CJK entry is unreliable in the simulator, so every answer is a deliberately-wrong latin "x",
-/// exercising the wrong-answer grading path from the first prompt all the way to the results seal.
+/// Hearing sentences and typing them back, end to end: hear a sentence, type an answer, and have it
+/// auto-graded. CJK entry is unreliable in the simulator, so every answer is a deliberately-wrong
+/// latin "x", exercising the wrong-answer grading path — in a quiz from the first prompt all the way
+/// to the results seal, and in practice back to the prompt to try again.
 final class ListeningQuizUITests: ZiliUITestCase {
   func testWrongAnswersAreGradedToResults() async throws {
     launch()
@@ -39,5 +40,16 @@ final class ListeningQuizUITests: ZiliUITestCase {
       AccessibilityID.quizResults,
       "Grading every wrong answer runs the deck out to its results."
     )
+  }
+
+  func testPracticeOffersAnotherTryAtASentenceTypedWrong() async throws {
+    launch()
+    await openListeningSentencesPracticeConfiguration()
+    await startQuiz()
+
+    type("x\n", into: expect(AccessibilityID.listeningAnswerField, "The answer field."))
+    await tap(AccessibilityID.practiceTryAgain, "Try the sentence again.")
+
+    expect(AccessibilityID.listeningAnswerField, "The sentence is asked for again.")
   }
 }

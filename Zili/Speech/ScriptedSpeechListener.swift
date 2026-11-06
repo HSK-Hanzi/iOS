@@ -15,6 +15,7 @@ final class ScriptedSpeechListener: MandarinListening {
 
   let downloadProgress: Progress? = nil
   private(set) var transcript = ""
+  private(set) var isHearing = false
   private var preparations = 0
 
   private let script: Script
@@ -30,7 +31,12 @@ final class ScriptedSpeechListener: MandarinListening {
     if script == .unavailableUntilRetried, preparations == 1 { throw .downloadFailed }
   }
 
-  func listen() -> Heard {
+  func listen(
+    for _: SpokenLength,
+    after prelude: @escaping @MainActor @Sendable () async -> Void
+  ) async throws -> Heard {
+    await prelude()
+    try Task.checkCancellation()
     let said = script == .mishear ? Self.misheard : prompt() ?? ""
     transcript = said
     return Heard(candidates: [said])

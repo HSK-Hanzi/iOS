@@ -17,10 +17,10 @@ final class SpeakingPracticeUITests: ZiliUITestCase {
     await practice.start()
     let deckSize = try XCTUnwrap(practice.deckSize, "The progress pill reads the deck size.")
 
-    sayEveryWord(in: practice, gradedAs: AccessibilityID.speakingCorrect)
+    sayEveryWord(in: practice, gradedAs: AccessibilityID.verdictCorrect)
 
-    expect(AccessibilityID.speakingPracticeFinished, "Every word said runs the deck out.")
-    await tap(AccessibilityID.speakingPracticeAgain, "Practice the deck again.")
+    expect(AccessibilityID.practiceFinished, "Every word said runs the deck out.")
+    await tap(AccessibilityID.practiceAgain, "Practice the deck again.")
     practice.expectProgress(card: 1, of: deckSize, "Practice Again starts the deck over.")
   }
 
@@ -30,11 +30,11 @@ final class SpeakingPracticeUITests: ZiliUITestCase {
     await practice.start()
     let deckSize = try XCTUnwrap(practice.deckSize, "The progress pill reads the deck size.")
 
-    expect(AccessibilityID.speakingNeedsReview, "A word said wrong is graded for improvement.")
+    expect(AccessibilityID.verdictNeedsReview, "A word said wrong is graded for improvement.")
     expect(AccessibilityID.speakingHeard, "What was heard instead is shown.")
 
-    await tap(AccessibilityID.speakingPracticeTryAgain, "Say the word again.")
-    expect(AccessibilityID.speakingNeedsReview, "The word is heard and graded again.")
+    await tap(AccessibilityID.practiceTryAgain, "Say the word again.")
+    expect(AccessibilityID.verdictNeedsReview, "The word is heard and graded again.")
     practice.expectProgress(card: 1, of: deckSize, "Trying again stays on the same word.")
 
     practice.nextButton.forceTap()
@@ -44,7 +44,7 @@ final class SpeakingPracticeUITests: ZiliUITestCase {
   /// Lets each word be said and heard — a turn listens by itself once the word has been spoken —
   /// checking it earns the verdict `verdictID`, and moves on until the deck runs out.
   private func sayEveryWord(in practice: QuizPage, gradedAs verdictID: String) {
-    let finished = el(AccessibilityID.speakingPracticeFinished)
+    let finished = el(AccessibilityID.practiceFinished)
     for _ in 0..<60 {
       if finished.exists { break }
       guard practice.nextButton.wait() else { break }

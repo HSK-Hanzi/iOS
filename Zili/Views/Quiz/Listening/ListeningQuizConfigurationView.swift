@@ -6,21 +6,23 @@
 #if !os(macOS)
   import SwiftUI
 
-  /// Where the learner sets up a listening quiz, as a screen in the Quiz tab's navigation stack. It
-  /// owns the session the form deals and pushes ``ListeningQuizView`` once a deck exists.
+  /// Where the learner chooses the sentences to hear and type back, for a quiz or for practice, as
+  /// a screen in its tab's navigation stack. It owns the session the form deals and pushes
+  /// ``ListeningQuizView`` once a deck exists.
   struct ListeningQuizConfigurationView: View {
     let library: SentenceLibrary
+    var purpose = StudyPurpose.quiz
 
-    @State private var session: ListeningQuizSession?
+    @State private var session: SentenceQuizSession?
 
     var body: some View {
-      ListeningQuizConfigurationForm(library: library) { dealt in
+      SentenceQuizConfigurationForm(library: library, mode: .listening, purpose: purpose) { dealt in
         session = dealt
       }
-      .navigationTitle("Listening")
+      .navigationTitle("Sentences")
       .navigationDestination(isPresented: isQuizActive) {
         if let session {
-          ListeningQuizView()
+          ListeningQuizView(purpose: purpose) { self.session = nil }
             .environment(session)
         }
       }

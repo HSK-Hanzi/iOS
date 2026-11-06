@@ -5,7 +5,7 @@
 
 import SwiftUI
 
-/// Practice Grammar: the HSK 3.0 levels as tiles, each counting the grammar points it introduces.
+/// Grammar: the HSK 3.0 levels as tiles, each counting the grammar points it introduces.
 /// Choosing a level lists its points; choosing a point explains it and shows sentences using it.
 struct PracticeGrammarView: View {
   let corpus: SentenceCorpus

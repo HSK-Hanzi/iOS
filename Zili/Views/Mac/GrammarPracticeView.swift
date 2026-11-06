@@ -6,7 +6,7 @@
 #if os(macOS)
   import SwiftUI
 
-  /// The macOS Practice Grammar window: the level tiles at the root of a navigation stack, a level's
+  /// The macOS Grammar window: the level tiles at the root of a navigation stack, a level's
   /// grammar points pushed onto it, then a point's page, and a word looked up from an example.
   struct GrammarPracticeView: View {
     let lexicon: Lexicon
@@ -18,7 +18,7 @@
         if let corpus = lexicon.sentences.defaultCorpus {
           PracticeGrammarView(
             corpus: corpus,
-            title: "Practice Grammar",
+            title: "Grammar",
             selection: Binding(get: { nil }, set: { if let level = $0 { path.append(level) } })
           )
           .navigationDestination(for: Int.self) { level in

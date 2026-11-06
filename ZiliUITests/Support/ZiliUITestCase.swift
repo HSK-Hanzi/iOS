@@ -323,14 +323,34 @@ class ZiliUITestCase: XCTestCase {
     /// The window titles ``ZiliApp`` declares its scenes with.
     enum MacWindow {
       static let dictionary = "Dictionary"
-      static let practiceCharacters = "Practice Characters"
-      static let practiceSentences = "Practice Sentences"
-      static let practiceTones = "Practice Tones"
-      static let practiceGrammar = "Practice Grammar"
-      static let practiceSpeaking = "Practice Speaking"
-      static let recognitionQuiz = "Recognition Quiz"
-      static let drawingQuiz = "Drawing Quiz"
-      static let listeningQuiz = "Listening Quiz"
+      static let practiceCharacters = "Reading Characters"
+      static let practiceSentences = "Reading Sentences"
+      static let practiceTones = "Tones"
+      static let practiceGrammar = "Grammar"
+      static let practiceSpeaking = "Speaking: Characters"
+      static let practiceListeningCharacters = "Listening: Characters"
+      static let practiceListeningSentences = "Listening: Sentences"
+      static let practiceSpeakingSentences = "Speaking: Sentences"
+      static let recognitionQuiz = "Reading Characters Quiz"
+      static let drawingQuiz = "Writing Characters Quiz"
+      static let listeningQuiz = "Listening Quiz: Sentences"
+    }
+
+    /// Chooses `item` from the `submenu` of the menu bar's `menu`, for a window whose menu item has
+    /// no shortcut.
+    func choose(_ item: String, in submenu: String, fromMenu menu: String) {
+      let menuBarItem = app.menuBars.menuBarItems[menu]
+      menuBarItem.click()
+      let submenuItem = menuBarItem.descendants(matching: .menuItem)[submenu]
+      submenuItem.click()
+      submenuItem.descendants(matching: .menuItem)[item].click()
+    }
+
+    /// Opens the Practice window titled `title` from `item` in the Practice menu's `skill` submenu,
+    /// and brings it forward.
+    func openPracticeWindow(_ title: String, choosing item: String, in skill: String) {
+      choose(item, in: skill, fromMenu: "Practice")
+      app.focusWindow(title)
     }
 
   #else
@@ -383,33 +403,30 @@ class ZiliUITestCase: XCTestCase {
     #endif
   }
 
-  /// Reaches the Practice Characters browser (the HSK level grid).
+  /// Reaches the Reading Characters browser (the HSK level grid).
   func goToPracticeCharacters() async {
     #if os(macOS)
       app.focusWindow(MacWindow.practiceCharacters, openingWith: "2")
     #else
-      tapTab(Tab.practice)
-      await tap(AccessibilityID.practiceCharactersCard, "Practice Characters card.")
+      await openPracticeCard(AccessibilityID.practiceCharactersCard, of: "reading")
     #endif
   }
 
-  /// Reaches the Practice Grammar levels.
+  /// Reaches the Grammar levels.
   func goToPracticeGrammar() async {
     #if os(macOS)
       app.focusWindow(MacWindow.practiceGrammar, openingWith: "4")
     #else
-      tapTab(Tab.practice)
-      await tap(AccessibilityID.practiceGrammarCard, "Practice Grammar card.")
+      await openPracticeCard(AccessibilityID.practiceGrammarCard, of: "reading")
     #endif
   }
 
-  /// Reaches the Practice Tones grid.
+  /// Reaches the Tones grid.
   func goToPracticeTones() async {
     #if os(macOS)
       app.focusWindow(MacWindow.practiceTones, openingWith: "5")
     #else
-      tapTab(Tab.practice)
-      await tap(AccessibilityID.practiceTonesCard, "Practice Tones card.")
+      await openPracticeCard(AccessibilityID.practiceTonesCard, of: "speaking")
     #endif
   }
 
@@ -418,21 +435,17 @@ class ZiliUITestCase: XCTestCase {
     #if os(macOS)
       app.focusWindow(MacWindow.practiceSpeaking, openingWith: "6")
     #else
-      tapTab(Tab.practice)
-      // The last of the Practice cards, below the fold on a phone.
-      app.scrollToElement(el(AccessibilityID.practiceSpeakingCard))
-      await tap(AccessibilityID.practiceSpeakingCard, "Practice Speaking card.")
+      await openPracticeCard(AccessibilityID.practiceSpeakingCard, of: "speaking")
     #endif
     expectConfigurationForm()
   }
 
-  /// Reaches the Practice Sentences browser (the Favorites and Missed sets).
+  /// Reaches the Reading Sentences browser (the Favorites and Missed sets).
   func goToPracticeSentences() async {
     #if os(macOS)
       app.focusWindow(MacWindow.practiceSentences, openingWith: "3")
     #else
-      tapTab(Tab.practice)
-      await tap(AccessibilityID.practiceSentencesCard, "Practice Sentences card.")
+      await openPracticeCard(AccessibilityID.practiceSentencesCard, of: "reading")
     #endif
   }
 
@@ -441,7 +454,7 @@ class ZiliUITestCase: XCTestCase {
     #if os(macOS)
       app.typeKey("n", modifierFlags: .command)
     #else
-      await openQuizCard(AccessibilityID.quizRecognitionCard, "Recognition quiz card.")
+      await openQuizCard(AccessibilityID.quizRecognitionCard)
     #endif
     expectConfigurationForm()
   }
@@ -454,7 +467,7 @@ class ZiliUITestCase: XCTestCase {
     #elseif os(visionOS)
       throw XCTSkip("visionOS has no drawing quiz.")
     #else
-      await openQuizCard(AccessibilityID.quizDrawingCard, "Drawing quiz card.")
+      await openQuizCard(AccessibilityID.quizDrawingCard)
     #endif
     expectConfigurationForm()
   }
@@ -464,7 +477,7 @@ class ZiliUITestCase: XCTestCase {
     #if os(macOS)
       app.typeKey("n", modifierFlags: [.command, .option])
     #else
-      await openQuizCard(AccessibilityID.quizListeningCard, "Listening quiz card.")
+      await openQuizCard(AccessibilityID.quizListeningCard, of: "listening")
     #endif
     expectConfigurationForm()
   }
@@ -474,15 +487,102 @@ class ZiliUITestCase: XCTestCase {
     #if os(macOS)
       app.typeKey("n", modifierFlags: [.command, .control])
     #else
-      await openQuizCard(AccessibilityID.quizSpeakingCard, "Speaking quiz card.")
+      await openQuizCard(AccessibilityID.quizSpeakingCard, of: "speaking")
+    #endif
+    expectConfigurationForm()
+  }
+
+  /// Opens a quiz on picking words out by ear onto its configuration form.
+  func openListeningCharactersQuizConfiguration() async {
+    #if os(macOS)
+      choose("Characters", in: "New Listening Quiz", fromMenu: "Quiz")
+    #else
+      await openQuizCard(AccessibilityID.quizListeningCharactersCard, of: "listening")
+    #endif
+    expectConfigurationForm()
+  }
+
+  /// Opens practice at picking words out by ear onto its configuration form.
+  func openListeningCharactersPracticeConfiguration() async {
+    #if os(macOS)
+      openPracticeWindow(
+        MacWindow.practiceListeningCharacters,
+        choosing: "Characters",
+        in: "Listening"
+      )
+    #else
+      await openPracticeCard(AccessibilityID.practiceListeningCharactersCard, of: "listening")
+    #endif
+    expectConfigurationForm()
+  }
+
+  /// Opens practice at hearing sentences and typing them back onto its configuration form.
+  func openListeningSentencesPracticeConfiguration() async {
+    #if os(macOS)
+      openPracticeWindow(
+        MacWindow.practiceListeningSentences,
+        choosing: "Sentences",
+        in: "Listening"
+      )
+    #else
+      await openPracticeCard(AccessibilityID.practiceListeningSentencesCard, of: "listening")
+    #endif
+    expectConfigurationForm()
+  }
+
+  /// Opens a quiz on reading sentences aloud onto its configuration form.
+  func openSpeakingSentencesQuizConfiguration() async {
+    #if os(macOS)
+      choose("Sentences", in: "New Speaking Quiz", fromMenu: "Quiz")
+    #else
+      await openQuizCard(AccessibilityID.quizSpeakingSentencesCard, of: "speaking")
+    #endif
+    expectConfigurationForm()
+  }
+
+  /// Opens practice at saying sentences back onto its configuration form.
+  func openSpeakingSentencesPracticeConfiguration() async {
+    #if os(macOS)
+      openPracticeWindow(
+        MacWindow.practiceSpeakingSentences,
+        choosing: "Sentences",
+        in: "Speaking"
+      )
+    #else
+      await openPracticeCard(AccessibilityID.practiceSpeakingSentencesCard, of: "speaking")
     #endif
     expectConfigurationForm()
   }
 
   #if !os(macOS)
-    /// Taps the Quiz tab's card for one kind of quiz.
-    private func openQuizCard(_ identifier: String, _ message: String) async {
+    /// How long a tab's first level is given to show a mode's card before its skill's card is
+    /// tapped instead.
+    private static let firstLevelTimeout: TimeInterval = 2
+
+    /// Opens a Practice mode from its card: the card of its skill first, when the skill has several
+    /// modes, then the mode's own.
+    private func openPracticeCard(_ identifier: String, of skill: String? = nil) async {
+      tapTab(Tab.practice)
+      await openCard(identifier, of: skill, in: "practice")
+    }
+
+    /// Opens a quiz from its card: the card of its skill first, when the skill has several quizzes,
+    /// then the quiz's own.
+    private func openQuizCard(_ identifier: String, of skill: String? = nil) async {
       tapTab(Tab.quiz)
+      await openCard(identifier, of: skill, in: "quiz")
+    }
+
+    /// Taps the mode's card, reaching it through its skill's card when it isn't on the tab's first
+    /// level — a skill with a single mode shows that mode's card there instead of its own.
+    private func openCard(_ identifier: String, of skill: String?, in tab: String) async {
+      if let skill, !el(identifier).wait(timeout: Self.firstLevelTimeout) {
+        await tapCard(AccessibilityID.skillCard(skill, in: tab), "The \(skill) card.")
+      }
+      await tapCard(identifier, "The \(identifier) card.")
+    }
+
+    private func tapCard(_ identifier: String, _ message: String) async {
       let card = expect(identifier, message)
       #if os(visionOS)
         await tapWhenSettled(card)

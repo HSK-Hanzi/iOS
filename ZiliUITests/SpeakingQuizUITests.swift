@@ -15,7 +15,7 @@ final class SpeakingQuizUITests: ZiliUITestCase {
     let quiz = await QuizPage.openSpeaking(self)
     await quiz.start()
 
-    sayEveryWord(in: quiz, gradedAs: AccessibilityID.speakingCorrect)
+    sayEveryWord(in: quiz, gradedAs: AccessibilityID.verdictCorrect)
 
     quiz.expectResults("Saying every word right runs the deck out to its results.")
   }
@@ -25,7 +25,7 @@ final class SpeakingQuizUITests: ZiliUITestCase {
     let quiz = await QuizPage.openSpeaking(self)
     await quiz.start()
 
-    sayEveryWord(in: quiz, gradedAs: AccessibilityID.speakingNeedsReview)
+    sayEveryWord(in: quiz, gradedAs: AccessibilityID.verdictNeedsReview)
 
     quiz.expectResults("Saying every word wrong runs the deck out to its results.")
   }

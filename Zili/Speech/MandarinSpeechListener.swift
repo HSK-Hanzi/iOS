@@ -9,9 +9,9 @@ import Speech
 /// Hears the learner through the microphone with the on-device `SpeechTranscriber`.
 ///
 /// Mandarin isn't installed on a device by default, so ``prepare()`` downloads its model first,
-/// publishing the download's progress. Each ``listen()`` then captures the microphone until
-/// ``EndOfSpeech`` says the learner has finished, and finalizes the transcript up to the last
-/// audio heard. Finalizing to the end of the input instead would wait forever: a live capture's
+/// publishing the download's progress. Each ``listen(for:after:)`` then readies the microphone and
+/// the model while its prelude plays, captures the microphone until ``EndOfSpeech`` says the
+/// learner has finished, and finalizes the transcript up to the last audio heard. Finalizing to the end of the input instead would wait forever: a live capture's
 /// input never ends, not even once the capture stops.
 @MainActor
 @Observable
@@ -23,13 +23,14 @@ final class MandarinSpeechListener: MandarinListening {
 
   private(set) var downloadProgress: Progress?
   private(set) var transcript = ""
+  private(set) var isHearing = false
 
   @ObservationIgnored private var locale: Locale?
   @ObservationIgnored private var endOfSpeech = EndOfSpeech(startedAt: .now)
   @ObservationIgnored private var heardThrough = CMTime.zero
   @ObservationIgnored private var resultsFailed = false
 
-  /// Which call to ``listen()`` owns the state above. A superseded call's recognizer can still be
+  /// Which call to ``listen(for:after:)`` owns the state above. A superseded call's recognizer can still be
   /// winding down after the next word has started listening, so its results check this before
   /// they touch anything.
   @ObservationIgnored private var utterance = 0
@@ -41,16 +42,34 @@ final class MandarinSpeechListener: MandarinListening {
     self.locale = locale
   }
 
-  func listen() async throws -> Heard {
-    guard let locale else { preconditionFailure("listen() before prepare()") }
-    let utterance = beginUtterance()
-    Self.activateRecordingSession()
-
+  func listen(
+    for length: SpokenLength,
+    after prelude: @escaping @MainActor @Sendable () async -> Void
+  ) async throws -> Heard {
+    guard let locale else { preconditionFailure("listen(for:after:) before prepare()") }
     let transcriber = Self.transcriber(for: locale)
-    let provider = try await Self.openMicrophone(feeding: transcriber)
-    defer { provider.captureSession.stopRunning() }
-    let analyzer = SpeechAnalyzer(inputSequence: provider.analyzerInputs, modules: [transcriber])
+    async let preluded: Void = prelude()
+    let (analyzer, closedMicrophone) = try await Self.readyToHear(transcriber)
+    await preluded
+    guard !Task.isCancelled else {
+      await analyzer.cancelAndFinishNow()
+      throw CancellationError()
+    }
+
+    let utterance = beginUtterance(length)
+    Self.activateRecordingSession()
     let finals = Task { try await collectFinals(from: transcriber, for: utterance) }
+    let provider: CaptureInputSequenceProvider
+    do {
+      try await analyzer.start(inputSequence: closedMicrophone.analyzerInputs)
+      provider = await Self.startCapturing(closedMicrophone)
+    } catch {
+      await abandon(analyzer, finals)
+      throw SpeechRecognitionError.listeningFailed
+    }
+    defer { provider.captureSession.stopRunning() }
+    startHearing(length)
+    defer { isHearing = false }
 
     do {
       try await waitForEndOfSpeech()
@@ -123,27 +142,50 @@ extension MandarinSpeechListener {
     )
   }
 
-  /// Starts capturing the microphone as input for `transcriber`. The provider hands its session
-  /// over stopped, and starting one blocks until the hardware is running, so this runs away from
-  /// the main actor.
+  /// An analyzer with the model for `transcriber` loaded, and the microphone set up to feed it but
+  /// not yet capturing.
+  private static func readyToHear(
+    _ transcriber: SpeechTranscriber
+  ) async throws(SpeechRecognitionError) -> sending (SpeechAnalyzer, CaptureInputSequenceProvider) {
+    let microphone = try await openMicrophone(feeding: transcriber)
+    let analyzer = SpeechAnalyzer(modules: [transcriber])
+    do {
+      let format = await SpeechAnalyzer.bestAvailableAudioFormat(compatibleWith: [transcriber])
+      try await analyzer.prepareToAnalyze(in: format)
+    } catch {
+      throw .listeningFailed
+    }
+    return (analyzer, microphone)
+  }
+
+  /// Sets the microphone up as input for `transcriber`. The provider hands its session over
+  /// stopped.
   @concurrent
   nonisolated private static func openMicrophone(
     feeding transcriber: SpeechTranscriber
   ) async throws(SpeechRecognitionError) -> sending CaptureInputSequenceProvider {
     guard let microphone = AVCaptureDevice.default(for: .audio) else { throw .noMicrophone }
-    let provider: CaptureInputSequenceProvider
     do {
-      provider = try await .providerWithSession(from: microphone, compatibleWith: [transcriber])
+      return try await .providerWithSession(from: microphone, compatibleWith: [transcriber])
     } catch {
       throw .listeningFailed
     }
+  }
+
+  /// Starts `provider`'s session capturing. Starting one blocks until the hardware is running, so
+  /// this runs away from the main actor.
+  @concurrent
+  nonisolated private static func startCapturing(
+    _ provider: sending CaptureInputSequenceProvider
+  ) async -> sending CaptureInputSequenceProvider {
     provider.captureSession.startRunning()
     return provider
   }
 
-  /// Switches the audio session to recording. ``WordPronouncer`` switches it back to playback
-  /// whenever the app speaks. A no-op on the Mac, which has no audio session.
-  private static func activateRecordingSession() {
+  /// Switches the audio session to recording as well as playing. A ``WordPronouncer`` that doesn't
+  /// share the microphone switches it back to playback whenever it speaks. A no-op on the Mac,
+  /// which has no audio session.
+  static func activateRecordingSession() {
     #if !os(macOS)
       let session = AVAudioSession.sharedInstance()
       try? session.setCategory(.playAndRecord, options: [.defaultToSpeaker, .duckOthers])
@@ -151,14 +193,20 @@ extension MandarinSpeechListener {
     #endif
   }
 
-  /// Starts a fresh utterance, returning the number that identifies it.
-  private func beginUtterance() -> Int {
+  /// Starts a fresh utterance of `length`, returning the number that identifies it.
+  private func beginUtterance(_ length: SpokenLength) -> Int {
     utterance += 1
     transcript = ""
-    endOfSpeech = EndOfSpeech(startedAt: .now)
+    endOfSpeech = EndOfSpeech(startedAt: .now, length: length)
     heardThrough = .zero
     resultsFailed = false
     return utterance
+  }
+
+  /// Marks the microphone as running, and starts the wait for the learner to begin from now.
+  private func startHearing(_ length: SpokenLength) {
+    isHearing = true
+    endOfSpeech = EndOfSpeech(startedAt: .now, length: length)
   }
 
   /// Gathers the transcriber's final results, following its running transcript along the way —

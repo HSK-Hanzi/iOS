@@ -1,17 +1,18 @@
 //
-//  ListeningQuizSession.swift
+//  SentenceQuizSession.swift
 //  Zili
 //
 
 import Foundation
 
-/// A single run through a listening deck: the sentences, where the learner is, and whether each
-/// was typed back correctly. Shared through the environment so the quiz view drives it and the
-/// results summary reads from it. Auto-graded, so each sentence earns a plain right-or-wrong —
-/// there is no "needs review" middle ground a drawing or recognition quiz has.
+/// A single run through a deck of sentences — heard and typed back, or read aloud: the sentences,
+/// where the learner is, and whether each was answered correctly. Shared through the environment
+/// so the round drives it and the results summary reads from it. Auto-graded, so each sentence
+/// earns a plain right-or-wrong — there is no "needs review" middle ground a drawing or
+/// recognition quiz has.
 @MainActor
 @Observable
-final class ListeningQuizSession {
+final class SentenceQuizSession {
   private(set) var deck: [PracticeSentence]
   private(set) var currentIndex: Int
   private(set) var outcomes: [String: Bool]
@@ -23,6 +24,13 @@ final class ListeningQuizSession {
   /// The sentence awaiting an answer, or `nil` once the deck is finished.
   var current: PracticeSentence? {
     deck.indices.contains(currentIndex) ? deck[currentIndex] : nil
+  }
+
+  /// The sentence that comes up next, shown behind the current one as it is thrown off; `nil` on
+  /// the last sentence.
+  var peek: PracticeSentence? {
+    let next = currentIndex + 1
+    return deck.indices.contains(next) ? deck[next] : nil
   }
 
   /// Whether every sentence has been answered.
@@ -63,6 +71,12 @@ final class ListeningQuizSession {
       onMiss(current.id)
     }
     currentIndex += 1
+  }
+
+  /// Starts the whole deck over, forgetting how each sentence was answered.
+  func restart() {
+    currentIndex = 0
+    outcomes.removeAll()
   }
 
   /// Restarts with just the missed sentences, so the learner re-drills what they didn't get.

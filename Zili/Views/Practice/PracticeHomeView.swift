@@ -6,13 +6,11 @@
 #if !os(macOS)
   import SwiftUI
 
-  /// The root of the Practice tab: cards choosing what to drill — **Practice Characters** (the
-  /// syllabus browser), **Practice Grammar** (the grammar points by level), **Practice Tones** (the
-  /// tone-pair grid), **Practice Sentences** (the learner's kept sentences), and **Practice
-  /// Speaking** (words heard and said back) — in the same
-  /// gradient cards the Quiz tab wears. Owning one navigation stack here lets both branches drill
-  /// onto the same path, and installs the word-lookup environment so a tapped word — whether in a
-  /// character entry or inside a sentence — opens the same peek and full entry everywhere.
+  /// The root of the Practice tab: the skills as cards, each opening its ways to practice —
+  /// reading characters, sentences, or grammar; hearing characters or sentences; and saying
+  /// characters, sentences, or tone pairs. Owning one navigation stack here lets every branch
+  /// drill onto the same path, and installs the word-lookup environment so a tapped word — whether
+  /// in a character entry or inside a sentence — opens the same peek and full entry everywhere.
   struct PracticeHomeView: View {
     let lexicon: Lexicon
 
@@ -23,18 +21,12 @@
 
     var body: some View {
       NavigationStack(path: $path) {
-        // Where every card fits, the cards share the screen; where they don't — a phone, or a
-        // large text size — they keep their own height and scroll.
-        ViewThatFits(in: .vertical) {
-          PracticeModeCards { path.append($0) }
-            .scenePadding()
-          ScrollView {
-            PracticeModeCards { path.append($0) }
-              .scenePadding()
-          }
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .quizAmbientBackground(QuizStyle.ambientGradient)
+        SkillCards(
+          skills: PracticeRoute.skills,
+          tab: "practice",
+          open: { path.append($0) },
+          openSkill: { path.append(PracticeRoute.skill($0)) }
+        )
         .navigationTitle("Practice")
         .navigationDestination(for: PracticeRoute.self) { route in
           destination(for: route)
@@ -50,6 +42,10 @@
     @ViewBuilder
     private func destination(for route: PracticeRoute) -> some View {
       switch route {
+        case .skill(let skill):
+          if let modes = PracticeRoute.skills.first(where: { $0.skill == skill }) {
+            SkillModesView(skill: modes) { path.append($0) }
+          }
         case .characters:
           CharacterSetGrid(
             lexicon: lexicon,
@@ -84,8 +80,14 @@
           PracticeTonesView(lexicon: lexicon, selection: pushBinding { .tonePair($0) })
         case .tonePair(let selection):
           TonePairWordsView(lexicon: lexicon, selection: selection)
+        case .listeningCharacters:
+          ListeningCharactersConfigurationView(lexicon: lexicon, purpose: .practice)
+        case .listeningSentences:
+          ListeningQuizConfigurationView(library: lexicon.sentences, purpose: .practice)
         case .speaking:
           SpeakingPracticeConfigurationView(lexicon: lexicon)
+        case .speakingSentences:
+          SpeakingSentencesConfigurationView(lexicon: lexicon, purpose: .practice)
         case .sentences:
           SentenceSetGrid(library: lexicon.sentences, selection: pushBinding { .sentenceSet($0) })
         case .sentenceSet(let selection):
@@ -98,85 +100,6 @@
     private func pushBinding<Value>(_ route: @escaping (Value) -> PracticeRoute) -> Binding<Value?>
     {
       Binding(get: { nil }, set: { if let value = $0 { path.append(route(value)) } })
-    }
-  }
-
-  /// The kinds of practice, one card each, that ``PracticeHomeView`` offers.
-  private struct PracticeModeCards: View {
-    let open: (PracticeRoute) -> Void
-
-    var body: some View {
-      VStack(spacing: 20) {
-        Button {
-          open(.characters)
-        } label: {
-          StudyModeCard(
-            title: "Practice Characters",
-            subtitle: "Browse the syllabus and drill words.",
-            icon: .system("square.grid.2x2"),
-            gradient: QuizStyle.promptGradient,
-            glow: QuizStyle.promptBottom
-          )
-        }
-        .buttonStyle(.plain)
-        .accessibilityIdentifier(AccessibilityID.practiceCharactersCard)
-
-        Button {
-          open(.grammar)
-        } label: {
-          StudyModeCard(
-            title: "Practice Grammar",
-            subtitle: "Learn each level’s grammar from example sentences.",
-            icon: .system("text.book.closed"),
-            gradient: QuizStyle.listeningGradient,
-            glow: QuizStyle.listeningBottom
-          )
-        }
-        .buttonStyle(.plain)
-        .accessibilityIdentifier(AccessibilityID.practiceGrammarCard)
-
-        Button {
-          open(.tones)
-        } label: {
-          StudyModeCard(
-            title: "Practice Tones",
-            subtitle: "Hear and imitate the tones of two-syllable words.",
-            icon: .system("waveform"),
-            gradient: QuizStyle.speakingGradient,
-            glow: QuizStyle.speakingBottom
-          )
-        }
-        .buttonStyle(.plain)
-        .accessibilityIdentifier(AccessibilityID.practiceTonesCard)
-
-        Button {
-          open(.sentences)
-        } label: {
-          StudyModeCard(
-            title: "Practice Sentences",
-            subtitle: "Your favorite and missed sentences.",
-            icon: .system("text.quote"),
-            gradient: QuizStyle.answerGradient,
-            glow: QuizStyle.answerBottom
-          )
-        }
-        .buttonStyle(.plain)
-        .accessibilityIdentifier(AccessibilityID.practiceSentencesCard)
-
-        Button {
-          open(.speaking)
-        } label: {
-          StudyModeCard(
-            title: "Practice Speaking",
-            subtitle: "Hear a word and say it back.",
-            icon: .system("mic.fill"),
-            gradient: QuizStyle.speakingGradient,
-            glow: QuizStyle.speakingBottom
-          )
-        }
-        .buttonStyle(.plain)
-        .accessibilityIdentifier(AccessibilityID.practiceSpeakingCard)
-      }
     }
   }
 
@@ -227,8 +150,9 @@
     }
   }
 
-  /// One step in the compact drill-down for either branch of the Practice interstitial.
+  /// One step in the Practice tab's drill-down.
   private enum PracticeRoute: Hashable {
+    case skill(StudySkill)
     case characters
     case characterSet(StudySet)
     case word(String)
@@ -237,9 +161,89 @@
     case grammarPoint(GrammarPoint)
     case tones
     case tonePair(TonePairSelection)
+    case listeningCharacters
+    case listeningSentences
     case speaking
+    case speakingSentences
     case sentences
     case sentenceSet(SentenceSetSelection)
+
+    /// The ways to practice each skill, as the Practice tab offers them.
+    static var skills: [SkillModes<Self>] {
+      [
+        SkillModes(
+          skill: .reading,
+          modes: [
+            StudyMode(
+              content: "Characters",
+              subtitle: "Browse the syllabus and study each word.",
+              icon: .system("character.book.closed.zh"),
+              accessibilityID: AccessibilityID.practiceCharactersCard,
+              route: .characters
+            ),
+            StudyMode(
+              content: "Sentences",
+              subtitle: "Your favorite and missed sentences.",
+              icon: .system("character.text.justify.zh"),
+              accessibilityID: AccessibilityID.practiceSentencesCard,
+              route: .sentences
+            ),
+            StudyMode(
+              content: "Grammar",
+              subtitle: "Learn each level’s grammar from example sentences.",
+              icon: .system("puzzlepiece"),
+              accessibilityID: AccessibilityID.practiceGrammarCard,
+              route: .grammar
+            )
+          ]
+        ),
+        SkillModes(
+          skill: .listening,
+          modes: [
+            StudyMode(
+              content: "Characters",
+              subtitle: "Hear a word and pick it out.",
+              icon: .badged("ear", badge: "character.zh"),
+              accessibilityID: AccessibilityID.practiceListeningCharactersCard,
+              route: .listeningCharacters
+            ),
+            StudyMode(
+              content: "Sentences",
+              subtitle: "Hear a sentence and type it back.",
+              icon: .badged("ear", badge: "text.justify.left"),
+              accessibilityID: AccessibilityID.practiceListeningSentencesCard,
+              route: .listeningSentences
+            )
+          ]
+        ),
+        SkillModes(
+          skill: .speaking,
+          modes: [
+            StudyMode(
+              content: "Characters",
+              subtitle: "Hear a word and say it back.",
+              icon: .system("character.bubble.zh"),
+              accessibilityID: AccessibilityID.practiceSpeakingCard,
+              route: .speaking
+            ),
+            StudyMode(
+              content: "Sentences",
+              subtitle: "Hear a sentence and say it back.",
+              icon: .system("text.bubble"),
+              accessibilityID: AccessibilityID.practiceSpeakingSentencesCard,
+              route: .speakingSentences
+            ),
+            StudyMode(
+              content: "Tones",
+              subtitle: "Hear and imitate the tones of two-syllable words.",
+              icon: .tones,
+              accessibilityID: AccessibilityID.practiceTonesCard,
+              route: .tones
+            )
+          ]
+        )
+      ]
+    }
   }
 
   /// Loads the real ``Lexicon`` so both branches drill against the shipped syllabus and corpora.

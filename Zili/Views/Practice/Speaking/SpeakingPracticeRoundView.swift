@@ -40,16 +40,32 @@ struct SpeakingPracticeRoundView: View {
   @State private var phase = PracticePhase.speaking
   @State private var isFlipped = false
   @State private var attempt: Task<Void, Never>?
-  @State private var pronouncer = WordPronouncer()
+  @State private var pronouncer = WordPronouncer(sharesMicrophone: true)
   @State private var stageSize = CGSize.zero
   @State private var topBarBottom: CGFloat = 0
-  @State private var feedbackHeight: CGFloat = 0
+  @State private var feedbackTop: CGFloat = 0
+  @State private var cardBottom: CGFloat = 0
   @State private var safeAreaInsets = EdgeInsets()
   @State private var thrown = CGSize.zero
   @State private var isThrowing = false
 
   var body: some View {
     ZStack {
+      #if !os(visionOS)
+        if let next = session.peek {
+          NextCardPeek(isUncovered: isThrowing, isRisen: thrown != .zero) {
+            CharacterFlashcardView(
+              card: next,
+              front: Self.front,
+              back: Self.back,
+              isFlipped: .constant(false),
+              contentInsets: cardContentInsets
+            )
+          }
+          .ignoresSafeArea()
+        }
+      #endif
+
       CharacterFlashcardView(
         card: card,
         front: Self.front,
@@ -57,6 +73,11 @@ struct SpeakingPracticeRoundView: View {
         isFlipped: flip,
         contentInsets: cardContentInsets
       )
+      .onGeometryChange(for: CGFloat.self) {
+        $0.frame(in: .global).maxY
+      } action: {
+        cardBottom = $0
+      }
       .offset(thrown)
       #if os(visionOS)
         .frame(maxWidth: 360, maxHeight: 480)
@@ -77,19 +98,22 @@ struct SpeakingPracticeRoundView: View {
         Spacer(minLength: 0)
 
         if !isThrowing {
-          PracticeFeedback(phase: phase, listening: reading(of: listener.transcript))
-            .onGeometryChange(for: CGFloat.self) {
-              $0.size.height
-            } action: {
-              feedbackHeight = $0
-            }
+          PracticeFeedback(
+            phase: phase,
+            listening: reading(of: listener.transcript),
+            isHearing: listener.isHearing
+          )
+          .onGeometryChange(for: CGFloat.self) {
+            $0.frame(in: .global).minY
+          } action: {
+            feedbackTop = $0
+          }
         }
 
         PracticeControls(
           phase: phase,
           onSay: startListening,
           onSkip: { advance(.skipped) },
-          onHear: { pronouncer.speak(card.hanzi) },
           onTryAgain: sayAndListen,
           onNext: { advance($0) }
         )
@@ -132,13 +156,13 @@ struct SpeakingPracticeRoundView: View {
     )
   }
 
-  /// Keeps the card's content clear of the floating top bar, of the verdict beneath it, and of
-  /// whatever the safe area holds beside the full-bleed card.
+  /// Keeps the card's content clear of the floating top bar, of the verdict and everything below
+  /// it down to the card's bleeding edge, and of whatever the safe area holds beside the card.
   private var cardContentInsets: EdgeInsets {
     EdgeInsets(
       top: topBarBottom,
       leading: safeAreaInsets.leading,
-      bottom: feedbackHeight,
+      bottom: max(cardBottom - feedbackTop, 0),
       trailing: safeAreaInsets.trailing
     )
   }
@@ -150,12 +174,11 @@ struct SpeakingPracticeRoundView: View {
     isFlipped = false
     phase = .speaking
     attempt = Task {
-      await pronouncer.say(card.hanzi)
-      guard !Task.isCancelled else { return }
       if isVoiceOverOn {
-        phase = .waiting
+        await pronouncer.say(card.hanzi)
+        if !Task.isCancelled { phase = .waiting }
       } else {
-        await listen()
+        await listen { [pronouncer, hanzi = card.hanzi] in await pronouncer.say(hanzi) }
       }
     }
   }
@@ -165,10 +188,13 @@ struct SpeakingPracticeRoundView: View {
     attempt = Task { await listen() }
   }
 
-  private func listen() async {
-    phase = .listening
+  /// Listens for the word once `prelude` has played.
+  private func listen(after prelude: @escaping @MainActor @Sendable () async -> Void = {}) async {
     do {
-      let heard = try await listener.listen()
+      let heard = try await listener.listen(for: .word) {
+        await prelude()
+        phase = .listening
+      }
       if !Task.isCancelled { grade(heard) }
     } catch {
       guard !Task.isCancelled, !(error is CancellationError) else { return }
@@ -233,6 +259,7 @@ private enum PracticePhase: Hashable {
 private struct PracticeFeedback: View {
   let phase: PracticePhase
   let listening: String
+  let isHearing: Bool
 
   @AppStorage(Romanization.storageKey)
   private var romanization = Romanization.pinyin
@@ -243,13 +270,13 @@ private struct PracticeFeedback: View {
         case .speaking, .waiting:
           EmptyView()
         case .listening:
-          ListeningIndicator(heard: romanization.spoken(listening))
+          ListeningIndicator(heard: romanization.spoken(listening), isHearing: isHearing)
         case .unheard(let reason):
           Text(reason)
             .font(.title3.weight(.medium))
         case let .verdict(outcome, heard):
           VStack(spacing: 12) {
-            SpeakingVerdictBadge(outcome: outcome)
+            VerdictBadge(outcome: outcome)
             if outcome != .correct {
               Text("Heard: \(romanization.spoken(heard))")
                 .font(.title3)
@@ -266,12 +293,11 @@ private struct PracticeFeedback: View {
 }
 
 /// The turn's controls, which are whatever it now asks for: give up on the word, start listening,
-/// try saying it again, hear it again, or move on.
+/// try saying it again, or move on.
 private struct PracticeControls: View {
   let phase: PracticePhase
   let onSay: () -> Void
   let onSkip: () -> Void
-  let onHear: () -> Void
   let onTryAgain: () -> Void
   let onNext: (QuizSession.Outcome) -> Void
 
@@ -295,7 +321,6 @@ private struct PracticeControls: View {
             SkipButton(action: onSkip)
             TryAgainButton(prominent: true, action: onTryAgain)
           case .verdict(let outcome, _):
-            QuizJudgementButton(title: "Hear It", systemImage: "speaker.wave.2", action: onHear)
             TryAgainButton(prominent: false, action: onTryAgain)
             QuizJudgementButton(
               title: "Next",
@@ -335,6 +360,6 @@ private struct TryAgainButton: View {
       prominent: prominent,
       action: action
     )
-    .accessibilityIdentifier(AccessibilityID.speakingPracticeTryAgain)
+    .accessibilityIdentifier(AccessibilityID.practiceTryAgain)
   }
 }

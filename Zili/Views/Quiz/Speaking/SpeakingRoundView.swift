@@ -54,7 +54,7 @@ struct SpeakingRoundView: View {
 
       VStack(spacing: 20) {
         if let verdict = phase.verdict {
-          SpeakingVerdictBadge(outcome: verdict)
+          VerdictBadge(outcome: verdict)
         }
         Text(script.spoken(card.hanzi))
           .font(.system(size: hanziSize, weight: .medium))
@@ -65,6 +65,7 @@ struct SpeakingRoundView: View {
             phase: phase,
             reading: card.reading,
             listening: reading(of: listener.transcript),
+            isHearing: listener.isHearing,
             romanization: romanization
           )
         }
@@ -119,7 +120,7 @@ struct SpeakingRoundView: View {
     phase = .listening
     listening = Task {
       do {
-        let heard = try await listener.listen()
+        let heard = try await listener.listen(for: .word)
         if !Task.isCancelled { grade(heard) }
       } catch {
         guard !Task.isCancelled, !(error is CancellationError) else { return }
@@ -184,6 +185,7 @@ private struct SpeakingFeedback: View {
   let phase: SpeakingPhase
   let reading: String
   let listening: String
+  let isHearing: Bool
   let romanization: Romanization
 
   var body: some View {
@@ -191,7 +193,7 @@ private struct SpeakingFeedback: View {
       case .prompt:
         EmptyView()
       case .listening:
-        ListeningIndicator(heard: romanization.spoken(listening))
+        ListeningIndicator(heard: romanization.spoken(listening), isHearing: isHearing)
       case .unheard(let reason):
         Text(reason)
           .font(.title3.weight(.medium))

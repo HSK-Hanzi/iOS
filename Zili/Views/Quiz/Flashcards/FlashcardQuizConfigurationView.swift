@@ -21,7 +21,7 @@
       FlashcardQuizConfigurationForm(lexicon: lexicon, configuration: configuration) { dealt in
         session = dealt
       }
-      .navigationTitle("Recognizing")
+      .navigationTitle("Reading Characters")
       .dealsReview(
         if: startsReview,
         from: lexicon,

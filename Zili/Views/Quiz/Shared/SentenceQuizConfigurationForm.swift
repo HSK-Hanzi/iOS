@@ -1,19 +1,23 @@
 //
-//  ListeningQuizConfigurationForm.swift
+//  SentenceQuizConfigurationForm.swift
 //  Zili
 //
 
 import SwiftUI
 
-/// The listening quiz's setup fields: the sentences the learner will hear — a corpus's levels in
-/// one HSK standard, or their favorites — and how many. Dealing the deck is the form's own job: it resolves the chosen
-/// source into sentences and hands the finished ``ListeningQuizSession`` to `start`. A `cancel`
-/// handler adds a button beside Start, for a form presented modally.
-struct ListeningQuizConfigurationForm: View {
+/// The setup fields for a deck of sentences, to hear or to say: the sentences — a corpus's levels in
+/// one HSK standard, the learner's favorites, or those missed in `mode` — and how many. Dealing
+/// the deck is the form's own job: it resolves the chosen source into sentences and hands the
+/// finished ``SentenceQuizSession`` to `start`, recording each sentence answered wrong as a miss in
+/// `mode` for a quiz and nothing for practice. A `cancel` handler adds a button beside Start, for a
+/// form presented modally.
+struct SentenceQuizConfigurationForm: View {
   let library: SentenceLibrary
+  let mode: SentenceQuizMode
+  let purpose: StudyPurpose
 
   let cancel: (() -> Void)?
-  let start: (ListeningQuizSession) -> Void
+  let start: (SentenceQuizSession) -> Void
 
   @Environment(SentenceFavoritesStore.self)
   private var favorites
@@ -35,7 +39,12 @@ struct ListeningQuizConfigurationForm: View {
         QuizDeckSizePicker(title: "Sentences", deckSize: $deckSize)
       }
     } start: {
-      QuizStartControls(cancel: cancel, isDisabled: sentenceCount == 0, start: dealDeck)
+      QuizStartControls(
+        title: purpose.startTitle,
+        cancel: cancel,
+        isDisabled: sentenceCount == 0,
+        start: dealDeck
+      )
     }
     .onChange(of: standard) { selectFirstLevel() }
     .onChange(of: corpusID) { selectFirstLevel() }
@@ -75,8 +84,8 @@ struct ListeningQuizConfigurationForm: View {
             QuizSortPicker(sort: $sort)
           }
         case .missed:
-          if sentenceMisses.missedSentenceIDs.isEmpty {
-            Text("Miss sentences in a listening quiz to build a deck of them.")
+          if missedIDs.isEmpty {
+            Text(mode.emptyMissedPrompt)
               .foregroundStyle(.secondary)
           }
       }
@@ -85,6 +94,10 @@ struct ListeningQuizConfigurationForm: View {
     } footer: {
       Text("\(sentenceCount) sentences selected.")
     }
+  }
+
+  private var missedIDs: [String] {
+    sentenceMisses.sentencesMissed(in: mode)
   }
 
   /// The levels the chosen corpus has in the chosen standard, ascending — the bands the learner
@@ -97,7 +110,7 @@ struct ListeningQuizConfigurationForm: View {
     switch kind {
       case .hskLevels: .levels(corpusID: corpusID, levels: levels)
       case .favorites: .favorites
-      case .missed: .missed(sentenceMisses.missedSentenceIDs)
+      case .missed: .missed(missedIDs)
     }
   }
 
@@ -113,10 +126,14 @@ struct ListeningQuizConfigurationForm: View {
 
   init(
     library: SentenceLibrary,
+    mode: SentenceQuizMode,
+    purpose: StudyPurpose = .quiz,
     cancel: (() -> Void)? = nil,
-    start: @escaping (ListeningQuizSession) -> Void
+    start: @escaping (SentenceQuizSession) -> Void
   ) {
     self.library = library
+    self.mode = mode
+    self.purpose = purpose
     self.cancel = cancel
     self.start = start
     let corpus = library.defaultCorpus
@@ -137,7 +154,14 @@ struct ListeningQuizConfigurationForm: View {
       sort: deckSort,
       limit: deckSize
     )
-    start(ListeningQuizSession(deck: deck, onMiss: { sentenceMisses.recordMiss($0) }))
+    switch purpose {
+      case .quiz:
+        start(
+          SentenceQuizSession(deck: deck, onMiss: { sentenceMisses.recordMiss($0, mode: mode) })
+        )
+      case .practice:
+        start(SentenceQuizSession(deck: deck))
+    }
   }
 
   /// Which kind of sentence set feeds the quiz.
@@ -155,7 +179,7 @@ struct ListeningQuizConfigurationForm: View {
 
   Group {
     if let library {
-      ListeningQuizConfigurationForm(library: library, cancel: {}, start: { _ in })
+      SentenceQuizConfigurationForm(library: library, mode: .listening, cancel: {}, start: { _ in })
     } else {
       ProgressView()
     }
@@ -163,4 +187,14 @@ struct ListeningQuizConfigurationForm: View {
   .environment(SentenceFavoritesStore.inMemory())
   .environment(SentenceMissStore.inMemory())
   .task { library = SentenceLibrary.load() }
+}
+
+extension SentenceQuizMode {
+  /// What a form says when this quiz has missed no sentences to drill.
+  fileprivate var emptyMissedPrompt: LocalizedStringKey {
+    switch self {
+      case .listening: "Miss sentences in a listening quiz to build a deck of them."
+      case .speaking: "Miss sentences in a speaking quiz to build a deck of them."
+    }
+  }
 }

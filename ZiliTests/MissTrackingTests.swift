@@ -23,16 +23,19 @@ struct `Miss tracking` {
     store.recordMiss("好", mode: .recognizingHanzi)
     store.recordMiss("好", mode: .speaking)
     store.recordMiss("他", mode: .speaking)
+    store.recordMiss("好", mode: .listening)
 
     #expect(store.misses(for: "好", mode: .writing) == 2)
     #expect(store.misses(for: "好", mode: .recognizing) == 1)
     #expect(store.misses(for: "好", mode: .recognizingHanzi) == 1)
     #expect(store.misses(for: "好", mode: .speaking) == 1)
-    #expect(store.totalMisses(for: "好") == 5)
+    #expect(store.misses(for: "好", mode: .listening) == 1)
+    #expect(store.totalMisses(for: "好") == 6)
     #expect(store.wordsMissed(in: .writing) == ["好"])
     #expect(Set(store.wordsMissed(in: .recognizing)) == ["好", "你"])
     #expect(store.wordsMissed(in: .recognizingHanzi) == ["好"])
     #expect(Set(store.wordsMissed(in: .speaking)) == ["好", "他"])
+    #expect(store.wordsMissed(in: .listening) == ["好"])
     #expect(Set(store.missedWords) == ["好", "你", "他"])
 
     store.reset("好")
@@ -42,6 +45,7 @@ struct `Miss tracking` {
     #expect(store.wordsMissed(in: .recognizing) == ["你"])
     #expect(store.wordsMissed(in: .recognizingHanzi).isEmpty)
     #expect(store.wordsMissed(in: .speaking) == ["他"])
+    #expect(store.wordsMissed(in: .listening).isEmpty)
   }
 
   @Test(arguments: [
@@ -64,20 +68,27 @@ struct `Miss tracking` {
   }
 
   @Test
-  func `a sentence's misses are counted, surfaced for drilling, and cleared by reset`() {
+  func `a sentence's misses are counted per quiz, surfaced for drilling, and cleared by reset`() {
     let store = SentenceMissStore.inMemory()
 
-    store.recordMiss("s1")
-    store.recordMiss("s1")
-    store.recordMiss("s2")
+    store.recordMiss("s1", mode: .listening)
+    store.recordMiss("s1", mode: .listening)
+    store.recordMiss("s1", mode: .speaking)
+    store.recordMiss("s2", mode: .listening)
+    store.recordMiss("s3", mode: .speaking)
 
-    #expect(store.misses(for: "s1") == 2)
-    #expect(Set(store.missedSentenceIDs) == ["s1", "s2"])
+    #expect(store.misses(for: "s1", mode: .listening) == 2)
+    #expect(store.misses(for: "s1", mode: .speaking) == 1)
+    #expect(store.misses(for: "s1") == 3)
+    #expect(Set(store.sentencesMissed(in: .listening)) == ["s1", "s2"])
+    #expect(Set(store.sentencesMissed(in: .speaking)) == ["s1", "s3"])
+    #expect(Set(store.missedSentenceIDs) == ["s1", "s2", "s3"])
 
     store.reset("s1")
 
     #expect(store.misses(for: "s1") == 0)
-    #expect(store.missedSentenceIDs == ["s2"])
+    #expect(store.sentencesMissed(in: .listening) == ["s2"])
+    #expect(store.sentencesMissed(in: .speaking) == ["s3"])
   }
 
   @Test

@@ -17,7 +17,7 @@
       DrawingQuizConfigurationForm(lexicon: lexicon) { dealt in
         session = dealt
       }
-      .navigationTitle("Drawing")
+      .navigationTitle("Writing Characters")
       .navigationDestination(isPresented: isQuizActive) {
         if let session {
           DrawingQuizView(lexicon: lexicon)

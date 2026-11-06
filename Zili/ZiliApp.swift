@@ -79,59 +79,84 @@ struct ZiliApp: App {
         CommandGroup(replacing: .appInfo) {
           AboutMenuButton()
         }
-        NewQuizCommands(isEnabled: appData.isLoaded)
-        QuizCommands()
+        CommandGroup(replacing: .newItem) {}
+        PracticeCommands()
+        QuizCommands(canDeal: appData.isLoaded)
         HelpCommands()
       }
 
-      Window("Practice Characters", id: WindowID.practiceCharacters) {
+      Window("Reading Characters", id: WindowID.practiceCharacters) {
         PracticeCharactersWindow()
           .wordPeekOverlay()
       }
-      .keyboardShortcut("2")
+      .commandsRemoved()
       .defaultSize(width: 1000, height: 700)
       .defaultLaunchBehavior(.presented)
       .modelContainer(modelContainer)
       .environment(appData)
 
-      Window("Practice Sentences", id: WindowID.practiceSentences) {
+      Window("Reading Sentences", id: WindowID.practiceSentences) {
         PracticeSentencesWindow()
           .wordPeekOverlay()
       }
-      .keyboardShortcut("3")
+      .commandsRemoved()
       .defaultSize(width: 1000, height: 700)
       .defaultLaunchBehavior(.presented)
       .modelContainer(modelContainer)
       .environment(appData)
 
-      Window("Practice Grammar", id: WindowID.practiceGrammar) {
+      Window("Listening: Characters", id: WindowID.practiceListeningCharacters) {
+        PracticeListeningCharactersWindow()
+      }
+      .commandsRemoved()
+      .defaultSize(width: 720, height: 780)
+      .modelContainer(modelContainer)
+      .environment(appData)
+
+      Window("Listening: Sentences", id: WindowID.practiceListeningSentences) {
+        PracticeListeningSentencesWindow()
+      }
+      .commandsRemoved()
+      .defaultSize(width: 720, height: 780)
+      .modelContainer(modelContainer)
+      .environment(appData)
+
+      Window("Speaking: Sentences", id: WindowID.practiceSpeakingSentences) {
+        PracticeSpeakingSentencesWindow()
+      }
+      .commandsRemoved()
+      .defaultSize(width: 720, height: 780)
+      .modelContainer(modelContainer)
+      .environment(appData)
+
+      Window("Grammar", id: WindowID.practiceGrammar) {
         PracticeGrammarWindow()
           .wordPeekOverlay()
       }
-      .keyboardShortcut("4")
+      .commandsRemoved()
       .defaultSize(width: 760, height: 700)
       .modelContainer(modelContainer)
       .environment(appData)
 
-      Window("Practice Tones", id: WindowID.practiceTones) {
+      Window("Tones", id: WindowID.practiceTones) {
         PracticeTonesWindow()
           .wordPeekOverlay()
       }
-      .keyboardShortcut("5")
+      .commandsRemoved()
       .defaultSize(width: 760, height: 700)
       .modelContainer(modelContainer)
       .environment(appData)
 
-      Window("Practice Speaking", id: WindowID.practiceSpeaking) {
+      Window("Speaking: Characters", id: WindowID.practiceSpeaking) {
         PracticeSpeakingWindow()
       }
-      .keyboardShortcut("6")
+      .commandsRemoved()
       .defaultSize(width: 720, height: 780)
       .modelContainer(modelContainer)
       .environment(appData)
 
       WindowGroup(
-        "Recognition Quiz",
+        "Reading Characters Quiz",
         id: WindowID.recognitionQuiz,
         for: RecognitionQuizRequest.self
       ) { request in
@@ -142,7 +167,7 @@ struct ZiliApp: App {
       .modelContainer(modelContainer)
       .environment(appData)
 
-      WindowGroup("Drawing Quiz", id: WindowID.drawingQuiz, for: UUID.self) { _ in
+      WindowGroup("Writing Characters Quiz", id: WindowID.drawingQuiz, for: UUID.self) { _ in
         DrawingQuizWindow()
       }
       .defaultSize(width: 720, height: 780)
@@ -150,7 +175,7 @@ struct ZiliApp: App {
       .modelContainer(modelContainer)
       .environment(appData)
 
-      WindowGroup("Listening Quiz", id: WindowID.listeningQuiz, for: UUID.self) { _ in
+      WindowGroup("Listening Quiz: Sentences", id: WindowID.listeningQuiz, for: UUID.self) { _ in
         ListeningQuizWindow()
       }
       .defaultSize(width: 720, height: 780)
@@ -158,8 +183,30 @@ struct ZiliApp: App {
       .modelContainer(modelContainer)
       .environment(appData)
 
-      WindowGroup("Speaking Quiz", id: WindowID.speakingQuiz, for: UUID.self) { _ in
+      WindowGroup(
+        "Listening Quiz: Characters",
+        id: WindowID.listeningCharactersQuiz,
+        for: UUID.self
+      ) {
+        _ in
+        ListeningCharactersQuizWindow()
+      }
+      .defaultSize(width: 720, height: 780)
+      .restorationBehavior(.disabled)
+      .modelContainer(modelContainer)
+      .environment(appData)
+
+      WindowGroup("Speaking Quiz: Characters", id: WindowID.speakingQuiz, for: UUID.self) { _ in
         SpeakingQuizWindow()
+      }
+      .defaultSize(width: 720, height: 780)
+      .restorationBehavior(.disabled)
+      .modelContainer(modelContainer)
+      .environment(appData)
+
+      WindowGroup("Speaking Quiz: Sentences", id: WindowID.speakingSentencesQuiz, for: UUID.self) {
+        _ in
+        SpeakingSentencesQuizWindow()
       }
       .defaultSize(width: 720, height: 780)
       .restorationBehavior(.disabled)
@@ -311,67 +358,6 @@ struct ZiliApp: App {
 }
 
 #if os(macOS)
-  /// The File menu's two ways to start a quiz, each dealing its deck into a window of its own.
-  /// A window's identity is a fresh UUID, so a second ⌘N opens a second quiz rather than raising
-  /// the first. Both items stay inert until the language database is loaded and a deck can be
-  /// dealt at all.
-  private struct NewQuizCommands: Commands {
-    let isEnabled: Bool
-
-    @Environment(\.openWindow)
-    private var openWindow
-
-    var body: some Commands {
-      CommandGroup(replacing: .newItem) {
-        Button("New Recognition Quiz") {
-          openWindow(id: WindowID.recognitionQuiz, value: RecognitionQuizRequest())
-        }
-        .keyboardShortcut("n")
-        .disabled(!isEnabled)
-
-        Button("New Drawing Quiz") {
-          openWindow(id: WindowID.drawingQuiz, value: UUID())
-        }
-        .keyboardShortcut("n", modifiers: [.command, .shift])
-        .disabled(!isEnabled)
-
-        Button("New Listening Quiz") {
-          openWindow(id: WindowID.listeningQuiz, value: UUID())
-        }
-        .keyboardShortcut("n", modifiers: [.command, .option])
-        .disabled(!isEnabled)
-
-        Button("New Speaking Quiz") {
-          openWindow(id: WindowID.speakingQuiz, value: UUID())
-        }
-        .keyboardShortcut("n", modifiers: [.command, .control])
-        .disabled(!isEnabled)
-      }
-    }
-  }
-
-  /// The Quiz menu: judge the current card by keyboard, mirroring the on-screen buttons and
-  /// playing the same directional throw. ⌘→ marks it correct, ⌘← needs-review, ⌘↑ skips. The
-  /// items are disabled — and inert — whenever no quiz is on screen to receive them.
-  private struct QuizCommands: Commands {
-    @FocusedValue(\.quizJudge)
-    private var quizJudge
-
-    var body: some Commands {
-      CommandMenu("Quiz") {
-        Button("Correct") { quizJudge?.judge(.correct) }
-          .keyboardShortcut(.rightArrow, modifiers: .command)
-          .disabled(quizJudge == nil)
-        Button("Needs Review") { quizJudge?.judge(.needsReview) }
-          .keyboardShortcut(.leftArrow, modifiers: .command)
-          .disabled(quizJudge == nil)
-        Button("Skip") { quizJudge?.judge(.skipped) }
-          .keyboardShortcut(.upArrow, modifiers: .command)
-          .disabled(quizJudge == nil)
-      }
-    }
-  }
-
   /// The "About Zili" app-menu item, opening the About window.
   private struct AboutMenuButton: View {
     @Environment(\.openWindow)

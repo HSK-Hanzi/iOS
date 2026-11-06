@@ -11,7 +11,7 @@ struct TonePairSelection: Hashable {
   let levels: [HSKLevel]
 }
 
-/// Practice Tones: the twenty two-syllable tone pairs as a grid — the tone a word opens with down
+/// Tones: the twenty two-syllable tone pairs as a grid — the tone a word opens with down
 /// the side, the tone it closes with across the top — each cell counting the words of the chosen
 /// levels said with that pair. Choosing a cell lists its words to hear and imitate.
 struct PracticeTonesView: View {

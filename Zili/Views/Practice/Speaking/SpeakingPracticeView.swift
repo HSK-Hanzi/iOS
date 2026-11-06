@@ -21,7 +21,11 @@ struct SpeakingPracticeView: View {
   var body: some View {
     Group {
       if session.isFinished {
-        PracticeFinishedView(onRestart: session.restart, onDone: onDone)
+        PracticeFinishedView(
+          message: "You’ve said every word in the deck.",
+          onRestart: session.restart,
+          onDone: onDone
+        )
       } else if session.current != nil {
         SpeechRecognitionGate { [session] in
           session.current?.hanzi
@@ -46,30 +50,6 @@ struct SpeakingPracticeView: View {
   }
 }
 
-/// The end of the deck: no grade, just the way to go through it again or to finish.
-private struct PracticeFinishedView: View {
-  let onRestart: () -> Void
-  let onDone: () -> Void
-
-  var body: some View {
-    ContentUnavailableView {
-      Label("All Done", systemImage: "checkmark.circle")
-        .accessibilityIdentifier(AccessibilityID.speakingPracticeFinished)
-    } description: {
-      Text("You’ve said every word in the deck.")
-    } actions: {
-      Button("Practice Again", action: onRestart)
-        .glassButton(prominent: true)
-        .accessibilityIdentifier(AccessibilityID.speakingPracticeAgain)
-      Button("Done", action: onDone)
-        .glassButton()
-    }
-    .foregroundStyle(QuizStyle.chromeLabel)
-    .frame(maxWidth: .infinity, maxHeight: .infinity)
-    .quizAmbientBackground(QuizStyle.ambientGradient)
-  }
-}
-
 #Preview("Echoing") {
   SpeakingPracticePreview()
     .environment(\.speechListenerSource, .scripted(.echo))
@@ -78,10 +58,6 @@ private struct PracticeFinishedView: View {
 #Preview("Misheard") {
   SpeakingPracticePreview()
     .environment(\.speechListenerSource, .scripted(.mishear))
-}
-
-#Preview("Finished") {
-  PracticeFinishedView(onRestart: {}, onDone: {})
 }
 
 /// Loads the real ``Lexicon`` so what is heard is graded against the shipped readings.

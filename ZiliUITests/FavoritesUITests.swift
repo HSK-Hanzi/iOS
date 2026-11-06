@@ -10,7 +10,7 @@
 import XCTest
 import XCUITestKit
 
-/// The favorites set in Practice Characters: seeded favorites show as word cells, a cell can be
+/// The favorites set in Reading Characters: seeded favorites show as word cells, a cell can be
 /// swiped away one at a time, Clear All empties the set through its confirm-first dialog, and an
 /// unseeded run lands straight on the empty state.
 final class FavoritesUITests: ZiliUITestCase {

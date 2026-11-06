@@ -8,7 +8,7 @@
 import XCTest
 import XCUITestKit
 
-/// Practice Sentences: the learner's Favorites and Missed sets, each drilling into its sentence rows
+/// Reading Sentences: the learner's Favorites and Missed sets, each drilling into its sentence rows
 /// or its empty state, and the open sentence's detail, whose words can be looked up.
 struct PracticeSentencesPage: Page {
   #if os(macOS)

@@ -1,14 +1,18 @@
 //
-//  SpeakingIndicators.swift
+//  AnswerIndicators.swift
 //  Zili
 //
 
 import SwiftUI
 
-/// The verdict pressed onto a speaking round once the word has been heard.
-struct SpeakingVerdictBadge: View {
+/// The verdict pressed onto a round once its answer has been graded.
+struct VerdictBadge: View {
   /// The slant a stamp lands at, as the drawing quiz presses its verdict on.
   private static let tilt = Angle.degrees(-6)
+  /// Room kept around the badge for the swell it lands with and for its tilted ends, neither of
+  /// which takes up layout space — enough for a badge the width of a phone.
+  private static let sideClearance: CGFloat = 36
+  private static let tiltClearance: CGFloat = 20
 
   let outcome: QuizSession.Outcome
 
@@ -19,18 +23,23 @@ struct SpeakingVerdictBadge: View {
       color: outcome == .correct ? QuizStyle.correct : QuizStyle.review,
       emphasized: true
     )
-    .padding(.horizontal, 20)
+    .padding(.horizontal, Self.sideClearance)
     .rotationEffect(Self.tilt)
+    .padding(.vertical, Self.tiltClearance)
     .accessibilityIdentifier(
-      outcome == .correct ? AccessibilityID.speakingCorrect : AccessibilityID.speakingNeedsReview
+      outcome == .correct ? AccessibilityID.verdictCorrect : AccessibilityID.verdictNeedsReview
     )
     .transition(ScaleTransition(1.6).combined(with: .opacity))
   }
 }
 
-/// A pulsing microphone over what has been heard so far, so the learner can see they're heard.
+/// A pulsing microphone over what has been heard so far, so a learner speaking can see they're
+/// heard.
 struct ListeningIndicator: View {
   let heard: AttributedString
+  /// Whether the microphone is running yet. Until it is, the indicator keeps its place unseen, so
+  /// it shows only once the learner can be heard.
+  var isHearing = true
 
   @ScaledMetric(relativeTo: .largeTitle)
   private var iconSize: CGFloat = 44
@@ -45,13 +54,16 @@ struct ListeningIndicator: View {
         .font(.title2)
         .opacity(0.85)
     }
+    .opacity(isHearing ? 1 : 0)
+    .accessibilityHidden(!isHearing)
+    .animation(.easeOut(duration: 0.15), value: isHearing)
   }
 }
 
 #Preview("Verdicts") {
   VStack(spacing: 40) {
-    SpeakingVerdictBadge(outcome: .correct)
-    SpeakingVerdictBadge(outcome: .needsReview)
+    VerdictBadge(outcome: .correct)
+    VerdictBadge(outcome: .needsReview)
   }
   .padding()
   .quizAmbientBackground(QuizStyle.speakingGradient)

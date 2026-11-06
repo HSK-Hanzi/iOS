@@ -38,6 +38,26 @@
     }
   }
 
+  /// A quiz on picking words out by ear, in a window of its own, set up and run the way the other
+  /// quizzes are.
+  struct ListeningCharactersQuizWindow: View {
+    var body: some View {
+      LexiconGate { lexicon in
+        ListeningCharactersQuizStage(lexicon: lexicon)
+      }
+    }
+  }
+
+  /// A quiz on reading sentences aloud, in a window of its own, set up and run the way the other
+  /// quizzes are.
+  struct SpeakingSentencesQuizWindow: View {
+    var body: some View {
+      LexiconGate { lexicon in
+        SpeakingSentencesQuizStage(lexicon: lexicon)
+      }
+    }
+  }
+
   /// A speaking quiz in a window of its own, set up and run the way the other quizzes are.
   struct SpeakingQuizWindow: View {
     var body: some View {
@@ -115,7 +135,7 @@
   private struct ListeningQuizStage: View {
     let lexicon: Lexicon
 
-    @State private var session: ListeningQuizSession?
+    @State private var session: SentenceQuizSession?
 
     @Environment(\.dismiss)
     private var dismiss
@@ -127,8 +147,59 @@
             .environment(session)
         }
       } configuration: {
-        ListeningQuizConfigurationForm(
+        SentenceQuizConfigurationForm(
           library: lexicon.sentences,
+          mode: .listening,
+          cancel: { dismiss() },
+          start: { session = $0 }
+        )
+      }
+    }
+  }
+
+  private struct ListeningCharactersQuizStage: View {
+    let lexicon: Lexicon
+
+    @State private var session: QuizSession?
+
+    @Environment(\.dismiss)
+    private var dismiss
+
+    var body: some View {
+      QuizStage(hasDeck: session != nil) {
+        if let session {
+          ListeningCharactersView(lexicon: lexicon, purpose: .quiz)
+            .environment(session)
+        }
+      } configuration: {
+        WordQuizConfigurationForm(
+          lexicon: lexicon,
+          mode: .listening,
+          cancel: { dismiss() },
+          start: { session = $0 }
+        )
+      }
+    }
+  }
+
+  private struct SpeakingSentencesQuizStage: View {
+    let lexicon: Lexicon
+
+    @State private var session: SentenceQuizSession?
+
+    @Environment(\.dismiss)
+    private var dismiss
+
+    var body: some View {
+      QuizStage(hasDeck: session != nil) {
+        if let session {
+          SpeakingSentencesView(lexicon: lexicon, purpose: .quiz)
+            .environment(session)
+        }
+      } configuration: {
+        SentenceQuizConfigurationForm(
+          library: lexicon.sentences,
+          mode: .speaking,
           cancel: { dismiss() },
           start: { session = $0 }
         )
@@ -151,8 +222,9 @@
             .environment(session)
         }
       } configuration: {
-        SpeakingQuizConfigurationForm(
+        WordQuizConfigurationForm(
           lexicon: lexicon,
+          mode: .speaking,
           cancel: { dismiss() },
           start: { session = $0 }
         )

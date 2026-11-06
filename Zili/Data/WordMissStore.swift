@@ -7,8 +7,8 @@ import Foundation
 import SwiftData
 
 /// Which quiz a word was missed in — the drawing quiz tests writing a character, the flashcard quiz
-/// tests recognizing a word, the speaking quiz tests saying it — so a word's misses are tallied
-/// separately per skill.
+/// tests recognizing a word, the speaking quiz tests saying it, the listening quiz tests picking it
+/// out by ear — so a word's misses are tallied separately per skill.
 enum WordQuizMode: CaseIterable, Sendable {
   case writing
   /// A flashcard that showed the reading with the Hanzi, or asked for the word from its meaning:
@@ -18,6 +18,7 @@ enum WordQuizMode: CaseIterable, Sendable {
   /// recognize the characters of a word they know.
   case recognizingHanzi
   case speaking
+  case listening
 }
 
 /// The learner's per-word miss tallies, the single source of truth the UI reads and mutates.
@@ -49,6 +50,7 @@ final class WordMissStore {
       survivor.recognizingMisses += loser.recognizingMisses
       survivor.hanziRecognizingMisses += loser.hanziRecognizingMisses
       survivor.speakingMisses += loser.speakingMisses
+      survivor.listeningMisses += loser.listeningMisses
     }
   }
 
@@ -93,6 +95,7 @@ final class WordMissStore {
       case .recognizing: record.recognizingMisses += 1
       case .recognizingHanzi: record.hanziRecognizingMisses += 1
       case .speaking: record.speakingMisses += 1
+      case .listening: record.listeningMisses += 1
     }
     store.commit()
   }
@@ -125,6 +128,7 @@ extension WordMissCount {
       case .recognizing: recognizingMisses
       case .recognizingHanzi: hanziRecognizingMisses
       case .speaking: speakingMisses
+      case .listening: listeningMisses
     }
   }
 }

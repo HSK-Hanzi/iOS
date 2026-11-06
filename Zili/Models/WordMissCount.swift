@@ -12,8 +12,8 @@ import SwiftData
 /// A word is identified across the app by its simplified headword, so that string is the record's
 /// natural key. A single record holds one tally per mode — writing (the drawing quiz),
 /// recognizing the word (a flashcard showing its reading, or its meaning), recognizing its Hanzi
-/// alone (a flashcard showing only the characters), and speaking (the speaking quiz) — so the
-/// counts share a key and de-duplicate together.
+/// alone (a flashcard showing only the characters), speaking (the speaking quiz), and listening
+/// (picking the word out by ear) — so the counts share a key and de-duplicate together.
 /// CloudKit can't enforce uniqueness, so every record also carries a stable ``identifier`` that lets
 /// every device pick the same winner when de-duplicating records that arrived for the same
 /// ``word``; the losers' counts are summed into the survivor — see ``WordMissStore``. Per CloudKit's
@@ -25,6 +25,7 @@ final class WordMissCount {
   var recognizingMisses: Int = 0
   var hanziRecognizingMisses: Int = 0
   var speakingMisses: Int = 0
+  var listeningMisses: Int = 0
   var identifier = UUID()
 
   init(
@@ -33,6 +34,7 @@ final class WordMissCount {
     recognizingMisses: Int = 0,
     hanziRecognizingMisses: Int = 0,
     speakingMisses: Int = 0,
+    listeningMisses: Int = 0,
     identifier: UUID = UUID()
   ) {
     self.word = word
@@ -40,6 +42,7 @@ final class WordMissCount {
     self.recognizingMisses = recognizingMisses
     self.hanziRecognizingMisses = hanziRecognizingMisses
     self.speakingMisses = speakingMisses
+    self.listeningMisses = listeningMisses
     self.identifier = identifier
   }
 }

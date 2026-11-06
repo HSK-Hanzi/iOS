@@ -5,19 +5,6 @@
 
 import SwiftUI
 
-/// A study or quiz mode's symbol, drawn either from SF Symbols or from the app's own symbol assets.
-enum StudyModeIcon {
-  case system(String)
-  case asset(String)
-
-  var image: Image {
-    switch self {
-      case .system(let name): Image(systemName: name)
-      case .asset(let name): Image(name)
-    }
-  }
-}
-
 /// One mode as a tall gradient card: the same lacquered sheen and colored glow the quiz's own
 /// cards wear, so choosing a mode reads as picking up a deck. Purely the card's face — the caller
 /// wraps it in the `NavigationLink` or `Button` that drives the navigation — so the Quiz and
@@ -27,8 +14,8 @@ struct StudyModeCard: View {
   private static var cornerRadius: CGFloat { 28 }
   private static var minHeight: CGFloat { 150 }
 
-  let title: LocalizedStringKey
-  let subtitle: LocalizedStringKey
+  let title: Text
+  let subtitle: Text
   let icon: StudyModeIcon
   let gradient: LinearGradient
   let glow: Color
@@ -53,14 +40,12 @@ struct StudyModeCard: View {
 
   private var content: some View {
     VStack(spacing: 12) {
-      icon.image
-        .font(.system(size: iconSize))
+      StudyModeIconView(icon: icon, size: iconSize)
         .foregroundStyle(.white)
-        .accessibilityHidden(true)
-      Text(title)
+      title
         .font(.system(.title, design: .rounded).weight(.bold))
         .foregroundStyle(.white)
-      Text(subtitle)
+      subtitle
         .font(.callout)
         .multilineTextAlignment(.center)
         .foregroundStyle(.white.opacity(0.85))
@@ -97,15 +82,15 @@ struct StudyModeCard: View {
 #Preview("Study modes") {
   VStack(spacing: 20) {
     StudyModeCard(
-      title: "Practice Characters",
-      subtitle: "Browse the syllabus and drill words.",
+      title: Text("Reading Characters"),
+      subtitle: Text("Browse the syllabus and study each word."),
       icon: .system("square.grid.2x2"),
       gradient: QuizStyle.promptGradient,
       glow: QuizStyle.promptBottom
     )
     StudyModeCard(
-      title: "Practice Sentences",
-      subtitle: "Your favorite and missed sentences.",
+      title: Text("Reading Sentences"),
+      subtitle: Text("Your favorite and missed sentences."),
       icon: .system("text.quote"),
       gradient: QuizStyle.answerGradient,
       glow: QuizStyle.answerBottom

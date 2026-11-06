@@ -119,7 +119,7 @@
     private func captureSpeaking() async throws {
       let quiz = await QuizPage.openSpeaking(self)
       await quiz.start()
-      expect(AccessibilityID.speakingCorrect, "The word, heard and graded correct.")
+      expect(AccessibilityID.verdictCorrect, "The word, heard and graded correct.")
       try await capture(.speaking)
       #if !os(macOS)
         await quiz.close()

@@ -1,5 +1,5 @@
 //
-//  ListeningQuizSessionTests.swift
+//  SentenceQuizSessionTests.swift
 //  ZiliTests
 //
 
@@ -8,7 +8,7 @@ import Testing
 @testable import Zili
 
 @MainActor
-struct `Listening quiz sessions` {
+struct `Sentence quiz sessions` {
   private static let deck = [
     PracticeSentence(
       id: "a",
@@ -32,7 +32,7 @@ struct `Listening quiz sessions` {
 
   @Test
   func `marking a sentence records its outcome, advances, and tallies right and wrong`() {
-    let session = ListeningQuizSession(deck: Self.deck)
+    let session = SentenceQuizSession(deck: Self.deck)
     #expect(session.current?.id == "a")
 
     session.mark(correct: true)
@@ -49,7 +49,7 @@ struct `Listening quiz sessions` {
 
   @Test
   func `answering every sentence finishes the deck`() {
-    let session = ListeningQuizSession(deck: Self.deck)
+    let session = SentenceQuizSession(deck: Self.deck)
     session.mark(correct: true)
     session.mark(correct: false)
     #expect(!session.isFinished)
@@ -61,7 +61,7 @@ struct `Listening quiz sessions` {
 
   @Test
   func `marking past the end is a no-op`() {
-    let session = ListeningQuizSession(deck: Self.deck)
+    let session = SentenceQuizSession(deck: Self.deck)
     session.mark(correct: true)
     session.mark(correct: true)
     session.mark(correct: true)
@@ -75,7 +75,7 @@ struct `Listening quiz sessions` {
   @Test
   func `onMiss fires only for wrong answers, with the sentence's id`() {
     var missed: [String] = []
-    let session = ListeningQuizSession(deck: Self.deck) { missed.append($0) }
+    let session = SentenceQuizSession(deck: Self.deck) { missed.append($0) }
 
     session.mark(correct: false)
     session.mark(correct: true)
@@ -86,7 +86,7 @@ struct `Listening quiz sessions` {
 
   @Test
   func `the re-drill pile is the missed sentences, in deck order`() {
-    let session = ListeningQuizSession(deck: Self.deck)
+    let session = SentenceQuizSession(deck: Self.deck)
     session.mark(correct: false)
     session.mark(correct: true)
     session.mark(correct: false)
@@ -96,7 +96,7 @@ struct `Listening quiz sessions` {
 
   @Test
   func `re-drilling restarts with only the missed sentences and clears progress`() {
-    let session = ListeningQuizSession(deck: Self.deck)
+    let session = SentenceQuizSession(deck: Self.deck)
     session.mark(correct: false)
     session.mark(correct: true)
     session.mark(correct: false)

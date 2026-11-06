@@ -50,15 +50,9 @@ private enum FlashcardFaceRole {
   }
 }
 
-/// One face of a flashcard: a gradient tile with a soft top sheen and a colored glow,
-/// presenting the elements the face asks for in white.
+/// One face of a flashcard: the surface in its role's colors from the card's HSK-level palette,
+/// presenting the elements the face asks for.
 private struct FlashcardFaceView: View {
-  /// The card's outline. A flashcard fills the window, so its corners are concentric with whatever
-  /// rounds the window — on an iPhone or iPad, the display's own corners, which differ by device.
-  private static var shape: ConcentricRectangle {
-    ConcentricRectangle(corners: .concentric)
-  }
-
   let card: QuizCard
   let face: FlashcardFace
   let role: FlashcardFaceRole
@@ -69,17 +63,35 @@ private struct FlashcardFaceView: View {
 
   var body: some View {
     let palette = HSKPalette.palette(forBand: card.hskBand).resolved(in: environment)
-    return Self.shape
-      .fill(role.gradient(palette))
+    FlashcardSurface(gradient: role.gradient(palette), glow: role.glow(palette)) {
+      FlashcardFaceContent(card: card, face: face, insets: contentInsets)
+    }
+  }
+}
+
+/// A flashcard face's surface: a gradient tile with a soft top sheen and a colored glow, under
+/// whatever the face presents in white.
+struct FlashcardSurface<Content: View>: View {
+  /// The card's outline. A flashcard fills the window, so its corners are concentric with whatever
+  /// rounds the window — on an iPhone or iPad, the display's own corners, which differ by device.
+  private static var shape: ConcentricRectangle {
+    ConcentricRectangle(corners: .concentric)
+  }
+
+  let gradient: LinearGradient
+  let glow: Color
+  @ViewBuilder let content: Content
+
+  var body: some View {
+    Self.shape
+      .fill(gradient)
       .overlay { sheen }
       .overlay {
         Self.shape
           .stroke(.white.opacity(0.18), lineWidth: 1)
       }
-      .overlay {
-        FlashcardFaceContent(card: card, face: face, insets: contentInsets)
-      }
-      .shadow(color: role.glow(palette).opacity(0.5), radius: 28, y: 16)
+      .overlay { content }
+      .shadow(color: glow.opacity(0.5), radius: 28, y: 16)
   }
 
   /// A diagonal highlight that reads as light catching a lacquered surface.

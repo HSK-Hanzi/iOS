@@ -13,9 +13,20 @@ one of the two places.
 
 ### NEW
 
-- Practice Speaking: choose your words, then hear each one said and say it
-  back. The card turns over to show its pinyin and meaning, and whether you
-  said it right.
+- Practice and Quiz are organized by skill: Reading, Writing, Listening and
+  Speaking, each holding its ways to practice or be quizzed on characters and
+  sentences.
+- Speaking Characters practice: choose your words, then hear each one said and
+  say it back. The card turns over to show its pinyin and meaning, and whether
+  you said it right.
+- Speaking Sentences, as practice and as a quiz: read a sentence aloud, and the
+  card turns over to its pinyin and translation, marking any characters that
+  weren’t heard said right. Practice says each sentence first for you to say
+  back.
+- Listening Characters, as practice and as a quiz: hear a word and pick it out
+  from four that sound alike.
+- Listening Sentences practice: hear a sentence and type it back, with another
+  try at any you get wrong.
 - On iPhone Duo, the writing pad moves off the fold when you bend the phone:
   below it in tabletop pose, with the character to write above, or beside it
   when you hold the phone like a book.

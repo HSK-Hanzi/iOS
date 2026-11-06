@@ -15,10 +15,10 @@
     @State private var session: QuizSession?
 
     var body: some View {
-      SpeakingQuizConfigurationForm(lexicon: lexicon, purpose: .practice) { dealt in
+      WordQuizConfigurationForm(lexicon: lexicon, mode: .speaking, purpose: .practice) { dealt in
         session = dealt
       }
-      .navigationTitle("Speaking")
+      .navigationTitle("Characters")
       .navigationDestination(isPresented: isPracticeActive) {
         if let session {
           SpeakingPracticeView(lexicon: lexicon) { self.session = nil }
