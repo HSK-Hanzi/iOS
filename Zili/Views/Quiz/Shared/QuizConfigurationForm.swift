@@ -198,6 +198,7 @@ struct QuizConfigurationLayout<Sections: View, Start: View>: View {
 /// presented modally — a cancel button beside it. Cancel answers the Escape key; Start answers
 /// Return.
 struct QuizStartControls: View {
+  var title: LocalizedStringKey = "Start Quiz"
   let cancel: (() -> Void)?
   let isDisabled: Bool
   let start: () -> Void
@@ -209,7 +210,7 @@ struct QuizStartControls: View {
           .buttonStyle(.bordered)
           .keyboardShortcut(.cancelAction)
       }
-      Button("Start Quiz", action: start)
+      Button(title, action: start)
         .disabled(isDisabled)
         .keyboardShortcut(.defaultAction)
         .accessibilityIdentifier(AccessibilityID.quizStartButton)

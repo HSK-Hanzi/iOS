@@ -5,12 +5,13 @@
 
 import SwiftUI
 
-/// The speaking quiz's setup fields: the words the learner will say, and how many. Dealing the
-/// deck is the form's own job — it hands the finished ``QuizSession`` to `start`, wired to record
-/// each word said wrong as a speaking miss. A `cancel` handler adds a button beside Start, for a
-/// form presented modally.
+/// The setup fields for saying words aloud, in the speaking quiz or speaking practice: the words
+/// the learner will say, and how many. Dealing the deck is the form's own job — it hands the
+/// finished ``QuizSession`` to `start`, wired by its ``Purpose``. A `cancel` handler adds a button
+/// beside Start, for a form presented modally.
 struct SpeakingQuizConfigurationForm: View {
   let lexicon: Lexicon
+  let purpose: Purpose
 
   let cancel: (() -> Void)?
   let start: (QuizSession) -> Void
@@ -40,7 +41,12 @@ struct SpeakingQuizConfigurationForm: View {
         QuizDeckSizePicker(title: "Words", deckSize: $deckSize)
       }
     } start: {
-      QuizStartControls(cancel: cancel, isDisabled: wordCount == 0, start: dealDeck)
+      QuizStartControls(
+        title: purpose.startTitle,
+        cancel: cancel,
+        isDisabled: wordCount == 0,
+        start: dealDeck
+      )
     }
   }
 
@@ -56,10 +62,12 @@ struct SpeakingQuizConfigurationForm: View {
 
   init(
     lexicon: Lexicon,
+    purpose: Purpose = .quiz,
     cancel: (() -> Void)? = nil,
     start: @escaping (QuizSession) -> Void
   ) {
     self.lexicon = lexicon
+    self.purpose = purpose
     self.cancel = cancel
     self.start = start
     let level = lexicon.availableLevels.first ?? HSKLevel(standard: .new, band: 1)
@@ -75,7 +83,27 @@ struct SpeakingQuizConfigurationForm: View {
       limit: deckSize,
       romanization: romanization
     )
-    start(QuizSession(deck: deck, onMiss: { wordMisses.recordMiss($0, mode: .speaking) }))
+    switch purpose {
+      case .quiz:
+        start(QuizSession(deck: deck, onMiss: { wordMisses.recordMiss($0, mode: .speaking) }))
+      case .practice:
+        start(QuizSession(deck: deck))
+    }
+  }
+
+  /// What the words are dealt for: a quiz, which records each word said wrong as a speaking miss,
+  /// or practice, which records nothing — a word said straight after hearing it says little about
+  /// whether it's known.
+  enum Purpose {
+    case quiz
+    case practice
+
+    var startTitle: LocalizedStringKey {
+      switch self {
+        case .quiz: "Start Quiz"
+        case .practice: "Start Practice"
+      }
+    }
   }
 }
 

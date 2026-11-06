@@ -7,9 +7,10 @@ import XCTest
 import XCUITestKit
 
 /// A quiz, from its configuration form through its running deck to the results seal. One page covers
-/// every quiz kind — recognition (flashcards), drawing, listening, and speaking — because they share
-/// a configuration form and a running frame (progress pill, close, results); the kind-specific
-/// controls (judge buttons, the draw button, the listening answer field) hang off the same page.
+/// every quiz kind — recognition (flashcards), drawing, listening, and speaking — and speaking
+/// practice, because they share a configuration form and a running frame (progress pill, close,
+/// results); the kind-specific controls (judge buttons, the draw button, the listening answer
+/// field) hang off the same page.
 struct QuizPage: Page {
   let test: ZiliUITestCase
 
@@ -72,6 +73,13 @@ struct QuizPage: Page {
   @discardableResult
   static func openSpeaking(_ test: ZiliUITestCase) async -> Self {
     await test.openSpeakingQuizConfiguration()
+    return Self(test: test)
+  }
+
+  /// Opens speaking practice onto its configuration form.
+  @discardableResult
+  static func openSpeakingPractice(_ test: ZiliUITestCase) async -> Self {
+    await test.openSpeakingPracticeConfiguration()
     return Self(test: test)
   }
 

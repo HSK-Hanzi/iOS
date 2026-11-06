@@ -122,6 +122,14 @@ struct ZiliApp: App {
       .modelContainer(modelContainer)
       .environment(appData)
 
+      Window("Practice Speaking", id: WindowID.practiceSpeaking) {
+        PracticeSpeakingWindow()
+      }
+      .keyboardShortcut("6")
+      .defaultSize(width: 720, height: 780)
+      .modelContainer(modelContainer)
+      .environment(appData)
+
       WindowGroup(
         "Recognition Quiz",
         id: WindowID.recognitionQuiz,

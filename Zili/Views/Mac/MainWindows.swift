@@ -14,6 +14,7 @@
     static let practiceSentences = "practice-sentences"
     static let practiceTones = "practice-tones"
     static let practiceGrammar = "practice-grammar"
+    static let practiceSpeaking = "practice-speaking"
     static let recognitionQuiz = "recognition-quiz"
     static let drawingQuiz = "drawing-quiz"
     static let listeningQuiz = "listening-quiz"
@@ -80,6 +81,15 @@
     var body: some View {
       LexiconGate { lexicon in
         TonePracticeView(lexicon: lexicon)
+      }
+    }
+  }
+
+  /// The Practice Speaking window's root: words heard and said back, from the words the form deals.
+  struct PracticeSpeakingWindow: View {
+    var body: some View {
+      LexiconGate { lexicon in
+        SpeakingPracticeStage(lexicon: lexicon)
       }
     }
   }

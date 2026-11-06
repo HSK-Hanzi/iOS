@@ -8,7 +8,8 @@
 
   /// The root of the Practice tab: cards choosing what to drill — **Practice Characters** (the
   /// syllabus browser), **Practice Grammar** (the grammar points by level), **Practice Tones** (the
-  /// tone-pair grid), and **Practice Sentences** (the learner's kept sentences) — in the same
+  /// tone-pair grid), **Practice Sentences** (the learner's kept sentences), and **Practice
+  /// Speaking** (words heard and said back) — in the same
   /// gradient cards the Quiz tab wears. Owning one navigation stack here lets both branches drill
   /// onto the same path, and installs the word-lookup environment so a tapped word — whether in a
   /// character entry or inside a sentence — opens the same peek and full entry everywhere.
@@ -83,6 +84,8 @@
           PracticeTonesView(lexicon: lexicon, selection: pushBinding { .tonePair($0) })
         case .tonePair(let selection):
           TonePairWordsView(lexicon: lexicon, selection: selection)
+        case .speaking:
+          SpeakingPracticeConfigurationView(lexicon: lexicon)
         case .sentences:
           SentenceSetGrid(library: lexicon.sentences, selection: pushBinding { .sentenceSet($0) })
         case .sentenceSet(let selection):
@@ -159,6 +162,20 @@
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier(AccessibilityID.practiceSentencesCard)
+
+        Button {
+          open(.speaking)
+        } label: {
+          StudyModeCard(
+            title: "Practice Speaking",
+            subtitle: "Hear a word and say it back.",
+            icon: .system("mic.fill"),
+            gradient: QuizStyle.speakingGradient,
+            glow: QuizStyle.speakingBottom
+          )
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier(AccessibilityID.practiceSpeakingCard)
       }
     }
   }
@@ -220,6 +237,7 @@
     case grammarPoint(GrammarPoint)
     case tones
     case tonePair(TonePairSelection)
+    case speaking
     case sentences
     case sentenceSet(SentenceSetSelection)
   }

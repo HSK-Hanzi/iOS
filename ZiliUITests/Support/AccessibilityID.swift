@@ -25,6 +25,7 @@ enum AccessibilityID {
   static let practiceSentencesCard = "practice.sentencesCard"
   static let practiceTonesCard = "practice.tonesCard"
   static let practiceGrammarCard = "practice.grammarCard"
+  static let practiceSpeakingCard = "practice.speakingCard"
   static let characterSetFavorites = "characterSet.favorites"
   static let characterSetMissed = "characterSet.missed"
   static let characterSetClearAll = "characterSet.clearAll"
@@ -81,6 +82,11 @@ enum AccessibilityID {
   static let speakingUnavailable = "speaking.unavailable"
   static let speakingRetry = "speaking.retry"
 
+  // Speaking practice
+  static let speakingPracticeTryAgain = "speakingPractice.tryAgain"
+  static let speakingPracticeFinished = "speakingPractice.finished"
+  static let speakingPracticeAgain = "speakingPractice.again"
+
   // Stroke practice pad
   static let strokeTestCanvas = "strokeTest.canvas"
   static let strokeTestHint = "strokeTest.hint"
@@ -121,6 +127,7 @@ enum AccessibilityID {
     practiceSentencesCard,
     practiceTonesCard,
     practiceGrammarCard,
+    practiceSpeakingCard,
     grammarPoint,
     characterSetFavorites,
     characterSetMissed,
@@ -164,6 +171,9 @@ enum AccessibilityID {
     speakingNeedsReview,
     speakingUnavailable,
     speakingRetry,
+    speakingPracticeTryAgain,
+    speakingPracticeFinished,
+    speakingPracticeAgain,
     strokeTestCanvas,
     strokeTestHint,
     strokeTestPlay,

@@ -128,18 +128,14 @@ struct SpeakingRoundView: View {
     }
   }
 
-  /// Grades what was heard. Only its Chinese counts, so a transcript with none — silence, or a
-  /// conversation nearby — is asked for again rather than marked wrong.
+  /// Grades what was heard, asking for the word again when nothing Chinese was heard.
   private func grade(_ heard: Heard) {
-    let heardReading = heard.best.map(reading) ?? ""
-    guard !heardReading.isEmpty else {
-      phase = .unheard(String(localized: "Didn’t catch that."))
-      return
+    switch SpokenVerdict(heard, for: card, lexicon: lexicon, romanization: romanization) {
+      case .unheard:
+        phase = .unheard(String(localized: "Didn’t catch that."))
+      case let .graded(isCorrect, heardReading):
+        phase = .verdict(isCorrect ? .correct : .needsReview, heard: heardReading)
     }
-    let isCorrect = SpokenAnswer.matches(heard, word: card.word) {
-      lexicon.lookup($0).numberedReadings
-    }
-    phase = .verdict(isCorrect ? .correct : .needsReview, heard: heardReading)
   }
 
   /// How `transcript` reads in the learner's romanization — what the learner said, shown by its
@@ -180,29 +176,6 @@ private enum SpeakingPhase: Hashable {
   }
 }
 
-/// The verdict pressed onto the round once the word has been heard.
-private struct SpeakingVerdictBadge: View {
-  /// The slant a stamp lands at, as the drawing quiz presses its verdict on.
-  private static let tilt = Angle.degrees(-6)
-
-  let outcome: QuizSession.Outcome
-
-  var body: some View {
-    QuizVerdictBadge(
-      title: outcome == .correct ? "Correct" : "Needs Improvement",
-      systemImage: outcome == .correct ? "checkmark.circle.fill" : "xmark.circle.fill",
-      color: outcome == .correct ? QuizStyle.correct : QuizStyle.review,
-      emphasized: true
-    )
-    .padding(.horizontal, 20)
-    .rotationEffect(Self.tilt)
-    .accessibilityIdentifier(
-      outcome == .correct ? AccessibilityID.speakingCorrect : AccessibilityID.speakingNeedsReview
-    )
-    .transition(ScaleTransition(1.6).combined(with: .opacity))
-  }
-}
-
 /// What sits under the word: nothing yet on the prompt, since saying the word unaided is the test;
 /// the microphone and the reading of what it hears so far while listening; why to try again; or,
 /// with the verdict, the word's reading — and, when it was said wrong, the reading of what was
@@ -235,26 +208,6 @@ private struct SpeakingFeedback: View {
           }
         }
         .multilineTextAlignment(.center)
-    }
-  }
-}
-
-/// A pulsing microphone over what has been heard so far, so the learner can see they're heard.
-private struct ListeningIndicator: View {
-  let heard: AttributedString
-
-  @ScaledMetric(relativeTo: .largeTitle)
-  private var iconSize: CGFloat = 44
-
-  var body: some View {
-    VStack(spacing: 12) {
-      Image(systemName: "mic.fill")
-        .font(.system(size: iconSize))
-        .symbolEffect(.pulse)
-        .accessibilityLabel("Listening")
-      Text(heard.characters.isEmpty ? AttributedString(" ") : heard)
-        .font(.title2)
-        .opacity(0.85)
     }
   }
 }

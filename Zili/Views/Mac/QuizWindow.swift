@@ -160,11 +160,12 @@
     }
   }
 
-  /// A quiz window's two states: the ambient stage carrying the configuration form as a centered
-  /// card until a deck is dealt, and then the running quiz in its place. The form's Cancel button
-  /// closes the window — its `cancel` is the window's own dismiss — so the stage is never left
-  /// empty. A sheet would trap that dismiss on itself, so the form rides directly on the stage.
-  private struct QuizStage<Quiz: View, Configuration: View>: View {
+  /// A quiz or practice window's two states: the ambient stage carrying the configuration form as a
+  /// centered card until a deck is dealt, and then the running deck in its place. A quiz form's
+  /// Cancel button closes the window — its `cancel` is the window's own dismiss — so the stage is
+  /// never left empty. A sheet would trap that dismiss on itself, so the form rides directly on the
+  /// stage.
+  struct QuizStage<Quiz: View, Configuration: View>: View {
     let hasDeck: Bool
     @ViewBuilder let quiz: Quiz
     @ViewBuilder let configuration: Configuration

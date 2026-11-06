@@ -99,6 +99,12 @@ final class QuizSession {
     outcomes.removeAll()
   }
 
+  /// Starts the whole deck over, forgetting how each card was judged.
+  func restart() {
+    currentIndex = 0
+    outcomes.removeAll()
+  }
+
   /// How the learner judged a card.
   enum Outcome: Hashable, Sendable {
     case correct

@@ -327,6 +327,7 @@ class ZiliUITestCase: XCTestCase {
       static let practiceSentences = "Practice Sentences"
       static let practiceTones = "Practice Tones"
       static let practiceGrammar = "Practice Grammar"
+      static let practiceSpeaking = "Practice Speaking"
       static let recognitionQuiz = "Recognition Quiz"
       static let drawingQuiz = "Drawing Quiz"
       static let listeningQuiz = "Listening Quiz"
@@ -410,6 +411,19 @@ class ZiliUITestCase: XCTestCase {
       tapTab(Tab.practice)
       await tap(AccessibilityID.practiceTonesCard, "Practice Tones card.")
     #endif
+  }
+
+  /// Opens speaking practice onto its configuration form.
+  func openSpeakingPracticeConfiguration() async {
+    #if os(macOS)
+      app.focusWindow(MacWindow.practiceSpeaking, openingWith: "6")
+    #else
+      tapTab(Tab.practice)
+      // The last of the Practice cards, below the fold on a phone.
+      app.scrollToElement(el(AccessibilityID.practiceSpeakingCard))
+      await tap(AccessibilityID.practiceSpeakingCard, "Practice Speaking card.")
+    #endif
+    expectConfigurationForm()
   }
 
   /// Reaches the Practice Sentences browser (the Favorites and Missed sets).
