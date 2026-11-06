@@ -119,9 +119,13 @@ private struct SearchResultsList: View {
   }
 }
 
-/// One result: the headword, its reading in the preferred romanization, and a short gloss.
+/// One result: the headword, its reading in the preferred romanization, and a short gloss, with a
+/// star at the end of the headword line when the word is a favorite.
 private struct SearchResultRow: View {
   let lookup: WordLookup
+
+  @Environment(FavoritesStore.self)
+  private var favorites
 
   @AppStorage(Romanization.storageKey)
   private var romanization = Romanization.pinyin
@@ -139,6 +143,8 @@ private struct SearchResultRow: View {
             .font(.subheadline)
             .foregroundStyle(.secondary)
         }
+        Spacer(minLength: 0)
+        favoriteMark
       }
       if let gloss = lookup.primaryGloss {
         Text(gloss)
@@ -152,6 +158,17 @@ private struct SearchResultRow: View {
     // the gloss in the reader's own.
     .accessibilityElement(children: .combine)
     .accessibilityIdentifier(AccessibilityID.dictionaryResultRow)
+  }
+
+  /// A bare star echoing the Practice grid's Favorites tile — status, not a control.
+  @ViewBuilder private var favoriteMark: some View {
+    if favorites.isFavorite(lookup.word) {
+      Image(systemName: "star.fill")
+        .font(.caption)
+        .imageScale(.small)
+        .foregroundStyle(.yellow)
+        .accessibilityLabel(Text("Favorite"))
+    }
   }
 }
 
@@ -200,10 +217,34 @@ private struct DictionarySearchPreview: View {
       if let lexicon {
         DictionarySearchView(lexicon: lexicon)
           .environment(AppRouter())
+          .environment(FavoritesStore.inMemory())
       } else {
         ProgressView()
       }
     }
     .task { lexicon = try? await Lexicon.load() }
+  }
+}
+
+#Preview("Results · favorite marks") {
+  @Previewable @State var lexicon: Lexicon?
+  @Previewable @State var favorites = FavoritesStore.inMemory()
+
+  Group {
+    if let lexicon {
+      SearchResultsList(
+        headwords: ["你好", "好吃", "好", "谢谢"],
+        lexicon: lexicon,
+        query: "好",
+        selection: .constant(nil)
+      )
+      .environment(favorites)
+    } else {
+      ProgressView()
+    }
+  }
+  .task {
+    favorites.addAll(["你好", "好"])
+    lexicon = try? await Lexicon.load()
   }
 }

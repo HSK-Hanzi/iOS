@@ -20,6 +20,7 @@ one of the two places.
   buttons off the fold too, beside the character and its paper.
 - Word grids on iPhone Duo’s inner display set an even number of columns, so the
   fold falls between two of them.
+- Dictionary search results star the words you’ve favorited.
 
 ### FIXES
 
