@@ -71,7 +71,9 @@ private struct SpeechPreparationView: View {
   var body: some View {
     VStack(spacing: 16) {
       if let progress {
+        // The download's own descriptions are Speech's, and can show an escaped ellipsis.
         ProgressView(progress)
+          .labelsHidden()
           .frame(maxWidth: 280)
           .tint(.white)
         Text("Downloading Mandarin speech recognition…")
