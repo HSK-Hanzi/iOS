@@ -9,22 +9,27 @@ here and as plain text on the store, where the field shows whatever it is given
 verbatim: a line that only makes sense with its formatting will read badly in
 one of the two places.
 
-## 2.0.1
+## 2.1
+
+Practice and Quiz are now organized by skill, and new ways to practice fill
+them out: say words and sentences back, pick a word out by ear, and read a
+sentence aloud to be graded character by character.
 
 ### NEW
 
-- Practice and Quiz are organized by skill: Reading, Writing, Listening and
-  Speaking, each holding its ways to practice or be quizzed on characters and
-  sentences.
+- Practice and Quiz lead with the same skills: Reading, Writing, Listening and
+  Speaking. Each holds its ways to practice or be quizzed on characters and
+  sentences. On the Mac, the Practice and Quiz menus follow the same skills.
 - Speaking Characters practice: choose your words, then hear each one said and
   say it back. The card turns over to show its pinyin and meaning, and whether
   you said it right.
 - Speaking Sentences, as practice and as a quiz: read a sentence aloud, and the
   card turns over to its pinyin and translation, marking any characters that
-  weren’t heard said right. Practice says each sentence first for you to say
-  back.
+  weren’t heard said right. Tap a marked character to hear its word said.
+  Practice says each sentence first for you to say back.
 - Listening Characters, as practice and as a quiz: hear a word and pick it out
-  from four that sound alike.
+  from four that sound alike. In practice, a wrong pick is taken away and the
+  word said again until you find it.
 - Listening Sentences practice: hear a sentence and type it back, with another
   try at any you get wrong.
 - On iPhone Duo, the writing pad moves off the fold when you bend the phone:
@@ -46,6 +51,8 @@ one of the two places.
   and Clear buttons fit.
 - Flashcard text no longer runs under the bars along the side of iPhone Duo’s
   outer display.
+- On the Mac, garbled text no longer appears above the progress bar while
+  Mandarin speech recognition downloads.
 
 ## 2.0
 
