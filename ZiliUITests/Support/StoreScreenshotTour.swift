@@ -3,10 +3,6 @@
 //  ZiliUITests
 //
 
-// The UI test target links XCTest, not Swift Testing, so XCTest's own assertions are all that's
-// available here.
-// swiftlint:disable prefer_nimble
-
 #if os(iOS) || os(macOS)
   import XCTest
   import XCUITestKit
@@ -159,10 +155,7 @@
       /// the only ones of their kind left in the app.
       private func closeWindow(of scene: String) {
         app.typeKey("w", modifierFlags: .command)
-        XCTAssertTrue(
-          window(of: scene).waitForNonExistence(timeout: ScaledTimeouts.element),
-          "The \(scene) window closes."
-        )
+        window(of: scene).assertHidden("The \(scene) window closes.")
       }
     #endif
 
@@ -191,5 +184,3 @@
     }
   }
 #endif
-
-// swiftlint:enable prefer_nimble

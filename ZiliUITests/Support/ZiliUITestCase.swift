@@ -229,6 +229,14 @@ class ZiliUITestCase: XCTestCase {
     #endif
   }
 
+  /// Taps the round's Next button and waits for it to leave with the card it graded, so the next
+  /// look at the round finds the following card rather than the outgoing one's controls.
+  func tapNext() {
+    let next = el(AccessibilityID.quizNextButton)
+    next.forceTap()
+    next.waitUntilGone()
+  }
+
   /// Asserts an element with `identifier` appears within the (scaled) timeout.
   @discardableResult
   func expect(_ identifier: String, _ message: String = "") -> XCUIElement {
@@ -246,16 +254,13 @@ class ZiliUITestCase: XCTestCase {
   @discardableResult
   func expectText(of element: XCUIElement, beginningWith prefix: String, _ message: String) -> Bool
   {
-    let expectation = XCTNSPredicateExpectation(
-      predicate: NSPredicate(
-        format: "label BEGINSWITH %@ OR value BEGINSWITH %@",
-        prefix,
-        prefix
-      ),
-      object: element
+    let predicate = NSPredicate(
+      format: "label BEGINSWITH %@ OR value BEGINSWITH %@",
+      prefix,
+      prefix
     )
-    let outcome = XCTWaiter().wait(for: [expectation], timeout: ScaledTimeouts.element)
-    let matched = outcome == .completed
+    let matched =
+      (element.exists && predicate.evaluate(with: element)) || element.waitFor(predicate)
     XCTAssertTrue(matched, message)
     return matched
   }
@@ -287,10 +292,7 @@ class ZiliUITestCase: XCTestCase {
       let hideKey = app.keyboards.buttons[Self.hideKeyboardKey]
       if hideKey.exists {
         hideKey.tap()
-        XCTAssertTrue(
-          app.keyboards.firstMatch.waitForNonExistence(timeout: ScaledTimeouts.element),
-          "The keyboard hides."
-        )
+        app.keyboards.firstMatch.assertHidden("The keyboard hides.")
       } else {
         app.dismissKeyboardStable()
       }
@@ -576,10 +578,19 @@ class ZiliUITestCase: XCTestCase {
     /// Taps the mode's card, reaching it through its skill's card when it isn't on the tab's first
     /// level — a skill with a single mode shows that mode's card there instead of its own.
     private func openCard(_ identifier: String, of skill: String?, in tab: String) async {
-      if let skill, !el(identifier).wait(timeout: Self.firstLevelTimeout) {
-        await tapCard(AccessibilityID.skillCard(skill, in: tab), "The \(skill) card.")
+      if let skill {
+        let skillCard = AccessibilityID.skillCard(skill, in: tab)
+        if firstLevelShows(skillCard, insteadOf: identifier) {
+          await tapCard(skillCard, "The \(skill) card.")
+        }
       }
       await tapCard(identifier, "The \(identifier) card.")
+    }
+
+    /// Whether the tab's first level shows the skill's card rather than the mode's own: the skill's
+    /// card is already there, or the mode's doesn't appear in time.
+    private func firstLevelShows(_ skillCard: String, insteadOf mode: String) -> Bool {
+      el(skillCard).exists || !el(mode).wait(timeout: Self.firstLevelTimeout)
     }
 
     private func tapCard(_ identifier: String, _ message: String) async {

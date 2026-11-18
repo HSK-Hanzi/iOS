@@ -28,7 +28,7 @@
       app.typeKey(.rightArrow, modifierFlags: .command)
 
       let advanced = app.staticTexts[progressText(for: 2)]
-      XCTAssertTrue(advanced.waitForExistence(timeout: 5), "The frontmost quiz advances.")
+      XCTAssertTrue(advanced.wait(timeout: 5), "The frontmost quiz advances.")
       XCTAssertEqual(progressLabels(in: app, reading: 1).count, 1, "The other quiz does not.")
     }
 
@@ -55,10 +55,11 @@
     /// than sampling means a Start click that has registered but not yet dealt is not mistaken for
     /// a dropped one and re-issued into the dismissing sheet.
     private func firstCardCount(in app: XCUIApplication, reaches target: Int) -> Bool {
-      let predicate = NSPredicate(format: "count >= %d", target)
+      let labels = progressLabels(in: app, reading: 1)
+      if labels.count >= target { return true }
       let expectation = XCTNSPredicateExpectation(
-        predicate: predicate,
-        object: progressLabels(in: app, reading: 1)
+        predicate: NSPredicate(format: "count >= %d", target),
+        object: labels
       )
       return XCTWaiter().wait(for: [expectation], timeout: ScaledTimeouts.element) == .completed
     }

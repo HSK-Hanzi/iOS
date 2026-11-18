@@ -48,7 +48,7 @@ final class SpeakingQuizUITests: ZiliUITestCase {
       guard quiz.nextButton.wait() else { break }
 
       expect(verdictID, "The word is graded as expected.")
-      quiz.nextButton.forceTap()
+      tapNext()
     }
   }
 }
