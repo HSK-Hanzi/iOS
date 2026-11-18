@@ -49,7 +49,7 @@ final class SpeakingSentencesUITests: ZiliUITestCase {
       guard next.wait() else { break }
 
       expect(verdictID, "The sentence is graded as expected.")
-      next.forceTap()
+      tapNext()
     }
   }
 }

@@ -50,7 +50,7 @@ final class SpeakingPracticeUITests: ZiliUITestCase {
       guard practice.nextButton.wait() else { break }
 
       expect(verdictID, "The word is graded as expected.")
-      practice.nextButton.forceTap()
+      tapNext()
     }
   }
 }

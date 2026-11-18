@@ -20,8 +20,8 @@ final class ListeningCharactersUITests: ZiliUITestCase {
       guard firstOpenChoice().wait() else { break }
 
       firstOpenChoice().forceTap()
-      let next = expect(AccessibilityID.quizNextButton, "One pick answers the word.")
-      next.forceTap()
+      expect(AccessibilityID.quizNextButton, "One pick answers the word.")
+      tapNext()
     }
 
     expect(
@@ -40,7 +40,7 @@ final class ListeningCharactersUITests: ZiliUITestCase {
       guard firstOpenChoice().wait() else { break }
 
       pickUntilFound()
-      el(AccessibilityID.quizNextButton).forceTap()
+      tapNext()
     }
 
     expect(AccessibilityID.practiceFinished, "Finding every word runs the deck out.")
@@ -48,12 +48,16 @@ final class ListeningCharactersUITests: ZiliUITestCase {
     expect(AccessibilityID.listeningChoice, "Practice Again starts the deck over.")
   }
 
-  /// The first choice still open to pick.
-  private func firstOpenChoice() -> XCUIElement {
+  /// The choices still open to pick.
+  private func openChoices() -> XCUIElementQuery {
     app.descendants(matching: .any)
       .matching(identifier: AccessibilityID.listeningChoice)
       .matching(NSPredicate(format: "isEnabled == true"))
-      .firstMatch
+  }
+
+  /// The first choice still open to pick.
+  private func firstOpenChoice() -> XCUIElement {
+    openChoices().firstMatch
   }
 
   /// Picks open choices one at a time until the word is found and the card turns over — at most
@@ -61,9 +65,17 @@ final class ListeningCharactersUITests: ZiliUITestCase {
   private func pickUntilFound() {
     let next = el(AccessibilityID.quizNextButton)
     for _ in 0..<4 where !next.exists {
+      let openBefore = openChoices().count
       firstOpenChoice().forceTap()
-      _ = next.waitForExistence(timeout: 2)
+      if !next.exists, !ruledOutOne(of: openBefore) { _ = next.wait(timeout: 2) }
     }
     expect(AccessibilityID.quizNextButton, "Ruling out wrong picks leaves the word to find.")
+  }
+
+  /// Whether the last pick was ruled out: one of the `openBefore` choices has gone, and the rest
+  /// are still open.
+  private func ruledOutOne(of openBefore: Int) -> Bool {
+    let open = openChoices().count
+    return open == openBefore - 1 && open > 0
   }
 }
