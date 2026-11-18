@@ -11,9 +11,18 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  route:
+    uses: RISCfuture/ci-workflows/.github/workflows/minerva-route.yml@1.1.0
+    permissions:
+      contents: read
+
   test:
     name: ${{ matrix.plan }} on ${{ matrix.platform.name }}
-    runs-on: xcode-27
+    needs: route
+    # The macOS legs launch a macOS 27 test host, so they run on the macOS 27 pool.
+    runs-on: >-
+      ${{ matrix.platform.name == 'macOS' && fromJSON(needs.route.outputs.macos-27)
+      || fromJSON(needs.route.outputs.xcode-27) }}
     strategy:
       fail-fast: false
       matrix:
@@ -128,7 +137,8 @@ jobs:
 
   documentation:
     name: Build documentation
-    runs-on: xcode-27
+    needs: route
+    runs-on: ${{ fromJSON(needs.route.outputs.xcode-27) }}
     steps:
       # Xcode 27 ships Swift 6.4, so the image already carries the toolchain this project builds
       # with. Nothing installs a standalone Swift on top of it: pointing TOOLCHAINS at one leaves

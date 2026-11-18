@@ -32,10 +32,16 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  route:
+    uses: RISCfuture/ci-workflows/.github/workflows/minerva-route.yml@1.1.0
+    permissions:
+      contents: read
+
   cloudkit:
-    uses: RISCfuture/XCUITestKit/.github/workflows/cloudkit-schema.yml@1.2.1
+    needs: route
+    uses: RISCfuture/XCUITestKit/.github/workflows/cloudkit-schema.yml@1.3.0
     with:
-      runner: xcode-27
+      runner: ${{ needs.route.outputs.macos-27 }}
       team-id: 2NFSK2WB24
       container-id: iCloud.codes.tim.Zili
       certificates-repo: RISCfuture/certificates
@@ -60,15 +66,15 @@ jobs:
       match-password: ${{ secrets.MATCH_PASSWORD }}
 
   release:
-    needs: cloudkit
-    uses: RISCfuture/XCUITestKit/.github/workflows/ios-release.yml@1.2.1
+    needs: [route, cloudkit]
+    uses: RISCfuture/XCUITestKit/.github/workflows/ios-release.yml@1.3.0
     with:
       platforms: '["iOS","macOS","visionOS"]'
       version: ${{ inputs.version || github.ref_name }}
       certificates-repo: RISCfuture/certificates
       # The shared release workflow names no default image, leaving each app to say which one it
       # ships from.
-      runner: xcode-27
+      runner: ${{ needs.route.outputs.xcode-27 }}
       verify-lane: ci_verify_release
       finish-lane: ci_finish_release
       # A Release build reads only the open-licensed data — INCLUDE_LICENSED_DICTIONARIES is set in
